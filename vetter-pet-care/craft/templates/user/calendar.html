@@ -1,0 +1,28 @@
+{% header "Content-Type: application/json" %}
+{% set user = craft.users.id( craft.request.segment(2) ).first() %}
+
+{% set month = craft.calendar.month({
+ dateRangeStart: 'today',
+ dateRangeEnd: 'next 30 days',
+ authorId: user.id
+}) %}
+
+{
+ "userEmail": "{{user.email}}",
+ "userId": "{{user.id}}",
+ "avilable": [
+   {% for event in month.events %}
+   {
+    "postDate":"{{ event.postDate.getTimestamp() }}",
+    "start":"{{ event.startDate.timestamp|date('c') }}",
+    "end":"{{ event.endDate.timestamp|date('c') }}",
+    "repeating":
+    {% if event.repeating %}
+        "Repeats {{ event.readableRepeatRule }}"
+    {% else %}
+        "No"
+    {% endif %}
+   }{% if not loop.last %},{% endif %}
+   {% endfor %}
+]
+}

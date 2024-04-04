@@ -1,0 +1,575 @@
+{% macro addCriteria(criteria, key, string) %}
+    {% if criteria.key is not defined %}
+        {% set criteria = criteria|merge({key: 'and, ' ~ string}) %}
+    {% else %}
+        {% set criteria = criteria|merge({key: criteria.key ~ ', ' ~ string}) %}
+    {% endif %}
+{% endmacro %}
+
+{#
+//    ----------------------------------------
+//    Section filter
+//    ----------------------------------------
+#}
+{% if(craft.request.getParam('sectionId')) %}
+    {% set criteria = {'sectionId': craft.request.getParam('sectionId')} %}
+    {% set section = craft.sections.getSectionById(craft.request.getParam('sectionId')) %}
+{% else %}
+    {% set criteria = {} %}
+    {% set section = 'all' %}
+{% endif %}
+
+{#
+//    ----------------------------------------
+//    Entry Type filter
+//    ----------------------------------------
+#}
+{% if(craft.request.getParam('entryTypeId')) %}
+    {% if section.type is defined and section.type != 'single' %}
+        {% set criteria = criteria|merge({'type': craft.request.getParam('entryTypeId')}) %}
+    {% endif %}
+{% endif %}
+
+{#
+//    ----------------------------------------
+//    Locale
+//    ----------------------------------------
+#}
+{% if(craft.request.getParam('locale')) %}
+    {% set criteria = criteria|merge({'locale': craft.request.getParam('locale')}) %}
+{% else %}
+    {% set criteria = criteria|merge({'locale': firstLocale}) %}
+{% endif %}
+
+
+{#
+//    ----------------------------------------
+//    Order
+//    ----------------------------------------
+#}
+{% if(craft.request.getParam('orderby', 'postDate')) %}
+    {% if craft.request.getParam('orderby') == 'status' %}
+        {% set order = 'enabled ' ~ craft.request.getParam('sort', 'DESC') ~ ', postDate ' ~ craft.request.getParam('sort', 'DESC') %}
+    {% elseif craft.request.getParam('orderby') == 'author' %}
+        {% set order = 'authorId ' ~ craft.request.getParam('sort', 'DESC') %}
+    {% elseif craft.request.getParam('orderby') == 'section' %}
+        {% set order = 'sections.name ' ~ craft.request.getParam('sort', 'DESC') ~ ', postDate ' ~ craft.request.getParam('sort', 'DESC') %}
+    {% elseif craft.request.getParam('orderby') == 'structure' %}
+        {% set order = 'lft asc' %}
+    {% elseif craft.request.getParam('orderby') > 0 %}
+        {% set order = craft.fields.getFieldById(craft.request.getParam('orderby')).handle ~ ' ' ~ craft.request.getParam('sort', 'DESC') %}
+    {% else %}
+        {% set order = craft.request.getParam('orderby', 'postDate') ~ ' ' ~ craft.request.getParam('sort', 'DESC') %}
+    {% endif %}
+    {% set criteria = criteria|merge({'order': order}) %}
+    {# {% set entries = entries.order(order) %} #}
+{% endif %}
+
+{#
+//    ----------------------------------------
+//    Status filter - If provided as a GET var
+//    ----------------------------------------
+#}
+{% if(craft.request.getParam('status')) %}
+    {% set criteria = criteria|merge({'status': craft.request.getParam('status')}) %}
+    {# {% set entries = entries.status(craft.request.getParam('status')) %} #}
+{% else %}
+    {% set criteria = criteria|merge({'status': 'all'}) %}
+    {# {% set entries = entries.status('all') %} #}
+{% endif %}
+
+{% if(craft.request.getParam('filter')) %}
+    {% set filters = craft.request.getParam('filter') %}
+    {% set includeEntries = [] %}
+    {% set excludeEntries = [] %}
+
+
+    {% for index, filter in filters %}
+
+        {% set entryIdList    = '' %}
+
+        {% if filter['second'] in ['doesnotcontain', 'doesnotbeginwith', 'doesnotendwith', 'isnot'] %}
+            {% set notPrefix = 'not ' %}
+            {% set notSearchPrefix = '-' %}
+        {% else %}
+            {% set notPrefix = '' %}
+            {% set notSearchPrefix = '' %}
+        {% endif %}
+
+        {% if filter['second'] in ['contains', 'doesnotcontain'] %}
+            {% set filterString       = '*' ~ filter['third'] ~ '*' %}
+            {% set searchColon        = ':' %}
+        {% elseif filter['second'] in ['beginswith', 'doesnotbeginwith'] %}
+            {% set filterString       = filter['third'] ~ '*' %}
+            {% set searchColon        = '::' %}
+        {% elseif filter['second'] in ['endswith', 'doesnotendwith'] %}
+            {% set filterString       = '*' ~ filter['third'] %}
+            {% set searchColon        = '::' %}
+        {% elseif filter['second'] in ['isempty'] %}
+            {% set filterString       = ':empty:' %}
+        {% elseif filter['second'] in ['isnotempty'] %}
+            {% set filterString       = ':notempty:' %}
+        {% else %}
+            {% set filterString       = '' %}
+            {% set searchColon        = ':' %}
+        {% endif %}
+
+        {% if filter['first'] is defined and filter['third'] is defined and filter['third'] is not empty and filter['second'] not in ['isempty', 'isnotempty'] %}
+            {% if filter['first'] == 'id' %}
+                {#
+                //    ----------------------------------------
+                //    ID filter
+                //    ----------------------------------------
+                #}
+                {% if criteria.id is not defined %}
+                    {% set criteria = criteria|merge({'id': 'and, ' ~ notPrefix ~ filter['third']}) %}
+                {% else %}
+                    {% set criteria = criteria|merge({'id': criteria.id ~ ', ' ~ notPrefix ~ filter['third']}) %}
+                {% endif %}
+
+                {# {% set searchEntries = craft.entries.id(filter['third']).status(null).find() %} #}
+
+            {% elseif filter['first'] == 'title' %}
+                {#
+                //    ----------------------------------------
+                //    Title filter
+                //    ----------------------------------------
+                #}
+                {% if criteria.title is not defined %}
+                    {% set criteria = criteria|merge({'title': 'and, ' ~ notPrefix ~ filterString}) %}
+                {% else %}
+                    {% set criteria = criteria|merge({'title': criteria.title ~ ', ' ~ notPrefix ~ filterString}) %}
+                {% endif %}
+
+                {# {% set searchEntries = craft.entries.title(filterString).status(null).find() %} #}
+
+
+            {% elseif filter['first'] == 'uri' %}
+                {#
+                //    ----------------------------------------
+                //    URI filter
+                //    ----------------------------------------
+                #}
+                {% if criteria.uri is not defined %}
+                    {% set criteria = criteria|merge({'uri': 'and, ' ~ notPrefix ~ filterString}) %}
+                {% else %}
+                    {% set criteria = criteria|merge({'uri': criteria.uri ~ ', ' ~ notPrefix ~ filterString}) %}
+                {% endif %}
+
+                {# {% set searchEntries = craft.entries.uri(filterString).status(null).find() %} #}
+
+            {% elseif filter['first'] == 'status' %}
+                {#
+                //    ----------------------------------------
+                //    Status filter
+                //    ----------------------------------------
+                #}
+                {% if criteria.status is not defined %}
+                    {% set criteria = criteria|merge({'status': 'and, ' ~ notPrefix ~ filter['third']}) %}
+                {% else %}
+                    {% set criteria = criteria|merge({'status': criteria.status ~ ', ' ~ notPrefix ~ filter['third']}) %}
+                {% endif %}
+
+                {# {% set searchEntries = craft.entries.status(filter['third']).find() %} #}
+
+            {% elseif filter['first'] == 'author' %}
+                {#
+                //    ----------------------------------------
+                //    Author filter
+                //    ----------------------------------------
+                #}
+                {% if filter['second'] in ['is', 'isnot'] %}
+                    {% set authors = craft.users.id(filter['third']) %}
+                {# {% if filter['second'] in ['is', 'doesnotcontain'] %}
+                    {% set authors = craft.users.search('firstName:*' ~ filter['third'] ~ '* OR lastName:*' ~ filter['third'] ~ '* OR username:*' ~ filter['third'] ~ '*') %}
+                {% elseif filter['second'] in ['beginswith', 'doesnotbeginwith'] %}
+                    {% set authors = craft.users.search('firstName:' ~ filter['third'] ~ '* OR lastName:' ~ filter['third'] ~ '* OR username:' ~ filter['third'] ~ '*') %}
+                {% elseif filter['second'] in ['endswith', 'doesnotendwith'] %}
+                    {% set authors = craft.users.search('firstName:*' ~ filter['third'] ~ ' OR lastName:*' ~ filter['third'] ~ ' OR username:*' ~ filter['third']) %}
+                 #}
+                {% endif %}
+
+                {% if criteria.authorId is not defined %}
+                    {% if filter['second'] in ['doesnotcontain', 'doesnotbeginwith', 'doesnotendwith', 'isnot'] %}
+                        {% if authors is empty %}
+                            {% set criteria = criteria|merge({'authorId': 'and, not 0'}) %}
+                        {% else %}
+                            {% set criteria = criteria|merge({'authorId': 'and, not ' ~ authors.ids|join(', not ')}) %}
+                        {% endif %}
+                    {% else %}
+                        {% set criteria = criteria|merge({'authorId': 'and, ' ~ authors.ids|join(', ')}) %}
+                    {% endif %}
+                {% else %}
+                    {% if filter['second'] in ['doesnotcontain', 'doesnotbeginwith', 'doesnotendwith', 'isnot'] %}
+                        {% if authors is empty %}
+                            {% set criteria = criteria|merge({'authorId': criteria.authorId ~ ', not 0'}) %}
+                        {% else %}
+                            {% set criteria = criteria|merge({'authorId': criteria.authorId ~ ', not ' ~ authors.ids|join(', not ')}) %}
+                        {% endif %}
+                    {% else %}
+                        {% set criteria = criteria|merge({'authorId': criteria.authorId ~ ', ' ~ authors.ids|join(', ')}) %}
+                    {% endif %}
+                {% endif %}
+
+            {% elseif filter['first'] == 'postDate' %}
+                {#
+                //    ----------------------------------------
+                //    Post Date filter
+                //    ----------------------------------------
+                #}
+                {% switch filter['second'] %}
+                    {% case 'after' %}
+                        {% set criteria = criteria|merge({'after': filter['third'] ~ ' 00:00:00'}) %}
+                    {% case 'before' %}
+                        {% set criteria = criteria|merge({'before': filter['third'] ~ ' 00:00:00'}) %}
+                    {% case 'on' %}
+                        {% set criteria = criteria|merge({'after': filter['third'] ~ ' 00:00:00'}) %}
+                        {% set criteria = criteria|merge({'before': filter['third'] ~ ' 23:59:59'}) %}
+                    {% case 'inthelast' %}
+                        {% set criteria = criteria|merge({'after': now|date_modify("-" ~ filter['third'] ~ " days") ~ ' 00:00:00'}) %}
+                        {% set criteria = criteria|merge({'before': now|date('Y-m-d H:i:s')}) %}
+                    {% case 'inthenext' %}
+                        {% set criteria = criteria|merge({'after': now|date('Y-m-d H:i:s')}) %}
+                        {% set criteria = criteria|merge({'before': now|date_modify("+" ~ (filter['third'] + 1) ~ " days") ~ ' 00:00:00'}) %}
+                    {% case 'between' %}
+                        {% set criteria = criteria|merge({'after': filter['third'] ~ ' 00:00:00'}) %}
+                        {% if filter['fourth'] is defined and filter['fourth'] is not empty %}
+                            {% set criteria = criteria|merge({'before': filter['fourth'] ~ ' 23:59:59'}) %}
+                        {% endif %}
+                {% endswitch %}
+            {% elseif filter['first'] == 'expiryDate' %}
+                {#
+                //    ----------------------------------------
+                //    Expiry Date filter
+                //    ----------------------------------------
+                #}
+                {% switch filter['second'] %}
+                    {% case 'after' %}
+                        {% set criteria = criteria|merge({'expiryDate': '>=' ~ filter['third'] ~ ' 00:00:00'}) %}
+                    {% case 'before' %}
+                        {% set criteria = criteria|merge({'expiryDate': '<=' ~ filter['third'] ~ ' 00:00:00'}) %}
+                    {% case 'on' %}
+                        {% set criteria = criteria|merge({'expiryDate': 'and, >=' ~ filter['third'] ~ ' 00:00:00, <=' ~ filter['third'] ~ ' 23:59:59'}) %}
+                    {% case 'inthelast' %}
+                        {% set criteria = criteria|merge({'expiryDate': 'and, >=' ~ now|date_modify("-" ~ filter['third'] ~ " days") ~ ' 00:00:00, <=' ~ now|date('Y-m-d H:i:s')}) %}
+                    {% case 'inthenext' %}
+                        {% set criteria = criteria|merge({'expiryDate': 'and, >=' ~ now|date('Y-m-d H:i:s') ~ ', <=' ~ now|date_modify("+" ~ (filter['third'] + 1) ~ " days") ~ ' 00:00:00'}) %}
+                    {% case 'between' %}
+                        {% if filter['fourth'] is defined and filter['fourth'] is not empty %}
+                            {% set criteria = criteria|merge({'expiryDate': 'and, >=' ~ filter['third'] ~ ' 00:00:00, <=' ~ filter['fourth'] ~ ' 23:59:59'}) %}
+                        {% else %}
+                            {% set criteria = criteria|merge({'expiryDate': 'and, >=' ~ filter['third'] ~ ' 00:00:00'}) %}
+                        {% endif %}
+                {% endswitch %}
+            {% elseif filter['first'] == 'dateCreated' %}
+                {#
+                //    ----------------------------------------
+                //    Create Date filter
+                //    ----------------------------------------
+                #}
+                {% switch filter['second'] %}
+                    {% case 'after' %}
+                        {% set criteria = criteria|merge({'dateCreated': '>=' ~ filter['third'] ~ ' 00:00:00'}) %}
+                    {% case 'before' %}
+                        {% set criteria = criteria|merge({'dateCreated': '<=' ~ filter['third'] ~ ' 00:00:00'}) %}
+                    {% case 'on' %}
+                        {% set criteria = criteria|merge({'dateCreated': 'and, >=' ~ filter['third'] ~ ' 00:00:00, <=' ~ filter['third'] ~ ' 23:59:59'}) %}
+                    {% case 'inthelast' %}
+                        {% set criteria = criteria|merge({'dateCreated': 'and, >=' ~ now|date_modify("-" ~ filter['third'] ~ " days") ~ ' 00:00:00, <=' ~ now|date('Y-m-d H:i:s')}) %}
+                    {% case 'inthenext' %}
+                        {% set criteria = criteria|merge({'dateCreated': 'and, >=' ~ now|date('Y-m-d H:i:s') ~ ', <=' ~ now|date_modify("+" ~ (filter['third'] + 1) ~ " days") ~ ' 00:00:00'}) %}
+                    {% case 'between' %}
+                        {% if filter['fourth'] is defined and filter['fourth'] is not empty %}
+                            {% set criteria = criteria|merge({'dateCreated': 'and, >=' ~ filter['third'] ~ ' 00:00:00, <=' ~ filter['fourth'] ~ ' 23:59:59'}) %}
+                        {% else %}
+                            {% set criteria = criteria|merge({'dateCreated': 'and, >=' ~ filter['third'] ~ ' 00:00:00'}) %}
+                        {% endif %}
+                {% endswitch %}
+            {% elseif filter['first'] == 'dateUpdated' %}
+                {#
+                //    ----------------------------------------
+                //    Create Date filter
+                //    ----------------------------------------
+                #}
+                {% switch filter['second'] %}
+                    {% case 'after' %}
+                        {% set criteria = criteria|merge({'dateUpdated': '>=' ~ filter['third'] ~ ' 00:00:00'}) %}
+                    {% case 'before' %}
+                        {% set criteria = criteria|merge({'dateUpdated': '<=' ~ filter['third'] ~ ' 00:00:00'}) %}
+                    {% case 'on' %}
+                        {% set criteria = criteria|merge({'dateUpdated': 'and, >=' ~ filter['third'] ~ ' 00:00:00, <=' ~ filter['third'] ~ ' 23:59:59'}) %}
+                    {% case 'inthelast' %}
+                        {% set criteria = criteria|merge({'dateUpdated': 'and, >=' ~ now|date_modify("-" ~ filter['third'] ~ " days") ~ ' 00:00:00, <=' ~ now|date('Y-m-d H:i:s')}) %}
+                    {% case 'inthenext' %}
+                        {% set criteria = criteria|merge({'dateUpdated': 'and, >=' ~ now|date('Y-m-d H:i:s') ~ ', <=' ~ now|date_modify("+" ~ (filter['third'] + 1) ~ " days") ~ ' 00:00:00'}) %}
+                    {% case 'between' %}
+                        {% if filter['fourth'] is defined and filter['fourth'] is not empty %}
+                            {% set criteria = criteria|merge({'dateUpdated': 'and, >=' ~ filter['third'] ~ ' 00:00:00, <=' ~ filter['fourth'] ~ ' 23:59:59'}) %}
+                        {% else %}
+                            {% set criteria = criteria|merge({'dateUpdated': 'and, >=' ~ filter['third'] ~ ' 00:00:00'}) %}
+                        {% endif %}
+                {% endswitch %}
+            {% else %}
+                {% set filterfirst = craft.fields.getFieldById(filter['first']).handle %}
+                {% set fieldType = craft.fields.getFieldByHandle(filterfirst).type %}
+
+                {#
+                //    ----------------------------------------
+                //      Asset filtering
+                //    ----------------------------------------
+                #}
+                {% if fieldType == 'Assets' %}
+
+                    {% set searchEntries  = craft.assets.filename(filterString) %}
+                    {% set relatedEntries = craft.entries.relatedTo(searchEntries).status(null).limit(null)%}
+
+                    {% if filter['second'] in ['doesnotcontain', 'doesnotbeginwith', 'doesnotendwith', 'isnot'] %}
+
+                        {% if relatedEntries is empty %}
+                            {% set relatedEntriesReverse = craft.entries.id('not 0').status(null).limit(null) %}
+                        {% else %}
+                            {% set relatedEntriesReverse = craft.entries.id('and, not ' ~ relatedEntries.ids()|join(', not ')).status(null).limit(null) %}
+                        {% endif %}
+
+                        {% set entryIdList = relatedEntriesReverse.ids() is not empty ? relatedEntriesReverse.ids() : 0 %}
+
+                    {% else %}
+
+                        {% set entryIdList = relatedEntries.ids() is not empty ? relatedEntries.ids() : 0 %}
+
+                    {% endif %}
+
+                {#
+                //    ----------------------------------------
+                //      Category filtering
+                //    ----------------------------------------
+                #}
+                {% elseif fieldType == 'Categories' %}
+
+                    {% set searchEntries  = craft.categories.slug(filter['third']) %}
+                    {% set relatedEntries = craft.entries.relatedTo(searchEntries).status(null).limit(null) %}
+
+                    {% if filter['second'] in ['doesnotcontain', 'doesnotbeginwith', 'doesnotendwith', 'isnot'] %}
+
+                        {% if relatedEntries.ids()|length == 0 %}
+                            {% set relatedEntriesReverse = craft.entries.id('not 0').status(null).limit(null) %}
+                        {% else %}
+                            {% set notrelatedEntriesIdsString = relatedEntries.ids()|join(', not ') %}
+                            {% set relatedEntriesReverse = craft.entries.id('and, not ' ~ notrelatedEntriesIdsString).status(null).limit(null) %}
+                        {% endif %}
+
+                        {% set entryIdList = relatedEntriesReverse.ids() is not empty ? relatedEntriesReverse.ids() : 0 %}
+
+                    {% else %}
+
+                        {% set entryIdList = relatedEntries.ids() is not empty ? relatedEntries.ids() : 0 %}
+
+                    {% endif %}
+
+                {#
+                //    ----------------------------------------
+                //      Tag filtering
+                //    ----------------------------------------
+                #}
+                {% elseif fieldType == 'Tags' %}
+
+                    {% set searchEntries  = craft.tags.search(filterString) %}
+                    {% set relatedEntries = craft.entries.relatedTo(searchEntries).status(null).limit(null) %}
+
+                    {% if filter['second'] in ['doesnotcontain', 'doesnotbeginwith', 'doesnotendwith', 'isnot'] %}
+
+                        {% if relatedEntries is empty %}
+                            {% set relatedEntriesReverse = craft.entries.id('not 0').status(null).limit(null) %}
+                        {% else %}
+                            {% set relatedEntriesReverse = craft.entries.id('and, not ' ~ relatedEntries.ids()|join(', not ')).status(null).limit(null) %}
+                        {% endif %}
+
+                        {% set entryIdList = relatedEntriesReverse.ids() is not empty ? relatedEntriesReverse.ids() : 0 %}
+
+                    {% else %}
+
+                        {% set entryIdList = relatedEntries.ids() is not empty ? relatedEntries.ids() : 0 %}
+
+                    {% endif %}
+                {#
+                //    ----------------------------------------
+                //      Lightswitch filtering
+                //    ----------------------------------------
+                #}
+                {% elseif fieldType == 'Lightswitch' %}
+                    {% set criteria = criteria|merge({ (filterfirst): filter['third'] == 1 ? 1 : '"not 1"' }) %}
+                {#
+                //    ----------------------------------------
+                //      Dropdown filtering
+                //    ----------------------------------------
+                #}
+                {% elseif fieldType in ['Dropdown', 'RadioButtons', 'PositionSelect'] %}
+                    {% if filter['second'] in ['is'] %}
+                        {% if criteria[filterfirst] is defined %}
+                            {% set criteria = criteria|merge({ (filterfirst): (criteria[filterfirst] ~ ', ' ~ filter['third']) }) %}
+                        {% else %}
+                            {% set criteria = criteria|merge({ (filterfirst): ('and, ' ~ filter['third']) }) %}
+                        {% endif %}
+                    {% else %}
+                        {% if criteria[filterfirst] is defined %}
+                            {% set criteria = criteria|merge({ (filterfirst): (criteria[filterfirst] ~ ', not ' ~ filter['third']) }) %}
+                        {% else %}
+                            {% set criteria = criteria|merge({ (filterfirst): ('and, not ' ~ filter['third']) }) %}
+                        {% endif %}
+                    {% endif %}
+                {#
+                //    ----------------------------------------
+                //    Date filtering
+                //    ----------------------------------------
+                #}
+                {% elseif fieldType == 'Date' %}
+                    {% switch filter['second'] %}
+                        {% case 'after' %}
+                            {% set criteria = criteria|merge({(filterfirst): '>=' ~ filter['third'] ~ ' 00:00:00'}) %}
+                        {% case 'before' %}
+                            {% set criteria = criteria|merge({(filterfirst): '<=' ~ filter['third'] ~ ' 00:00:00'}) %}
+                        {% case 'on' %}
+                            {% set criteria = criteria|merge({(filterfirst): 'and, >=' ~ filter['third'] ~ ' 00:00:00, <=' ~ filter['third'] ~ ' 23:59:59'}) %}
+                        {% case 'inthelast' %}
+                            {% set criteria = criteria|merge({(filterfirst): 'and, >=' ~ now|date_modify("-" ~ filter['third'] ~ " days") ~ ' 00:00:00, <=' ~ now|date('Y-m-d H:i:s')}) %}
+                        {% case 'inthenext' %}
+                            {% set criteria = criteria|merge({(filterfirst): 'and, >=' ~ now|date('Y-m-d H:i:s') ~ ', <=' ~ now|date_modify("+" ~ (filter['third'] + 1) ~ " days") ~ ' 00:00:00'}) %}
+                        {% case 'between' %}
+                            {% if filter['fourth'] is defined and filter['fourth'] is not empty %}
+                                {% set criteria = criteria|merge({(filterfirst): 'and, >=' ~ filter['third'] ~ ' 00:00:00, <=' ~ filter['fourth'] ~ ' 23:59:59'}) %}
+                            {% else %}
+                                {% set criteria = criteria|merge({(filterfirst): 'and, >=' ~ filter['third'] ~ ' 00:00:00'}) %}
+                            {% endif %}
+                    {% endswitch %}
+                {#
+                //    ----------------------------------------
+                //      Other filtering
+                //    ----------------------------------------
+                #}
+                {% else %}
+
+                    {% if criteria.search is not defined %}
+                        {% set criteria = criteria|merge({'search': notSearchPrefix ~ filterfirst ~ searchColon ~ filterString}) %}
+                    {% else %}
+                        {% set criteria = criteria|merge({'search': criteria.search ~ ', ' ~ notSearchPrefix ~ filterfirst ~ searchColon ~ filterString}) %}
+                    {% endif %}
+
+                {% endif %}
+            {% endif %}
+
+        {% endif %}
+
+        {#
+        //    ----------------------------------------
+        //      Is empty / Is not empty filtering
+        //    ----------------------------------------
+        #}
+        {% if filter['first'] is defined and filter['second'] in ['isempty', 'isnotempty'] %}
+            {% set filterfirst = craft.fields.getFieldById(filter['first']).handle %}
+            {% set fieldType = craft.fields.getFieldByHandle(filterfirst).type %}
+            {% set criteria = criteria|merge({(filterfirst): filterString}) %}
+        {% endif %}
+
+        {% if entryIdList is not empty %}
+            {% if criteria.id is not defined %}
+                {% set criteria = criteria|merge({'id': entryIdList|join(', ')}) %}
+            {% else %}
+                {% set intersect = criteria.id|split(', ')|intersect(entryIdList) %}
+                {% set criteria = criteria|merge({'id': intersect|join(', ')}) %}
+            {% endif %}
+        {% endif %}
+
+    {% endfor %} {# index, filter in filters #}
+
+{% endif %}
+
+{#
+//    ----------------------------------------
+//      Include only editable/accessible entries
+//    ----------------------------------------
+#}
+{% if CraftEdition == 2 %}
+
+    {# When Section is "All Sections" #}
+    {% if craft.request.getParam('sectionId') == '' %}
+        {% for sectionId, sectionName in craft.sections.getEditableSections() %}
+            {% if currentUser.can('editEntries:' ~ sectionId) %}
+                {% if criteria.authorId is not defined %}
+                    {% if currentUser.can('editPeerEntries:' ~ sectionId) %}
+                    {% else %}
+                        {% set criteria = criteria|merge({'authorId': currentUser.id}) %}
+                    {% endif %}
+                {% else %}
+                    {% if currentUser.can('editPeerEntries:' ~ sectionId) %}
+                    {% else %}
+                        {% set criteria = criteria|merge({'authorId': criteria.authorId ~ ', ' ~ currentUser.id}) %}
+                    {% endif %}
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
+
+    {# When Section is a specific section #}
+    {% if currentUser.can('editEntries:' ~ craft.request.getParam('sectionId')) %}
+        {% if criteria.authorId is not defined %}
+            {% if currentUser.can('editPeerEntries:' ~ craft.request.getParam('sectionId')) %}
+            {% else %}
+                {% set criteria = criteria|merge({'authorId': currentUser.id}) %}
+            {% endif %}
+        {% else %}
+            {% if currentUser.can('editPeerEntries:' ~ craft.request.getParam('sectionId')) %}
+            {% else %}
+                {% set criteria = criteria|merge({'authorId': criteria.authorId ~ ', ' ~ currentUser.id}) %}
+            {% endif %}
+        {% endif %}
+    {% endif %}
+
+{% endif %}
+
+{#
+//    ----------------------------------------
+//      Limit
+//    ----------------------------------------
+#}
+{% set criteria = criteria|merge({'limit': craft.request.getParam('limit', 25)}) %}
+
+{#
+//    ----------------------------------------
+//      Eager loading
+//    ----------------------------------------
+#}
+{% set eager = [] %}
+{% for field in fields if field.type in ['Matrix', 'Assets', 'Entries', 'Categories', 'Tags'] %}
+    {% set eager = eager|merge([(field.handle)]) %}
+{% endfor %}
+
+{% set criteria = criteria|merge({'with': eager}) %}
+
+{#
+//    ----------------------------------------
+//      Get entries
+//    ----------------------------------------
+#}
+{% set entries = craft.entries(criteria) %}
+{% set totalResults = entries.total() %}
+
+{#
+//    ----------------------------------------
+//      Pagination
+//    ----------------------------------------
+#}
+{% include "zenbu/main/pagination" %}
+
+{#
+//    ----------------------------------------
+//      Display result table
+//    ----------------------------------------
+#}
+{% include "zenbu/main/displayResults" %}
+
+{# DEBUG #}
+{% if craft.config.devMode and baseSettings.show_search_criteria == 'y' %}
+    <h3>Search Criteria</h3>
+    {{criteria|zenbuDump}}
+{% endif %}

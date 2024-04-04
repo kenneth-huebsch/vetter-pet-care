@@ -1,0 +1,20 @@
+{% header "Content-Type: application/json" %}
+{% if currentUser %}
+
+
+{% set results = [] %}
+{%
+  set results = results | merge([{
+    "email" : currentUser.email ,
+    "phone" : currentUser.cellPhone ,
+    "zip" :  currentUser.zip,
+    "streetAddress" : currentUser.streetAddress,
+    "streetAddress2" : currentUser.streetAddress2,
+    "city" : currentUser.city,
+    "id" : currentUser.id,
+    "name" : currentUser.friendlyName,
+  }])
+%}
+{{ results | json_encode() | raw }}
+
+{% endif %}

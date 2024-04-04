@@ -1,0 +1,384 @@
+@import "mq";
+/**
+ * @license
+ * MyFonts Webfont Build ID 3392051, 2017-05-19T14:20:28-0400
+ *
+ * The fonts listed in this notice are subject to the End User License
+ * Agreement(s) entered into by the website owner. All other parties are
+ * explicitly restricted from using the Licensed Webfonts(s).
+ *
+ * You may obtain a valid license at the URLs below.
+ *
+ * Webfont: AvenirLTPro-Medium by Linotype
+ * URL: https://www.myfonts.com/fonts/linotype/avenir-pro/pro-65-medium/
+ *
+ * Webfont: AvenirLTPro-BlackOblique by Linotype
+ * URL: https://www.myfonts.com/fonts/linotype/avenir-pro/pro-95-black-oblique/
+ *
+ * Webfont: AvenirLTPro-Light by Linotype
+ * URL: https://www.myfonts.com/fonts/linotype/avenir-pro/pro-35-light/
+ *
+ * Webfont: AvenirLTPro-Oblique by Linotype
+ * URL: https://www.myfonts.com/fonts/linotype/avenir-pro/pro-55-oblique/
+ *
+ * Webfont: AvenirLTPro-Roman by Linotype
+ * URL: https://www.myfonts.com/fonts/linotype/avenir-pro/pro-55-roman/
+ *
+ * Webfont: AvenirLTPro-MediumOblique by Linotype
+ * URL: https://www.myfonts.com/fonts/linotype/avenir-pro/pro-65-medium-oblique/
+ *
+ * Webfont: AvenirLTPro-Heavy by Linotype
+ * URL: https://www.myfonts.com/fonts/linotype/avenir-pro/pro-85-heavy/
+ *
+ * Webfont: AvenirLTPro-HeavyOblique by Linotype
+ * URL: https://www.myfonts.com/fonts/linotype/avenir-pro/pro-85-heavy-oblique/
+ *
+ * Webfont: AvenirLTPro-Black by Linotype
+ * URL: https://www.myfonts.com/fonts/linotype/avenir-pro/pro-95-black/
+ *
+ *
+ * License: https://www.myfonts.com/viewlicense?type=web&buildid=3392051
+ * Licensed pageviews: 250,000
+ * Webfonts copyright: Part of the digitally encoded machine readable outline data for producing the Typefaces provided is copyrighted &#x00A9; 2007 Linotype GmbH, www.linotype.com. All rights reserved. This software is the property of Linotype GmbH, and may not be reproduced,
+ *
+ * © 2017 MyFonts Inc
+*/
+
+
+/* @import must be at top of file, otherwise CSS will not work */
+@import url("//hello.myfonts.net/count/33c233");
+
+
+@font-face {font-family: 'AvenirLTPro-Medium';src: url('../fonts/33C233_0_0.eot');src: url('../fonts/33C233_0_0.eot?#iefix') format('embedded-opentype'),url('../fonts/33C233_0_0.woff2') format('woff2'),url('../fonts/33C233_0_0.woff') format('woff'),url('../fonts/33C233_0_0.ttf') format('truetype');}
+
+
+@font-face {font-family: 'AvenirLTPro-BlackOblique';src: url('../fonts/33C233_1_0.eot');src: url('../fonts/33C233_1_0.eot?#iefix') format('embedded-opentype'),url('../fonts/33C233_1_0.woff2') format('woff2'),url('../fonts/33C233_1_0.woff') format('woff'),url('../fonts/33C233_1_0.ttf') format('truetype');}
+
+
+@font-face {font-family: 'AvenirLTPro-Light';src: url('../fonts/33C233_2_0.eot');src: url('../fonts/33C233_2_0.eot?#iefix') format('embedded-opentype'),url('../fonts/33C233_2_0.woff2') format('woff2'),url('../fonts/33C233_2_0.woff') format('woff'),url('../fonts/33C233_2_0.ttf') format('truetype');}
+
+
+@font-face {font-family: 'AvenirLTPro-Oblique';src: url('../fonts/33C233_3_0.eot');src: url('../fonts/33C233_3_0.eot?#iefix') format('embedded-opentype'),url('../fonts/33C233_3_0.woff2') format('woff2'),url('../fonts/33C233_3_0.woff') format('woff'),url('../fonts/33C233_3_0.ttf') format('truetype');}
+
+
+@font-face {font-family: 'AvenirLTPro-Roman';src: url('../fonts/33C233_4_0.eot');src: url('../fonts/33C233_4_0.eot?#iefix') format('embedded-opentype'),url('../fonts/33C233_4_0.woff2') format('woff2'),url('../fonts/33C233_4_0.woff') format('woff'),url('../fonts/33C233_4_0.ttf') format('truetype');}
+
+
+@font-face {font-family: 'AvenirLTPro-MediumOblique';src: url('../fonts/33C233_5_0.eot');src: url('../fonts/33C233_5_0.eot?#iefix') format('embedded-opentype'),url('../fonts/33C233_5_0.woff2') format('woff2'),url('../fonts/33C233_5_0.woff') format('woff'),url('../fonts/33C233_5_0.ttf') format('truetype');}
+
+
+@font-face {font-family: 'AvenirLTPro-Heavy';src: url('../fonts/33C233_6_0.eot');src: url('../fonts/33C233_6_0.eot?#iefix') format('embedded-opentype'),url('../fonts/33C233_6_0.woff2') format('woff2'),url('../fonts/33C233_6_0.woff') format('woff'),url('../fonts/33C233_6_0.ttf') format('truetype');}
+
+
+@font-face {font-family: 'AvenirLTPro-HeavyOblique';src: url('../fonts/33C233_7_0.eot');src: url('../fonts/33C233_7_0.eot?#iefix') format('embedded-opentype'),url('../fonts/33C233_7_0.woff2') format('woff2'),url('../fonts/33C233_7_0.woff') format('woff'),url('../fonts/33C233_7_0.ttf') format('truetype');}
+
+
+@font-face {font-family: 'AvenirLTPro-Black';src: url('../fonts/33C233_8_0.eot');src: url('../fonts/33C233_8_0.eot?#iefix') format('embedded-opentype'),url('../fonts/33C233_8_0.woff2') format('woff2'),url('../fonts/33C233_8_0.woff') format('woff'),url('../fonts/33C233_8_0.ttf') format('truetype');}
+
+.AvenirLTPro-Medium { font-family: AvenirLTPro-Medium; }
+.AvenirLTPro-BlackOblique { font-family: AvenirLTPro-BlackOblique; }
+.AvenirLTPro-Light { font-family: AvenirLTPro-Light; }
+.AvenirLTPro-Oblique { font-family: AvenirLTPro-Oblique; }
+.AvenirLTPro-Roman { font-family: AvenirLTPro-Roman; }
+.AvenirLTPro-MediumOblique { font-family: AvenirLTPro-MediumOblique; }
+.AvenirLTPro-Heavy { font-family: AvenirLTPro-Heavy; }
+.AvenirLTPro-HeavyOblique { font-family: AvenirLTPro-HeavyOblique; }
+.AvenirLTPro-Black { font-family: AvenirLTPro-Black; }
+
+
+
+@font-face {
+  font-family: 'icomoon';
+  src:  url('../fonts/icomoon.eot?nu89hq');
+  src:  url('../fonts/icomoon.eot?nu89hq#iefix') format('embedded-opentype'),
+    url('../fonts/icomoon.ttf?nu89hq') format('truetype'),
+    url('../fonts/icomoon.woff?nu89hq') format('woff'),
+    url('../fonts/icomoon.svg?nu89hq#icomoon') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+
+[class^="icon-"], [class*=" icon-"] {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'icomoon' !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+.icon-book:before {
+  content: "\e919";
+}
+.icon-clipboard2:before {
+  content: "\e915";
+}
+.icon-graph:before {
+  content: "\e916";
+}
+.icon-activity:before {
+  content: "\e917";
+}
+.icon-alert-triangle:before {
+  content: "\e91a";
+}
+.icon-arrow-left:before {
+  content: "\e90c";
+}
+.icon-arrow-right:before {
+  content: "\e90d";
+}
+.icon-check-circle2:before {
+  content: "\e90e";
+}
+.icon-check2:before {
+  content: "\e914";
+}
+.icon-clock:before {
+  content: "\e90f";
+}
+.icon-minus:before {
+  content: "\e910";
+}
+.icon-plus:before {
+  content: "\e911";
+}
+.icon-check-circle:before {
+  content: "\e90b";
+}
+.icon-cancel:before {
+  content: "\e903";
+}
+.icon-file_upload:before {
+  content: "\e904";
+}
+.icon-add_circle:before {
+  content: "\e905";
+}
+.icon-check:before {
+  content: "\f00c";
+}
+.icon-trash-o:before {
+  content: "\f014";
+}
+.icon-pencil:before {
+  content: "\f040";
+}
+.icon-calendar:before {
+  content: "\f073";
+}
+.icon-credit-card2:before {
+  content: "\f09d";
+}
+.icon-user-md:before {
+  content: "\f0f0";
+}
+.icon-stethoscope:before {
+  content: "\f0f1";
+}
+.icon-medkit:before {
+  content: "\f0fa";
+}
+.icon-paw2:before {
+  content: "\f1b0";
+}
+.icon-wechat:before {
+  content: "\f1d7";
+}
+.icon-weixin:before {
+  content: "\f1d7";
+}
+.icon-heartbeat:before {
+  content: "\f21e";
+}
+.icon-calendar-check-o:before {
+  content: "\f274";
+}
+.icon-user-circle-o:before {
+  content: "\f2be";
+}
+.icon-credit-card:before {
+  content: "\e906";
+}
+.icon-paw:before {
+  content: "\e907";
+}
+.icon-image:before {
+  content: "\e908";
+}
+.icon-photo:before {
+  content: "\e908";
+}
+.icon-picture-o:before {
+  content: "\e908";
+}
+.icon-google:before {
+  content: "\e909";
+}
+.icon-facebook:before {
+  content: "\e90a";
+}
+.icon-facebook-f:before {
+  content: "\e90a";
+}
+.icon-facebook-square:before {
+  content: "\e902";
+}
+.icon-instagram:before {
+  content: "\e900";
+}
+.icon-twitter:before {
+  content: "\e901";
+}
+.icon-heart2:before {
+  content: "\e918";
+}
+.icon-image2:before {
+  content: "\e912";
+}
+.icon-images:before {
+  content: "\e913";
+}
+.icon-file-empty:before {
+  content: "\e924";
+}
+.icon-file-text2:before {
+  content: "\e926";
+}
+.icon-file-picture:before {
+  content: "\e927";
+}
+.icon-paste:before {
+  content: "\e92d";
+}
+.icon-calendar2:before {
+  content: "\e953";
+}
+.icon-hour-glass:before {
+  content: "\e979";
+}
+.icon-aid-kit:before {
+  content: "\e998";
+}
+.icon-clipboard:before {
+  content: "\e9b8";
+}
+.icon-heart:before {
+  content: "\e9da";
+}
+
+
+
+html {
+  font-size: 16px;
+  line-height: 1.4;
+
+  @media (min-width: 1200px) {
+    font-size: 1em; // this is 20px
+    // Slight change in line heights at 1200px
+    line-height: 1.45 // this is 29px
+  }
+}
+
+// Resets margins
+body, h1, p {
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, .heading, .subheading {
+	font-family: 'AvenirLTPro-Black';
+	font-style: normal;
+}
+
+h1 {
+ font-family: 'AvenirLTPro-Black';
+	font-size: 38px;
+	font-weight: normal;
+	line-height: 52px;
+ @include MQ(Mneg) {
+  font-size: 30px;
+  line-height: 36px;
+ }
+}
+
+h2 {
+ font-family: 'AvenirLTPro-Black';
+	font-size: 29px;
+	font-weight: normal;
+ @include MQ(Mneg) {
+  font-size: 27px;
+ }
+}
+
+h2+h2 {
+  margin-top: 0;
+}
+
+h3, .heading {
+ font-size: 26px;
+ font-weight: normal;
+ @include MQ(Mneg) {
+  font-size: 26px;
+ }
+}
+
+h4, .subheading {
+ font-size: 22px;
+ font-weight: normal;
+ margin: 0.5em 0;
+ @include MQ(Mneg) {
+  font-size: 20px;
+ }
+}
+
+h5 {
+ margin: 0 0 10px 0;
+ font-size: 20px;
+ font-weight: normal;
+ @include MQ(Mneg) {
+  font-size: 18px;
+ }
+}
+
+.heading, .subheading {
+ margin: 1em 0;
+ display: block;
+}
+
+
+
+em,
+i {
+    font-style: italic;
+}
+b,
+strong {
+    font-family: 'AvenirLTPro-Black';
+    font-weight: normal;
+}
+
+a {
+  @include transition;
+ color: $blue-medium;
+ font-family: 'AvenirLTPro-Heavy';
+ text-decoration: none;
+ &:visited {
+  color: $blue-medium;
+ }
+ &:hover {
+  text-decoration: underline;
+ }
+}
+
+p + p {
+  margin-top: 1.4em;
+  @media (min-width: 1200px) {
+    margin-top: 1.45em
+  }
+}

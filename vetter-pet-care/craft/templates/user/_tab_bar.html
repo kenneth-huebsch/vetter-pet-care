@@ -1,0 +1,9 @@
+<div class="mini-nav">
+
+    <a href="{{customerAccountSetUp.customerAccountTab1Link}}">{{customerAccountSetUp.customerAccountTab1|striptags|nl2br}}</a>
+    <a href="{{customerAccountSetUp.customerAccountTab2Link}}" class="active">{{customerAccountSetUp.customerAccountTab2|striptags|nl2br}}</a>
+    <a href="{{customerAccountSetUp.customerAccountTab3Link}}">{{customerAccountSetUp.customerAccountTab3|striptags|nl2br}}</a>
+    {% if flow == 'schedule' %}
+    <a href="{{customerAccountSetUp.customerAccountTab4Link}}">{{customerAccountSetUp.customerAccountTab4|striptags|nl2br}}</a>
+    {% endif %}
+</div>

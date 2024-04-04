@@ -1,0 +1,149 @@
+
+{% extends "charge/_layouts/cp" %}
+{% set title = "View Processed Appointment"|t %}
+{% set selectedSubnavItem = 'processed' %}
+{% block content %}
+ <link rel="stylesheet" href="{{ siteUrl }}assets/css/style.css?v1">
+<div class="pane">
+  
+{% set customer = craft.users.id( entry.customerRealId ).first() %}
+
+
+{% if entry.headerImage | length %}
+<div class="mast" style="background: url('{{entry.headerImage[0].url}}') center center no-repeat; background-size: cover;"></div>
+{% endif %}
+
+ <div class="content booking-detail">
+  <span class="right"><a href="{{siteUrl}}user/{{currentUser.id}}/upcoming" class="bta button blue">Back To Appointments</a></span>
+
+<br class="window">
+    <b>Appointment Number #{{entry.appointmentIdNumber}}</b></br>
+  {% set petnum = entry.pets|length %}
+  <span class="times">
+  {% if petnum < 2 %}
+  {{ entry.appointmentStartTime|date("m/d/Y") }} from {{entry.appointmentStartTime|date("h:iA")}} - {{entry.appointmentStartTime|date_modify("+30 minutes")|date("h:iA")}}
+  {% else %}
+  {{ entry.appointmentStartTime|date("m/d/Y") }} from {{entry.appointmentStartTime|date("h:iA")}} - {{entry.appointmentStartTime|date_modify("+90 minutes")|date("h:iA")}}
+  {% endif %}
+  for {{ petnum }} pets </span>
+
+  <div class="line"></div>
+  <section class="rev-section">
+   <div class="section-title clearfix">
+    <span>Basic Information</span>
+   </div>
+
+   <div class="section-info clearfix">
+    <div class="section-row clearfix">
+            {{customer.firstName}} {{customer.lastName}}</br>
+            {{entry.customerIdNumber}}</br>
+            {{entry.customeremail}}</br></br>
+     <div class="section-label">
+      <label for="streetaddress">Address</label>
+      {{customer.streetAddress}} <br>
+      {% if customer.streetAddress2 != "" %}{{customer.streetAddress2}} <br>{% endif %}
+     {{customer.city}} {{customer.states}} {{customer.customerZip.first()}}
+     </div>
+     <div class="section-label">
+      <label for="cellphone">Cell Phone</label>
+          {{customer.cellPhone}}
+     </div>
+    </div>
+     {% if entry.alternateContactName|length %}
+    <div class="section-row clearfix">
+     <div class="section-label">
+      <label for="streetaddress">Alternate Contact</label>
+      {{ entry.alternateContactName }}
+     </div>
+
+     {% if entry.alternateContactCellNumber|length %}
+     <div class="section-label">
+      <label for="cellphone">Cell Phone</label>
+          {{ entry.alternateContactCellNumber }}
+     </div>
+     {% endif %}
+    </div>
+    {% endif %}
+
+    {% if entry.specialInstructionsForVet|length %}
+    <div class="section-row clearfix">
+     <label for="special">Special Instructions for the Vet</label>
+     <div class="specialinfo">{{ entry.specialInstructionsForVet }}</div>
+    </div>
+    {% endif %}
+
+    <div class="section-row clearfix">
+     <label for="special">Reason for Appointment</label>
+     <div class="reasons">
+     {% for reason in entry.reasonForAppointment %}
+      {{ reason.label }}<br>
+     {% endfor %}
+    </div>
+    </div>
+   </div>
+  </section>
+  <div class="line"></div>
+  <section class="rev-section">
+   <div class="section-title clearfix">
+    <span>Pet Information</span>
+   </div>
+   <div class="section-info clearfix">
+    <div class="section-row clearfix pet-list">
+     {% for pet in entry.pets %}
+     <div class="pet">
+      <div class="name">{{pet.petFirstName}}</div>
+      <div class="pet-line"><label>Birthdate:</label><span class="response"> {{pet.birthdate|date("m/d/Y") }}</span></div>
+      <div class="pet-line"><label>Species:</label><span class="response"> {{pet.species }}</span></div>
+      <div class="pet-line"><label>Breed:</label><span class="response">{{pet.breed }}</span></div>
+      <div class="pet-line"><label>Gender:</label><span class="response">{{pet.gender }}</span></div>
+      <div class="pet-line"><label>Spayed or Neutured?</label><span class="response">{{pet.spayedOrNeutered}}</span></div>
+      <div class="pet-line"><label>Aggression:</label><span class="response">{{pet.aggressiveBehavior}}</span></div>
+       {% if pet.aggressiveBehavior == 'yes' %}
+       <div class="pet-line"><label class="wide">Details About Aggressive Behavior:</label><span class="response wide">{{pet.detailAboutAggressiveBehavior}}</span></div>
+       {% endif %}
+      <div class="pet-line"><label class="wide">General Information:</label><span class="response wide">{{pet.generalInformation}}</span></div>
+     </div>
+     {% endfor %}
+    </div>
+   </div>
+
+ </div>
+
+</div>
+<div class="pane">
+{% if entry.processedstatus == "Processed" %}
+  {% if customer.coupons_used|length > 0 %}
+    {% for coupon in customer.coupons_used %}
+      {% if coupon.used_status == "used" %}
+        {% if coupon.ap_id == apptId %}
+        <b>Discount {{coupon.coupon_code}} for {{coupon.value}} was used for this appointment </b><br><br>
+        {% endif %}
+       {% endif %}
+    {% endfor %}
+  {% endif %}
+  <h3>Amount Paid: ${{entry.amount}}</h3> 
+  <form class="charge-refund-action" method="post" accept-charset="UTF-8">
+                        <input type="hidden" name="action" value="">
+                        <input type="hidden" name="redirect" value="">
+                        {{ getCsrfInput() }}
+                        <div class="btngroup">
+                            <input type="button" class="btn small formsubmit"
+                                   value="{{ 'Refund Payment'|t }}"
+                                   data-action="charge/appointments/refundPayment"
+                                   data-confirm="{{ 'Are you sure you want to refund this payment?'|t }}"
+                                   data-redirect="charge/appointments/viewProcessed/{{ entry.id }}"
+                                   data-param="paymentId"
+                                   data-value="{{ entry.paymentid }}">
+                                  <input type="hidden" name="entry_id" value="{{id}}" />
+                        </div>
+                    </form>
+{% elseif entry.processedstatus == "Refunded" %}
+ <h3>Amount Paid: <strike>${{entry.amount}}</strike> - Refunded</h3> 
+{% else %}
+{% endif %}
+</div>
+{% endblock %}
+{% includejs %}
+    new Craft.ElevatedSessionForm('.charge-refund-action');
+    new Craft.ElevatedSessionForm('.charge-recur-cancel-action');
+{% endincludejs %}

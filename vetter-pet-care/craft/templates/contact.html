@@ -1,0 +1,161 @@
+{% extends "_layout-lead" %} {% block content %}
+<h1>
+  {% if entry.displayTitle %} {{ entry.displayTitle }} {% else %}
+  {{ entry.title }} {% endif %}
+</h1>
+<div class="content">{{ entry.body }}</div>
+<div class="form-container">
+  <div class="container pawprint">
+    <div class="form">
+      {% set form = craft.amForms.getForm('contactForm') %} {% if
+      craft.request.getParam('submitted') == form.handle %}
+      <p>{{ form.afterSubmitText|default('Thanks for your submission.'|t) }}</p>
+      {% else %} {%- set submitValue = (form.submitButton ? form.submitButton :
+      'Submit'|t) -%}
+      <form method="post" class="contact-form" action="" accept-charset="UTF-8">
+        {{ getCsrfInput() }}
+
+        {# This should always be here! #}
+        <input
+          type="hidden"
+          name="action"
+          value="amForms/submissions/saveSubmission"
+        />
+
+        {# Insert your form's handle. #}
+        <input type="hidden" name="handle" value="{{ form.handle }}" />
+
+        {% if form.afterSubmit == 'redirectEntryId' and form.redirectEntryId -%}
+        <input
+          type="hidden"
+          name="redirect"
+          value="{{ form.getRedirectUrl() }}"
+        />
+        {% elseif form.afterSubmit == 'redirectUrl' and form.redirectUrl|length
+        %}
+        <input type="hidden" name="redirect" value="{{ form.redirectUrl }}" />
+        {% endif -%} {# Optional: Anti-spam protection. #}
+        {{ craft.amForms.displayAntispam() }}
+
+        {# This will namespace your inputs (for IDs and such), but it's not
+        required though #}
+        <input
+          type="hidden"
+          name="namespace"
+          value="{{ form.getNamespace() }}"
+        />
+        <div class="form-inputrow">
+          <div class="input-item">
+            <span class="input input--yoshiko fullName">
+              <input
+                class="input__field input__field--yoshiko"
+                type="text"
+                id="fullName"
+                name="{{ form.getNamespace() }}[fields][fullName]"
+                value="{{ currentUser.firstName }} {{ currentUser.lastName }}"
+              />
+              <label class="input__label input__label--yoshiko" for="fullName">
+                <span
+                  class="input__label-content input__label-content--yoshiko"
+                  data-content="Full Name"
+                  >Full Name</span
+                >
+              </label>
+            </span>
+          </div>
+
+          <div class="input-item">
+            <span class="input input--yoshiko telephoneNumber">
+              <input
+                class="input__field input__field--yoshiko"
+                type="text"
+                id="telephoneNumber"
+                name="{{ form.getNamespace() }}[fields][telephoneNumber]"
+              />
+              <label
+                class="input__label input__label--yoshiko"
+                for="telephoneNumber"
+              >
+                <span
+                  class="input__label-content input__label-content--yoshiko"
+                  data-content="Phone"
+                  >Phone</span
+                >
+              </label>
+            </span>
+          </div>
+        </div>
+
+        <div class="form-inputrow">
+          <div class="input-item">
+            <span class="input input--yoshiko emailAddress">
+              <input
+                class="input__field input__field--yoshiko"
+                type="email"
+                id="emailAddress"
+                name="{{ form.getNamespace() }}[fields][emailAddress]"
+                value="{{ currentUser.email }}"
+              />
+              <label
+                class="input__label input__label--yoshiko"
+                for="emailAddress"
+              >
+                <span
+                  class="input__label-content input__label-content--yoshiko"
+                  data-content="Email Address"
+                  >Email Address</span
+                >
+              </label>
+            </span>
+          </div>
+        </div>
+
+        <div class="form-inputrow">
+          <div class="input-item">{{ form.displayField("subject") }}</div>
+        </div>
+
+        <div class="form-inputrow">
+          <div class="input-item">{{ form.displayField("comment") }}</div>
+        </div>
+        <div class="form-inputrow">
+          <div class="input-item">
+            {{ form.displayField("doYouHaveAVetterAccount") }}
+          </div>
+        </div>
+        <div class="btn-container">
+          <input
+            class="button blue"
+            name="send"
+            disabled
+            id="consubmit"
+            type="submit"
+            value="submit"
+          />
+        </div>
+      </form>
+      {%endif%}
+    </div>
+  </div>
+</div>
+{% endblock %} {% block footerJs %}
+<script>
+  //check for empty fields and submit button disabling
+
+  $(
+    '#fullName, #emailAddress, #telephoneNumber, .nicetext, .form__row--radiobuttons input[type="radio"]'
+  ).on("keyup input change", function() {
+    if (
+      $("#fullName").val() == "" ||
+      $("#telephoneNumber").val() == "" ||
+      $("#emailAddress").val() == "" ||
+      $(".nicetext").val() == "" ||
+      !$('.form__row--radiobuttons input[type="radio"]').is(":checked")
+    ) {
+      $("#consubmit").prop("disabled", true);
+    } else {
+      $("#consubmit").prop("disabled", false);
+    }
+  });
+</script>
+
+{% endblock %}

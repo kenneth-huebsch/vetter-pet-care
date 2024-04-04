@@ -1,0 +1,24 @@
+{% extends "charge/_layouts/cp" %}
+{% set title = "One-off Billing"|t %}
+{% set selectedSubnavItem = 'One-off billing' %}
+{% set elementType = 'Charge_Oneoffbilling' %}
+{% block content %}
+
+{% if stripeInfo.stripeId == -1 %}
+    <p>Email: {{customer_email}} is an invalid email, please go to user page to verify the email.</p>
+{% else %}
+    <p>Please enter the invoice amount,including any credits or discounts,to be charged for {{customer_email}}. Do not add dollar signs.<br>
+        Example: 105,or 450.75
+        <br><sub>(Sum of all charges)</sub></p>
+<form id="OneOffBillingProcess" action="" class="form" method="post" accept-charset="UTF-8">
+    <input type="hidden" name="action" value="charge/appointments/OneOffBillingCharge">
+    <input type="hidden" name="customer_id" value="{{stripeInfo.stripeId}}"/>
+    <input ype="text" name="amnt" placeholder="amount"/>
+    <input class="button" type="submit" value="Submit for Payment">
+</form>
+{% endif %}
+{% endblock %}
+
+
+
+

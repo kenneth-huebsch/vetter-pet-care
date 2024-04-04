@@ -1,0 +1,27 @@
+         <input type="hidden" name="action" value="charge/charge" />
+                {%set options = {
+                    'planAmount':105.00
+                }   %}
+                {{craft.charge.setPaymentOptions(options)}}
+            <div id="payment-errors"></div>
+            
+            <label for="customerEmail"> Email </label>
+            <input type="text" name="customerEmail" value="{{ charge is defined ? charge.customerEmail : currentUser ? currentUser.email}}" />
+            {% if charge is defined %} {%for error in charge.getErrors('customerEmail') %} {{error}}{% endfor %}{% endif %}
+            {%if charge is defined and charge.cardToken %}
+                Pay with : {{charge.cardType}} - {{charge.cardLast4}}
+             <input type="hidden" name="cardToken" value="{{charge.cardToken}}" data-stripe="token" />
+             <input type="hidden" name="cardLast4" value="{{charge.cardLast4}}" />
+             <input type="hidden" name="cardType" value="{{charge.cardType}}" />
+             <input type="hidden" name="cardName" value="{{charge.cardName}}" />
+             <input type="hidden" name="cardExpMonth" value="{{charge.cardExpMonth}}" />
+             <input type="hidden" name="cardExpMonth" value="{{cardExpMonth}}" />
+             <input type="hidden" name="cardExpYear" value="{{cardExpYear}}" />
+            {% else %}
+               <label for="cardNumber"> Card Number</label>
+            <input type="text" data-stripe="number" placeholder="**** **** **** ****" id="cardNumber" />
+               <label for="cardExpiry"> Card Expiry</label>
+            <input type="text" data-stripe="exp" placeholder="mm / yy" id="cardExpiry" />
+               <label for="cardCvc"> cvc</label>
+            <input type="text" data-stripe="cvc" placeholder="123" id="cardCvc" />
+            {% endif %}

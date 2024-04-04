@@ -1,0 +1,327 @@
+{% extends "_layout" %}
+
+{% block content %}
+{% if craft.request.getParam('start') is not null %}
+{{ craft.twigSession.add('flow', craft.request.getParam('flow')) }}
+{{ craft.twigSession.add('start', craft.request.getParam('start')) }}
+{{ craft.twigSession.add('end', craft.request.getParam('end')) }}
+{{ craft.twigSession.add('cal_id', craft.request.getParam('cal_id')) }}
+{{ craft.twigSession.add('partic', craft.request.getParam('partic')) }}
+{{ craft.twigSession.add('firstToSchedule', craft.request.getParam('firstToSchedule')) }}
+{{ craft.twigSession.add('vet_id', craft.request.getParam('vet_id')) }}
+{{ craft.twigSession.add('sel_zip', craft.request.getParam('zip')) }}
+{{ craft.twigSession.add('num', craft.request.getParam('num')) }}
+{% endif %}
+
+{# reset credit_error on each login#}
+{{ craft.twigSession.add('credit_error', '') }}
+
+<!-- check any user login, if yes, refer back to main page -->
+{% if currentUser %}
+{% redirect "/" %}
+{% endif %}
+
+<script>
+$(function(){
+
+    // get url for reloading on the correct tab
+    var url = $(location).attr('href');
+    var page = getUrlParameter('t');
+    var tab = url.split("#");
+
+    if ((page != 'undefined') && (page) && (!(tab[1]) || (tab[1]!='tab-2')) ) {
+
+
+        if (page == "tab-1"){
+            $("#tab-1").show();
+            $("#tab-2").hide();
+            $("#t-1").addClass("active");
+        }else {
+            $("#tab-1").hide();
+            $("#tab-2").show();
+            $("#t-1").removeClass("active");
+            $("#t-2").addClass("active");
+        }
+    }else {
+        if (tab[1] == "tab-1") {
+            $("#tab-1").show();
+            $("#tab-2").hide();
+            $("#t-1").addClass("active");
+        } else {
+            $("#tab-1").hide();
+            $("#tab-2").show();
+            $("#t-1").removeClass("active");
+            $("#t-2").addClass("active");
+        }
+    }
+
+
+  $("#t-2").click(function(e){
+    $("#tab-1").hide();
+      $("#tab-2").show();
+      $("#t-1").removeClass("active")
+      $("#t-2").addClass("active");
+  });
+  $("#t-1").click(function(e){
+    $("#tab-2").hide();
+      $("#tab-1").show();
+      $("#t-2").removeClass("active")
+      $("#t-1").addClass("active");
+  });
+ });
+
+function getUrlParameter(variable)
+{
+    var query = window.location.search.substring(1);
+    var vars = query.split("&");
+    for (var i=0;i<vars.length;i++) {
+        var pair = vars[i].split("=");
+        if(pair[0] == variable){return pair[1];}
+    }
+    return(false);
+}
+</script>
+
+<div class="grid">
+    {% if craft.request.getParam('t') == 'tab-1' %}
+    <div class="cell">
+    {% if craft.twigSession.get('flow') == 'schedule' %}
+      <input type="submit" class="btc button blue" value="Back To Calendar">
+      <div id="clockdiv">
+     <span class="smalltext">Time left to complete booking</span>
+     <div class="time">
+     <span class="minutes"></span><span>:</span><span class="seconds"></span>
+     </div>
+    </div>
+     <div class="messg">
+     <p>You've selected a Vetter appointment on<br>
+       {% set petnum = craft.twigSession.get('num') %}
+     <b>{{ craft.twigSession.get('start')|date("F d, Y") }} from {{craft.twigSession.get('start')|date("g:i a")}} - {{craft.twigSession.get('end')|date_modify("+60 minutes")|date("g:i a")}}</b><br>Your vet will arrive within this window.</p>
+     <p class="smaller">The Visit Fee and any other charges will be applied after your appointment.</p>
+    </div>
+    {% endif %}
+    </div>
+    {% else %}
+    <div class="cell" style="background: url('{{siteUrl('assets/images/loginsignup.jpg')}}') no-repeat center right; background-size: cover;">
+    {% if craft.twigSession.get('flow') == 'schedule' %}
+    <input type="submit" class="btc button blue" value="Back To Calendar">
+     <div class="messg">
+     <p>You've selected a Vetter appointment on<br>
+
+       {% set petnum = craft.twigSession.get('num') %}
+     <b>{{ craft.twigSession.get('start')|date("F d, Y") }} from {{craft.twigSession.get('start')|date("g:ia")}} - {{craft.twigSession.get('end')|date_modify("+60 minutes")|date("g:ia")}}</b><br>Your vet will arrive within this window.</p>
+     <p class="smaller">The Visit Fee and any other charges will be applied after your appointment.</p>
+    </div>
+    {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="cell">
+     <div class="content">
+
+         <div class="row">
+
+       <div class="tabs">
+       <a href="#tab-1" id="t-1">Log In</a>
+       <a href="#tab-2" id="t-2">Sign Up</a>
+         </div>
+          <div id="tab-1">
+
+         {% for provider in craft.social.getLoginProviders() %}
+         <p>
+             <a href="{{ craft.social.loginUrl(provider.handle, { redirect: 'basicinfo' }) }}" class="btn-social {{ provider.handle }}" data-provider="{{ provider.handle }}">
+                 <img src="{{ provider.getIconUrl() }}" alt="{{ provider.handle }}" />
+                 <i class="icon-{{ provider.handle }}"></i>Log in with {{ provider.name }}
+             </a>
+         </p>
+         {% endfor %}
+                 <h3><span class="text">or</span></h3>
+
+         <div class="col-md-6 col-md-offset-3">
+             <h2>Log in with your email address</h2>
+             <form class="loginform" method="post" accept-charset="UTF-8">
+                 {{ getCsrfInput() }}
+
+                 <!-- parser error message -->
+                 {% macro errorList(errors) %}
+                 {% if errors %}
+                 <ul class="errors">
+                     {% for error in errors %}
+                     <li>{{ error }}</li>
+                     {% endfor %}
+                 </ul>
+                 {% endif %}
+                 {% endmacro %}
+                 {% from _self import errorList %}
+                 <!-- end parser error message -->
+
+                 <input type="hidden" name="action" value="users/login">
+                 {% if craft.session.getReturnUrl %}
+                    <input type="hidden" name="redirect" value="{{craft.session.getReturnUrl}}">
+                 {% else %}
+                    <input type="hidden" name="redirect" value="{{siteUrl}}basicinfo">
+                 {% endif %}
+
+
+                 <span class="input input--yoshiko">
+              <input class="input__field input__field--yoshiko" type="text" id="email" name = "loginName"
+                               {%- if account is defined %} value="{{ account.email }}"{% endif -%}/>
+              <label class="input__label input__label--yoshiko" for="email">
+                <span class="input__label-content input__label-content--yoshiko" data-content="Email">Email</span>
+              </label>
+
+            </span>
+                 <span class="input input--yoshiko">
+              <input class="input__field input__field--yoshiko" type="password" id="password" name = "password"
+                               {%- if account is defined %} value="{{ account.password }}"{% endif -%}/>
+              <label class="input__label input__label--yoshiko" for="password">
+                <span class="input__label-content input__label-content--yoshiko" data-content="Password">Password</span>
+              </label>
+            </span>
+            {% if errorMessage is defined %}
+                        <div class="clearfix msg error">{{ errorMessage }}</div>
+                        {% endif %}
+                 <p><input type="submit" disabled id="loginbutton" class="button teal" value="Log In"></p>
+
+                 <p class="centered-block"><a href="/reset-password">Forgot your password?</a></p>
+             </form>
+             </div>
+           </div>
+           <div id="tab-2">
+                   <div class="row ">
+                           <form class="signupform" method="post" id="signup" accept-charset="UTF-8">
+                               {{ getCsrfInput() }}
+                               <input type="hidden" name="action" value="recaptcha/service/saveUser">
+                               <input type="hidden" name="redirect" value="{{siteUrl}}basicinfo">
+                               <input type="hidden" name="zip" value="{{craft.request.getParam('zip')}}">
+                               <!-- parser error message -->
+                               {% macro errorList(errors) %}
+                               {% if errors %}
+                               <ul class="errors">
+                                   {% for error in errors %}
+                                   <li>{{ error }}</li>
+                                   {% endfor %}
+                               </ul>
+                               {% endif %}
+                               {% endmacro %}
+                               {% from _self import errorList %}
+                               <!-- end parser error message -->
+
+                               <div>
+                                   {% for provider in craft.social.getLoginProviders() %}
+                                   <p>
+                                       <a href="{{ craft.social.loginUrl(provider.handle, { redirect: 'basicinfo' }) }}"
+                                          class="btn-social {{ provider.handle }}" data-provider="{{ provider.handle }}">
+                                           <img src="{{ provider.getIconUrl() }}" alt="{{ provider.handle }}"/>
+                                           <i class="icon-{{ provider.handle }}"></i>Sign up with {{ provider.name }}
+                                       </a>
+                                   </p>
+                                   {% endfor %}
+                                   <h3><span class="text">or</span></h3>
+                                   <h2>Sign up with your email address</h2>
+                                   <input type="hidden" name="usergroup" value="customer"/>
+
+
+                               <span class="input input--yoshiko">
+                                <input class="input__field input__field--yoshiko" type="text" id="firstname" name = "firstName"
+                                 {%- if account is defined %} value="{{account.firstName}}" {% endif -%}/>
+
+                                <label class="input__label input__label--yoshiko" for="firstName">
+                                  <span class="input__label-content input__label-content--yoshiko" data-content="First Name">First Name</span>
+                                </label>
+                              </span>
+
+
+                              <span class="input input--yoshiko">
+                               <input class="input__field input__field--yoshiko" type="text" id="lastname" name = "lastName"
+                                      {%- if account is defined %} value="{{account.lastName}}" {% endif -%}/>
+
+                               <label class="input__label input__label--yoshiko" for="lastName">
+                                 <span class="input__label-content input__label-content--yoshiko" data-content="Last Name">Last Name</span>
+                               </label>
+                             </span>
+
+
+                             <span class="input input--yoshiko">
+                              <input class="input__field input__field--yoshiko" type="text" id="email" name = "email"/>
+
+                              <label class="input__label input__label--yoshiko" for="email">
+                                <span class="input__label-content input__label-content--yoshiko" data-content="Email">Email</span>
+                              </label>
+                            </span>
+                                   {% if account is defined %}
+                                   {{ errorList(account.getErrors('email'))}}
+                                   {% endif %}
+
+                            <span class="input input--yoshiko password-field">
+                             <input class="input__field input__field--yoshiko" type="password" id="password" name = "password"/>
+                             <label class="input__label input__label--yoshiko" for="password">
+                               <span class="input__label-content input__label-content--yoshiko" data-content="Password">Password <span class="addt">Minimum 8 characters, 1 uppercase letter</span></span>
+                             </label>
+                            </span>
+                                   {% if account is defined %}
+                                   {{ errorList(account.getErrors('password'))}}
+                                   {{ errorList(account.getErrors('newPassword'))}}
+                                   {% endif %}
+
+
+                           <span class="input input--yoshiko">
+					<input class="input__field input__field--yoshiko" type="password" id="passwordConfirm" name = "passwordConfirm"/>
+					<label class="input__label input__label--yoshiko" for="passwordConfirm">
+						<span class="input__label-content input__label-content--yoshiko" data-content="Confirm Password">Confirm Password</span>
+					</label>
+                    {% if account is defined %}
+                      {{ errorList(account.getErrors('passwordConfirm'))}}
+                    {% endif %}
+				</span>
+
+                           <div class="g-recaptcha" data-sitekey="6Ld7dyEUAAAAAHFCg33mzM9WdJykYAKwVkvFZlG-" data-callback="correctCaptcha"></div>
+                             <div class="termtext">By signing up, I agree to Vetter's <a href="terms-conditions" target="_blank">Terms &amp; Conditions</a> and confirm that I am 18 years of age or older.</div>
+                                   {% if account is defined %}
+                                   {{ errorList(account.getErrors('recaptcha'))}}
+                                   {% endif %}
+                                   <p><input disabled id="signupbutton" type="submit" class="button teal" value="Sign Up"></p>
+                               </div>
+                           </form>
+                       </div>
+                   </div>
+
+         </div>
+       </div>
+ </div>
+
+{% endblock %}
+
+{% block footerJs %}
+
+<script src='https://www.google.com/recaptcha/api.js'></script>
+
+<script>
+//check for empty fields and submit button disabling
+var gresponse = 0;
+  var correctCaptcha = function(response) {
+    gresponse = response;
+    if (($('.signupform #email').val() == '') || ($('.signupform #password').val() == '') || ($('.signupform #passwordConfirm').val() == '') || (gresponse == 0) || ($('.signupform #lastName').val() == '') || ($('.signupform #firstName').val() == '')) {
+      $('.signupform #signupbutton').prop('disabled', true);
+    } else {
+      $('.signupform #signupbutton').prop('disabled', false);
+    }
+  };
+
+$('.signupform #firstname, .signupform #lastName, .signupform #email, .signupform .signupform #password, .signupform #passwordConfirm').on('keyup input', function() {
+
+});
+
+$('.loginform #email, .loginform #password').on('keyup input', function() {
+  if (($('.loginform #email').val() == '') || ($('.loginform #password').val() == '')) {
+    $('.loginform #loginbutton').prop('disabled', true);
+  } else {
+    $('.loginform #loginbutton').prop('disabled', false);
+  }
+});
+
+// clear all localstorage
+//localStorage.clear();
+
+</script>
+{% endblock %}

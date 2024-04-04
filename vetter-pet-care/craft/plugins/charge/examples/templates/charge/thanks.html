@@ -1,0 +1,19 @@
+
+{% extends "charge/_layout" %}
+
+{% set hash = craft.request.getSegment(3) %}
+
+{% if charge is not defined %}
+	{% set charge = craft.charge.charges.hash(hash).first() %}
+{% endif %}
+
+
+{% block content %}
+	{% if charge is not null %}
+		<h2>Payment Complete</h2>
+		<p>Thanks for your payment.</p>
+
+		{% include 'charge/account/_single' with { charge: charge } %}
+	{% endif %}
+
+{% endblock %}

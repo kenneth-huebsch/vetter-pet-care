@@ -1,0 +1,114 @@
+{% if totalResults > 0 %}
+<form id="resultList" action="{{ actionUrl('zenbu/deleteentries') }}" method="post">
+{{ getCsrfInput() }}
+<table class="data fullwidth resultsTable">
+    <thead>
+    <tr>
+        <th>
+            <input type="checkbox" class="checkbox" name="selectAll" id="selectAll" />
+            <label for="selectAll"></label>
+        </th>
+         {% for col in columns %}
+            <th>
+                {{ col.name | default(col) }}
+            </th>
+        {% endfor %}
+    </tr>
+    </thead>
+
+    <tbody>
+    {% paginate entries as entries %}
+    {% for entry in entries %}
+        {% cache using key 'zenbu_e' ~ entry.id ~ '_s' ~ craft.request.getParam('sectionId', 0) ~ '_u' ~ user.id ~ '_l' ~ entry.locale unless (craft.config.devMode and baseSettings.disable_entry_result_caching == 'y') %}
+        <tr>
+            <td>
+                {% if ( CraftEdition == 2 and currentUser.can('deleteEntries:'~entry.sectionId) ) or CraftEdition == 1 or CraftEdition == 0 %}
+                <input type="checkbox" class="checkbox" name="elementIds[]" value="{{entry.id}}" id="elementId_{{entry.id}}" />
+                <label for="elementId_{{entry.id}}"></label>
+                {% endif %}
+            </td>
+
+            {% for key, col in columns %}
+                <td {% if loop.index  == 1 and entry.level > 1 %}style="padding-left: {{20 * entry.level}}px"{% endif %}>
+
+                    {#
+                    //    ----------------------------------------
+                    //      Custom Field Display
+                    //      - based on User-provided string
+                    //    ----------------------------------------
+                    #}
+                    {% if settings.customDisplayStringTemplate[col.handle] is defined and settings.customDisplayStringTemplate[col.handle] is not empty %}
+
+                        {{entry|renderCustomFieldDisplay(settings.customDisplayStringTemplate[col.handle])|raw}}
+
+                    {% elseif col.id is defined and settings.customDisplayStringTemplate[col.id] is defined and settings.customDisplayStringTemplate[col.id] is not empty %}
+
+                            {{entry|renderCustomFieldDisplay(settings.customDisplayStringTemplate[col.id])|raw}}
+
+                    {#
+                    //    ----------------------------------------
+                    //      Standard Field Display
+                    //      - based on Zenbu files
+                    //    ----------------------------------------
+                    #}
+                    {% else %}
+
+                        {% if col.handle in ['title', 'uri', 'postDate', 'expiryDate', 'author', 'status', 'section'] %}
+
+                            {#
+                            //    ----------------------------------------
+                            //      Standard entry attributes
+                            //    ----------------------------------------
+                            #}
+                            {% if settings.customDisplayStringTemplate[col.handle] is defined and settings.customDisplayStringTemplate[col.handle] is not empty %}
+                                {{entry|renderCustomFieldDisplay(settings.customDisplayStringTemplate[col.handle])|raw}}
+                            {% else %}
+                                {% include "zenbu/columns/standard/" ~ col.handle %}
+                            {% endif %}
+
+                        {% elseif entry[col.handle] is defined %}
+
+                            {% if col.type is defined and col.type in ['Assets', 'Matrix', 'Entries', 'Categories', 'Tags', 'Color', 'Lightswitch', 'PositionSelect', 'Date'] %}
+                                {#
+                                //    ----------------------------------------
+                                //      Custom fields
+                                //    ----------------------------------------
+                                #}
+                                {% include "zenbu/columns/fieldtypes/" ~ col.type | lower %}
+                            {% else %}
+                                {#
+                                //    ----------------------------------------
+                                //      Custom fields - fallback
+                                //      Hook or default text content
+                                //    ----------------------------------------
+                                #}
+                                {% if col.type is defined %}
+
+                                    {% set hookOutput = entry[col.handle]|hookZenbuModifyFieldCellData(col, entry, entries) %}
+
+                                    {% if hookOutput %}
+                                        {{hookOutput|raw}}
+                                    {% else %}
+                                        {% include "zenbu/columns/fieldtypes/defaultText" %}
+                                    {% endif %}
+
+
+                                {% else %}
+                                    {% include "zenbu/columns/fieldtypes/defaultText" %}
+                                {% endif %}
+                            {% endif %}
+
+                        {% endif %}
+
+                    {% endif %}
+
+                </td>
+            {% endfor %}
+        </tr>
+        {% endcache %}
+    {% endfor %}
+    </tbody>
+</table>
+
+</form>
+{% endif %}

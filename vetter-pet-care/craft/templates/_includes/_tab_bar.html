@@ -1,0 +1,12 @@
+<div class="mini-nav">
+    <a href="{{customerAccountSetUp.customerAccountTab1Link}}"
+       {% if craft.request.lastSegment == customerAccountSetUp.customerAccountTab1Link %} class="active" {% endif %}>{{customerAccountSetUp.customerAccountTab1|striptags|nl2br}}</a>
+    <a href="{{customerAccountSetUp.customerAccountTab2Link}}"
+       {% if craft.request.lastSegment == customerAccountSetUp.customerAccountTab2Link %} class="active" {% endif %}>{{customerAccountSetUp.customerAccountTab2|striptags|nl2br}}</a>
+    <a href="{{customerAccountSetUp.customerAccountTab3Link}}"
+       {% if craft.request.lastSegment == customerAccountSetUp.customerAccountTab3Link %} class="active" {% endif %}>{{customerAccountSetUp.customerAccountTab3|striptags|nl2br}}</a>
+    {% if flow == 'schedule' or craft.twigSession.get('flow') == "schedule" %}
+    <a href="{{customerAccountSetUp.customerAccountTab4Link}}"
+       {% if craft.request.lastSegment == customerAccountSetUp.customerAccountTab4Link %} class="active" {% endif %}>{{customerAccountSetUp.customerAccountTab4|striptags|nl2br}}</a>
+    {% endif %}
+</div>

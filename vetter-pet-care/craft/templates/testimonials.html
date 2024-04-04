@@ -1,0 +1,57 @@
+{% extends "_layout-wide" %} {% block content %}
+<h1>
+  {% if entry.displayTitle %} {{ entry.displayTitle }} {% else %}
+  {{ entry.title }} {% endif %}
+</h1>
+<div class="content">
+  {{ entry.body }}
+  <div class="btn-container clearfix">
+    <a href="/schedule" class="button">Try Vetter</a>
+  </div>
+  <div class="testimonials-page">
+    <div id="content" class="test-page clearfix">
+      <div class="grid">
+        {% for t in entry.userTestimonials %} {% if t.type.handle ==
+        "testimonials" %}
+        <div class="cell teal">
+          {% if t.testimonialImage|length %}
+          <div class="testimage">
+            <img
+              src="{{t.testimonialImage[0].getUrl('testimonial')}}"
+              alt="{{t.testimonialImage[0].title}}"
+            />
+          </div>
+          {% else %}
+          <div class="testimage">
+            <img
+              src="https://s3.amazonaws.com/vetterpc-images/pet_placeholderimage.jpg"
+              alt="Default Pet Photo"
+            />
+          </div>
+          {% endif %} <cite>{{ t.attribution }}</cite>
+          <hr />
+          <div class="infot">
+            <p>
+              {{ t.date|date("m/d/y") | striptags }} -
+              {{ t.neighborhood | striptags }}<br />
+              Pet: {{ t.pet | striptags }}
+            </p>
+          </div>
+
+          <div class="quocontain">
+            <span class="quote">&ldquo;</span>{{ t.quotations | striptags
+            }}<span class="quote">&rdquo;</span>
+          </div>
+        </div>
+        {% endif %} {% endfor %}
+      </div>
+    </div>
+  </div>
+  <div class="btn-container clearfix onbot">
+    <a href="/schedule" class="button">Try Vetter</a>
+  </div>
+</div>
+
+{% endblock %} {% block footerJs %}
+<script></script>
+{% endblock %}

@@ -1,0 +1,9 @@
+{#
+//    ----------------------------------------
+//      Date
+//    ----------------------------------------
+#}
+{% set dateFormat = settings.settings[col.id].dateFormat is defined and settings.settings[col.id].dateFormat is not empty ? settings.settings[col.id].dateFormat : null %}
+{% if entry[col.handle] is not empty %}
+    {{entry[col.handle]|date(dateFormat)|raw}}
+{% endif %}

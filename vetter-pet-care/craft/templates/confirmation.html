@@ -1,0 +1,88 @@
+{% extends "_layout-purchase" %} {% block content %}
+<!-- If user is vet, redirect to vet profile page -->
+{% if currentUser.isInGroup('veterinarian') %} {% redirect
+"/user/"~currentUser.id %} {% endif %} {% if not craft.twigSession.get('tab') %}
+{% redirect "/" %} {% elseif craft.twigSession.get('tab') <= 3 %} {% switch
+craft.twigSession.get('tab') %} {% case "1" %} {% redirect "petinfo" %} {% case
+"2" %} {% redirect "billing" %} {% case "3" %} {% redirect "review" %} {%
+endswitch %} {% endif %}
+<!-- clear session flow in session  -->
+
+<div class="mast confirm"></div>
+<div class="content">
+  <div class="container">
+    <div class="center">
+      <i class="icon-check-circle"></i> {% set petnum =
+      craft.twigSession.get('num') %}
+      <h2>
+        Your appointment window on
+        {{ craft.twigSession.get('start')|date("F d, Y") }} <br />
+        from {{craft.twigSession.get('start')|date("g:i a")}} - {% if petnum < 2
+        %}{{craft.twigSession.get('end')|date_modify("+60 minutes")|date("g:i a")
+
+
+        }}{% else %}
+        {{craft.twigSession.get('end')|date_modify("+60 minutes")|date("g:i a")}}
+        {% endif %} has been booked!
+      </h2>
+      <p>We've sent a confirmation email to {{ currentUser.email }}.</p>
+      <h3>Preparing for your appointment</h3>
+      <p>{{ booking.preparingForYourAppointment }}</p>
+    </div>
+
+    {% set appoints =
+    craft.entries.section('appointmentRecords').authorId(currentUser.id).find()
+    %} {% if appoints|length <= 1 %}
+    <hr />
+    <div class="form refForm">
+      {{ craft.amForms.displayForm("referralForm") }}
+    </div>
+    {% else %} {% endif %}
+  </div>
+</div>
+<script>
+  $(".buttons button")
+    .addClass("blue")
+    .prop("disabled", true);
+
+  $(".form__row--plaintext").hide();
+
+  $(
+    "input[value=existingVetterCustomerGiveUsTheirNameSoTheyCanGetADiscount]"
+  ).click(function() {
+    $(".form__row--plaintext").show("fast");
+    $(".button").prop("disabled", true);
+  });
+
+  $(
+    "input[value!=existingVetterCustomerGiveUsTheirNameSoTheyCanGetADiscount][type=radio]"
+  ).click(function() {
+    $(".form__row--plaintext").hide("fast");
+    $(".button").prop("disabled", false);
+    //      $('.nicetext').on('keyup input change', function() {
+    //      if (($('.nicetext').val() == '')) {
+    //        $('.button').prop('disabled', true);
+    //      } else {
+    //        $('.button').prop('disabled', false);
+    //      }
+    //    });
+  });
+
+  $(".nicetext").keyup(function(e) {
+    e.preventDefault();
+    if ($.trim($(".nicetext").val()).length > 0) {
+      $(".button").prop("disabled", false);
+    } else {
+      $(".button").prop("disabled", true);
+    }
+  });
+
+  localStorage.clear();
+</script>
+{{ craft.twigSession.destroySession("flow") }}
+{{ craft.twigSession.destroySession("petSchedule[]") }}
+{{ craft.twigSession.destroySession("cal_id") }}
+{{ craft.twigSession.destroySession("partic") }}
+{{ craft.twigSession.destroySession("firstToSchedule") }}
+{{ craft.twigSession.destroySession("vet_id") }}
+{{ craft.twigSession.destroySession("curr") }} {% endblock %}

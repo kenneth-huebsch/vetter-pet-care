@@ -1,0 +1,18 @@
+{% macro selectOptions(options, selected) %}
+    {% set hasOptgroups = false %}
+    {% for key, option in options %}
+            {% if option.optgroup is defined %}
+                {% if hasOptgroups %}
+                    </optgroup>
+                {% else %}
+                    {% set hasOptgroups = true %}
+                {% endif %}
+                <optgroup label="{{ option.optgroup }}">
+            {% else %}
+                <option value="{{key}}" {% if selected is defined and selected == key %}{# selected="selected" #}{% endif %}>{{option}}</option>
+            {% endif %}
+    {% endfor %}
+    {% if hasOptgroups %}
+        </optgroup>
+    {% endif %}
+{% endmacro %}

@@ -1,0 +1,26 @@
+{#
+/**
+ * Displaced Appointments plugin for Craft CMS
+ *
+ * Displaced Appointments Settings.twig
+ *
+ * @author    Matthew Cieslak
+ * @copyright Copyright (c) 2017 Matthew Cieslak
+ * @link      https://github.com/mattman93
+ * @package   DisplacedAppointments
+ * @since     1.0.0
+ */
+#}
+
+{% import "_includes/forms" as forms %}
+
+{% includeCssResource "displacedappointments/css/DisplacedAppointments_Style.css" %}
+{% includeJsResource "displacedappointments/js/DisplacedAppointments_Script.js" %}
+
+{{ forms.textField({
+    label: 'Some Setting',
+    instructions: 'Enter some setting here.',
+    id: 'someSetting',
+    name: 'someSetting', 
+    value: settings['someSetting']})
+}}

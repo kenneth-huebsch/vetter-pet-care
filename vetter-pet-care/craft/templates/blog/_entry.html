@@ -1,0 +1,25 @@
+{% extends "_layout-wide" %} {% block content %} {% if entry.headerImage |
+length %}
+<div
+  class="mast"
+  style="background: url('{{
+    entry.headerImage[0].url
+  }}') center center no-repeat; background-size: cover;"
+></div>
+{% endif %}
+<h1>
+  {% if entry.displayTitle %}
+  {{ entry.displayTitle }}
+  {% else %}
+  {{ entry.title }}
+  {% endif %}
+</h1>
+<div class="subheading">{{ entry.postDate|date("F d, Y | g:i A") }}</div>
+<div class="content">
+  {{ entry.body }}
+  <div class="btn-container">
+    <a class="button blue" href="/blog">Back to Blogs</a>
+  </div>
+</div>
+
+{% endblock %}

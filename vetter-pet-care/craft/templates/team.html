@@ -1,0 +1,200 @@
+{% extends "_layout-wide" %} {% block content %}
+<h1>
+    {% if entry.displayTitle %} {{ entry.displayTitle }} {% else %} {{ entry.title }} {% endif %}
+</h1>
+<div class="content">
+    {{entry.body}}
+
+    <div class="staff-page">
+        {% for vet in craft.users.group('veterinarian') %} {% if vet.displayOnTeamPage %}
+        <div class="staff-content" id="staff_{{vet.id}}_info">
+            <div class="x-out"></div>
+            <div class="staff-header">
+                <div class="staff-head-container clearfix">
+                    <h1>{{ vet.firstName }} {{ vet.lastName }}{% if vet.certification|length %}, <span class="certi">{{vet.certification}}</span>{%endif%}</h1>
+                </div>
+                <div class="staff-rating clearfix">
+                    {% set allappt = craft.entries.section('appointmentRecords') %}
+                    {% set totalrate = 0 %}
+                    {% set apptcounter = 0 %}
+                    {% set avg = totalrate / apptcounter|length %}
+                     {% for appt in allappt.assignedVeterinarianIdNumber('v-0' ~ vet.id) %}
+
+                        {% set apptrating
+                        = craft.starRatings.avgRating(vet.id, appt.appointmentIdNumber ) %}
+
+                        {% if apptrating != 0 %}
+                            {% set totalrate = totalrate + apptrating %}
+                            {% set apptcounter = apptcounter + 1 %}
+                            {% set avg = totalrate / apptcounter %}
+                        {% endif %}
+                    {% endfor %}
+                    <div class="title">Customer Rating</div>
+                    <div class="ratings">{{ craft.starRatings.lockedStars(avg|round) }} ({{apptcounter}} Ratings)</div>
+                </div>
+                <div class="edu-container clearfix">
+                    <div class="title">Education</div>
+                    <p> {{ vet.veterinarySchool }}{% if vet.certification|length %}, <span class="certi">{{vet.certification}}</span>{%endif%}<br> {{ vet.undergraduateSchool }}, {{vet.undergraduateDegree}}</p>
+                </div>
+            </div>
+            <div class="bio-stuff">
+                <div class="photo-wrapper">
+                    {% if vet.vetProfilePhoto|length %}
+                    <img src="{{ vet.vetProfilePhoto[0].url }}" alt="{{ vet.firstName }} photo"> {% else %}
+                    <img src="https://s3.amazonaws.com/vetterpc-images/default-placeholder-1024x1024.png" alt="placeholder photo"> {% endif %}
+                </div>
+                <div class="bio-wrapper">
+                    <div class="title">About</div>
+                    {{ vet.body }} {% if vet.vetFact|length %}
+                    <div class="title funf">Fun Fact</div>
+                    {{ vet.vetFact }} {% endif %}
+                </div>
+            </div>
+            {% if vet.vetReviews|length %} {% set v = vet.vetReviews.order('RAND()').first() %}
+            <div class="staff-testimonials">
+                <div class="quote">{{ v.quote }}</div>
+                <div class="byline">&mdash; {{ v.attribution }}</div>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %} {% endfor %}
+        <div id="content" class="clearfix">
+            {% for vet in craft.users.group('veterinarian').order('firstName asc') %} {% if vet.displayOnTeamPage %}
+            <div id="staff_{{vet.id}}" class="boxy" data-name="staff_{{vet.id}}">
+                {% if vet.vetProfilePhoto|length %}
+                <img src="{{ vet.vetProfilePhoto[0].url }}" alt="{{vet.firstName}} photo"> {% else %}
+                <img src="https://s3.amazonaws.com/vetterpc-images/default-placeholder-1024x1024.png" alt="placeholder photo"> {% endif %}
+                <p class="staff-name">{{ vet.firstName }} {{ vet.lastName }}{% if vet.certification|length %}, <span class="certi">{{vet.certification}}</span>{%endif%}</p>
+                <div class="overlay"></div>
+            </div>
+            {% endif %} {% endfor %}
+
+        </div>
+    </div>
+</div>
+<section class="jointeam clearfix">
+    <div class="container clearfix">
+        <div class="jarea">
+            <h3><a href="careers" class="clearfix">Join Our Team<i class="icon-arrow-right"></i></a></h3>
+            <div class="jointext"><strong>Are you a vet interested in expanding your caseload?<br> Have a passion for pets and customer satisfaction?<br></strong> If so, we'd love to hear from you.
+
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+{% block footerJs %}
+
+
+<script>
+    (function($) {
+        // wait for all images to load first
+        $(window).load(function() {
+
+            //Loading fastclick to solve ios/ipad click issue
+            FastClick.attach(document.body);
+
+
+            $('.boxy').click(function() {
+                var info = this.getAttribute('data-name'),
+                    infoDiv = '#' + info + '_info';
+
+
+                $('.boxy').addClass('opacity-2');
+                $(this).removeClass('opacity-2');
+                $('.jointeam').fadeOut("fast");
+
+                $('.staff-content').fadeOut("fast");
+                $(infoDiv).delay(100).fadeIn("fast").addClass('active');
+
+                var boxPosTop = $(this).position().top;
+
+                // the infoDiv specific to the clicked box will show
+                var infoDivPosTop = $(infoDiv).position().top;
+                var boxHeight = $(this).height();
+                var newinfoDivPosTop = boxPosTop + boxHeight;
+                $(infoDiv).css("top", newinfoDivPosTop + "px");
+                var containerHeight = $('.staff-page').height();
+                console.log('containerHeight: ', containerHeight + "px");
+                var staffHeight = $(infoDiv).height();
+                console.log('staffHeight: ', staffHeight + "px");
+                var totalStaffHeight = staffHeight + newinfoDivPosTop + 0;
+                console.log('totalStaffHeight: ', totalStaffHeight);
+                var heightDiff = totalStaffHeight - containerHeight;
+                console.log('heightDiff: ', heightDiff);
+                console.log('boxHeight: ', boxHeight);
+
+
+                // var newTotalHeight = containerHeight + infoDiv + padding;
+                // $('.post-container').height(containerHeight + heightDiff + 500);
+
+                if (totalStaffHeight > containerHeight) {
+                    $('.staff-page').height(containerHeight + heightDiff);
+                }
+                /*else {
+                         var resetHeight = $('#content').height();
+                         console.log(resetHeight);
+                         $('.post-container').height(resetHeight+300);
+                        }*/
+
+
+                $('html, body').animate({
+                    scrollTop: $(this).offset().top + (boxHeight - 25)
+                }, "slow");
+            });
+
+            // x out button
+            $('.x-out').click(function() {
+                var parent = $(this).parent().attr('id');
+                var boxName = parent.slice(0, -5);
+                var boxyHeight = $('.boxy').height();
+                $(this).parent().removeClass('active').fadeOut("fast");
+                var resetHeight = $('#content').height();
+                $('.staff-page').height(resetHeight + 0);
+                $('.boxy').removeClass('opacity-2');
+                $('.jointeam').fadeIn("fast");
+                $('html, body').animate({
+                    scrollTop: $(this).offset().top - (boxyHeight + 75)
+                }, "slow");
+            });
+
+            // clicking outside closes box
+            $(document.getElementById('content-main')).mouseup(
+                function(e) {
+                    var $infoDivs = $('.staff-content'),
+                        resetHeight = $('#content').height();
+
+                    if (!$infoDivs.is(e.target) && $infoDivs.has(e.target).length === 0) {
+                        $infoDivs.fadeOut("fast");
+                        //$('.post-container').height(resetHeight+300);
+                        $('.staff-page').height(resetHeight + 0);
+                        $('.boxy').removeClass('opacity-2');
+                        $('.jointeam').fadeIn("fast");
+                        // $('html, body').animate({
+                        //   scrollTop: $(".active").offset().top-475
+                        //   }, "slow");
+                        $(document.querySelector('[data-js=content]')).find(document.getElementsByClassName('active')).removeClass('active');
+                    }
+                }
+            );
+
+            //escape key to close
+            $(document).keyup(function(e) {
+                if (e.keyCode == 27) {
+                    var resetHeight = $('#content').height();
+                    $('.staff-page').height(resetHeight + 0);
+                    $('.staff-content').fadeOut("fast");
+                    $('.boxy').removeClass('opacity-2');
+                    $('.jointeam').fadeIn("fast");
+                    // $('html, body').animate({
+                    // scrollTop: $(".active").offset().top-345
+                    // }, "slow");
+                    $(document.querySelector('[data-js=content]')).find(document.getElementsByClassName('active')).removeClass('active');
+                } // escape key maps to keycode '27'
+            });
+
+        });
+
+    }(jQuery));
+</script>
+{% endblock %}

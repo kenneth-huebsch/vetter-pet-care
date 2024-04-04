@@ -1,0 +1,26 @@
+.social-icon { display: inline-block; width: 20px; height: 20px; border-radius: 2px; }
+
+.provider .thumb {  display: inline-block;  margin-right: 7px;  }
+.provider .thumb img { height: 20px; vertical-align: middle;  }
+.provider .label {  display: inline-block;  vertical-align: middle;  }
+
+.socialthumb { display: inline-block; }
+.socialthumb img { width: 30px; vertical-align: middle; }
+
+
+
+
+/* Empty screens */
+
+.empty {
+	text-align: center;
+	padding: 15em 0;
+}
+
+@media (max-width: 768px)
+{
+	.empty {
+		text-align: center;
+		padding: 8em 0;
+	}
+}

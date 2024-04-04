@@ -1,0 +1,44 @@
+{
+  "buttons": ["format","bold","deleted","underline","italic","lists","link","file"],
+  "plugins": ["fullscreen","inlinestyles", "source"],
+  "toolbarFixed": true,
+  "formatting": false,
+  "formattingAdd": {
+    "p": {
+      "title": "Paragraph",
+      "args": ["p"]
+    },
+    "Heading 2": {
+      "title": "Heading 2",
+      "args": ["h2"]
+    },
+    "Heading 3": {
+      "title": "Heading 3",
+      "args": ["h3"],
+    },
+    "Heading 4": {
+      "title": "Heading 4",
+      "args": ["h4"],
+    },
+    "blockquote": {
+      "title": "Quote [blockquote]",
+      "args": ["blockquote"]
+    },
+    "cite": {
+      "title": "Citation [cite]",
+      "args": ["cite"]
+    },
+    "excerpt": {
+      "title": "Excerpt [p]",
+      "args": ["p", "class", "excerpt", "toggle"],
+    },
+    "teal": {
+      "title": "Teal Text",
+      "args": ["em", "class", "teal", "toggle"],
+    },
+    "pre": {
+      "title": "Code Snippet [pre]",
+      "args": ["pre"],
+    },
+  },
+}

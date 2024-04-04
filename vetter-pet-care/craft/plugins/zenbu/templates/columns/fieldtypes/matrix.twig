@@ -1,0 +1,97 @@
+{#
+//    ----------------------------------------
+//      Matrix
+//    ----------------------------------------
+#}
+{% set theMatrix %}
+
+    {% if matrixBlockFieldsArray is not defined %}
+        {% set matrixBlockFieldsArray = [] %}
+    {% endif %}
+
+    {% set useModal = (settings.settings[col.id].useModal is defined and settings.settings[col.id].useModal is not empty) or settings.settings[col.id].useModal is not defined ? true : false %}
+
+    {% set viewHeight = (settings.settings[col.id].viewHeight is defined and settings.settings[col.id].viewHeight is not empty) and useModal == false ? 'max-height:' ~ settings.settings[col.id].viewHeight ~ 'px' : 'max-height: 100%' %}
+
+    <div class="{{ viewHeight is not empty ? 'matrixField' : ''}}" style="{{viewHeight}}">
+    {% set totalMatrixBlocks = entry[col.handle]|length %}
+    {% for matrixBlock in entry[col.handle] %}
+        <div class="matrixblock">
+            <div class="titlebar">{{matrixBlock.type.name}}</div>
+            <div class="fields">
+
+                {# "Caching" known Matrix Block types #}
+                {% if matrixBlockFieldsArray[matrixBlock.typeId] is defined %}
+                    {% set matrixBlockFields = matrixBlockFieldsArray[matrixBlock.typeId] %}
+                {% else %}
+                    {% set matrixBlockFields = matrixBlock.getType().getFields() %}
+                    {% set matrixBlockFieldsArray = matrixBlockFieldsArray + { (matrixBlock.typeId): matrixBlockFields } %}
+                {% endif %}
+
+                {% for matrixField in matrixBlockFields %}
+                    {% if matrixBlock[matrixField.handle] is defined %}
+                        <div class="heading"><strong>{{matrixField.name}}</strong> {#({{matrixField.getField().type}})#}</div>
+                        {% if matrixField.type == 'Assets' %}
+                            {#
+                            //    ----------------------------------------
+                            //      Matrix => Assets
+                            //    ----------------------------------------
+                            #}
+                            {% for asset in matrixBlock[matrixField.handle] %}
+                                {% set transform = {
+                                    mode: 'crop',
+                                    width: 30,
+                                    height: 30
+                                } %}
+                                {% do asset.setTransform(transform) %}
+                                <img src="{{asset.url}}" alt="{{ asset.title }}" />
+                            {% endfor %}
+                        {% elseif matrixField.type == 'Entries' %}
+                            {#
+                            //    ----------------------------------------
+                            //      Matrix => Entries
+                            //    ----------------------------------------
+                            #}
+                            <ul>
+                            {% for relEntry in matrixBlock[matrixField.handle] %}
+                                <li><a href="{{relEntry.getCpEditUrl()}}">{{relEntry.getTitle()}}</a></li>
+                            {% endfor %}
+                            </ul>
+                        {% else %}
+                            {#
+                            //    ----------------------------------------
+                            //      Matrix => Others
+                            //    ----------------------------------------
+                            #}
+                            {% if matrixBlock[matrixField.handle] is iterable %}
+                                {#
+                                    Iterable data within a Matrix Block Element:
+                                    Show a var dump for now. Better than an error.
+                                #}
+                                <em>{{"Displaying Raw Data for Fieldtype: "|t}}{{matrixField.type}}</em>
+                                {{matrixBlock[matrixField.handle]|zenbuDump}}
+                            {% else %}
+                                {{matrixBlock[matrixField.handle]}}
+                            {% endif %}
+                        {% endif %}
+                    {% else %}
+                        -
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    {% endfor %}
+{% endset %}
+
+{% if useModal %}
+    {% if totalMatrixBlocks > 0 %}
+        <a href="#" class="showModal">{{"Show"|t}}</a>
+        <div class="outerModal" style="display: none">
+            <div class="modal">
+               {{ theMatrix }}
+            </div>
+        </div>
+    {% endif %}
+{% else %}
+    {{ theMatrix }}
+{% endif %}

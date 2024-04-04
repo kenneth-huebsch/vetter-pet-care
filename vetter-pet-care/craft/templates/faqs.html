@@ -1,0 +1,78 @@
+{% extends "_layout-wide" %}
+
+{% block content %}
+	<h1>
+  {% if entry.displayTitle %}
+   {{ entry.displayTitle }}
+  {% else %}
+   {{ entry.title }}
+  {% endif %}
+ </h1>
+ <div class="content">
+  {{entry.body}}<br/>
+  </div>
+  <section class="grey-container">
+  <div class="container">
+  <aside>
+  <h4>FAQs</h4>
+  {% set matrixField = craft.fields.getFieldByHandle('frequentlyAskedQuestions') %}
+  {% set blockTypes = matrixField.getFieldType.getSettings.getBlockTypes %}
+  {% for blockType in blockTypes if blockType.handle == "qAndA" %}
+      {% for field in blockType.getFields() %}
+          {% if field.handle == "category" %}
+                  {% for option in field.settings.options %}
+                      <a href="#{{ option.label }}">{{ option.label }}</a>
+                  {% endfor %}
+          {% endif %}
+      {% endfor %}
+  {% endfor %}
+  </aside>
+
+  <div class="faq-holder">
+  {% set matrixField = craft.fields.getFieldByHandle('frequentlyAskedQuestions') %}
+  {% set blockTypes = matrixField.getFieldType.getSettings.getBlockTypes %}
+  {% for blockType in blockTypes if blockType.handle == "qAndA" %}
+      {% for field in blockType.getFields() %}
+          {% if field.handle == "category" %}
+                  {% for option in field.settings.options %}
+                      <h4 id="{{option.label}}">{{ option.label }}</h4>
+                      {% for q in entry.frequentlyAskedQuestions %}
+
+                      {% for opt in q.category %}
+                          {% if opt.label == option.label %}
+
+                        {% if q.type.handle == "qAndA" %}
+                        <div class="question">
+                          <div class="question-title ">
+                            <h3>
+                            <i></i>
+                            <span class="title-name">{{ q.question }}</span>
+                            </h3>
+                          </div>
+
+                          <div class="question-inner">
+                            <p>{{ q.answer }}<br/>
+                          {% if q.videoEmbedCode %}
+                           {{ q.videoEmbedCode|raw }}<br/>
+                          {% endif %}
+
+                         </p>
+                          </div>
+
+                          </div><!-- END OF TOGGLE -->
+                          {% endif %}
+                          {% endif %}
+                        {% endfor %}
+                       {% endfor %}
+                  {% endfor %}
+          {% endif %}
+      {% endfor %}
+  {% endfor %}
+  </div>
+
+ </div>
+ </section>
+{% endblock %}
+{% block footerJs %}
+<script src="{{siteUrl('/assets/js/faq.js')}}"></script>
+{% endblock %}

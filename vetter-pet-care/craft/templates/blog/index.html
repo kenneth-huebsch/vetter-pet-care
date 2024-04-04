@@ -1,0 +1,56 @@
+{# # News index template # ------------------- # # This template is loaded
+whenever http://example.com/news is # requested, because it is located at
+news/index.html in your # craft/templates/ folder. # # See this page for more
+details on how Craft routes requests: # http://craftcms.com/docs/routing #} {%
+extends "_layout-wide" %} {% set title = "Blog" %} {% block content %}
+
+<h1>
+  {{ title }}
+</h1>
+<div class="content">
+  {% paginate craft.entries.section('blog').limit(9) as entries %}
+  <div class="card-container">
+    {% for entry in entries %}
+    <a href="{{ entry.url }}" class="card">
+      <div
+        class="card-img"
+        style="background: url('{{
+          entry.headerImage[0].url
+        }}') center center no-repeat; background-size: cover;"
+      ></div>
+      <div class="title-date">
+        <div class="card-title">{{ entry.displayTitle }}</div>
+        <div class="card-date">
+          {{ entry.postDate|date("F d, Y | g:i A") }}
+        </div>
+      </div>
+      <div class="card-blurb">
+        <p>
+          {{ entry.body|length > 150 ? entry.body|striptags()|raw|slice(0, 150) ~ '[...]' : entry.body|striptags()|raw}}
+        </p>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+
+  <ul class="pagination clearfix">
+    {% if paginate.prevUrl %}
+    <li class="prev-link"><a href="{{ paginate.prevUrl }}"> Prev </a></li>
+    {% endif %} {% for page, url in paginate.getPrevUrls(1) %}
+    <li>
+      <a href="{{ url }}">{{ page }}</a>
+    </li>
+    {% endfor %}
+    <li class="current">
+      <span>{{ paginate.currentPage }}</span>
+    </li>
+    {% for page, url in paginate.getNextUrls(1) %}
+    <li>
+      <a href="{{ url }}">{{ page }}</a>
+    </li>
+    {% endfor %} {% if paginate.nextUrl %}
+    <li class="next-link"><a href="{{ paginate.nextUrl }}"> Next </a></li>
+    {% endif %}
+  </ul>
+</div>
+{% endblock %}

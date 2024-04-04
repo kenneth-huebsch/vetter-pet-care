@@ -1,0 +1,301 @@
+ {% extends "_layout-home" %} {% block content %}
+<script>
+  if (typeof localStorage === 'object') {
+    try {
+      localStorage.setItem('localStorage', 1);
+      localStorage.removeItem('localStorage');
+    } catch (e) {
+      Storage.prototype._setItem = Storage.prototype.setItem;
+      Storage.prototype.setItem = function() {};
+      alert("Your web browser does not support storing settings locally. Some settings may not save or some features may not work properly for you. In Safari, the most common cause of this is using 'Private Browsing Mode'. If you'd like to schedule an appointment, please use the regular browsing mode.");
+    }
+  }
+</script>
+<main id="content-main" class="wide home" role="main">
+  {% set current = craft.request.lastSegment %} {% set section = craft.request.getSegment(-2) %}
+  <div id="container" class="home-container page">
+
+    <section class="home-splash clearfix" style="background-image: url('{{entry.heroImages[0].url}}'); background-repeat: no-repeat; background-position: center center; background-attachment: fixed; background-size: cover;">
+      <header class="headhome" id="header">
+        <div class="logo-header"><a href="{{ siteUrl }}" alt="{{ siteName }}" class="site-logo">{{ siteName }}</a></div>
+        <nav>
+          {% set navConfig = { 'startwithActive' : true, 'maxDepth' : 2, 'activeClassOnAncestors' : true, 'ancestorActiveClass' : 'active-parent', } %} {% set navigation = craft.navee.getNav('mainNav', navConfig) %}
+
+          <ul class="page-list">
+            {% nav node in navigation %}
+            <li{% if node.class %} class="{{ node.class }}" {% endif %}>
+              <a href="{{ node.link }}" {% if node.target %} target="{{ node.target }}" {% endif %}>{{ node.title }}</a> {% ifchildren %}
+              <ul>{% children %}</ul>
+              {% endifchildren %}
+              </li>
+              {% endnav %} {% if not currentUser %}
+              <div class="user">
+                <a href="{{siteUrl('signup?t=tab-1')}}" class="lns">Log In / Sign Up</a>
+              </div>
+        </nav>
+        {% elseif currentUser %}
+        <div class="user">
+          <a class="user-name" href="{{siteUrl}}user/{{ currentUser.id }}">{{ currentUser.firstName }}</a>
+        </div>
+        </nav>
+        <div class="user-menu">
+          <input type="checkbox" class="chk-box" name="down" id="down">
+          <label for="down"></label> {% if currentUser.isInGroup('customer') %}
+          <div class="user-drop">
+            <a href="{{siteUrl}}user/{{currentUser.id}}">Edit Profile</a>
+            <a href="{{siteUrl}}user/{{ currentUser.id }}#pet-records">Pet Records</a>
+            <a href="{{siteUrl}}user/{{currentUser.id}}/vaccine-info">Vaccine Info</a>
+            <a href="{{ logoutUrl }}">Logout</a>
+          </div>
+          {% elseif currentUser.isInGroup('veterinarian') %}
+          <div class="user-drop vet-drop">
+            <a href="{{siteUrl}}user/{{currentUser.id}}">Edit Profile</a>
+            <a href="{{siteUrl}}user/{{currentUser.id}}/availability">Availability Calendar</a>
+            <a href="{{siteUrl}}user/{{currentUser.id}}/upcoming">Upcoming Appointments</a>
+            {% if not currentUser.turnOffClientRecordsSearch %}
+                  <a href="{{siteUrl}}search">Client Search</a>
+            {% endif %}
+            <a href="{{ logoutUrl }}">Logout</a>
+          </div>
+          {% elseif currentUser.admin %}
+          <div class="user-drop other">
+              {% if not currentUser.turnOffClientRecordsSearch %}
+              <a href="{{siteUrl}}search">Client Search</a>
+              {% endif %}
+            <a href="{{ logoutUrl }}">Logout</a>
+          </div>
+          {% elseif currentUser.isInGroup('employee') %}
+          <div class="user-drop other">
+            {% if not currentUser.turnOffClientRecordsSearch %}
+            <a href="{{siteUrl}}search">Client Search</a>
+            {% endif %}
+            <a href="{{ logoutUrl }}">Logout</a>
+          </div>
+          {% else %}
+          <div class="user-drop other">
+            <a href="{{ logoutUrl }}">Logout</a>
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+        </ul>
+      </header>
+      <div class="mobile-header">
+        <div><a href="{{ siteUrl }}" alt="{{ siteName }}" class="site-logo">{{ siteName }}</a></div>
+        <div id="menuicon"></div>
+        <nav>
+          {% set navConfig = { 'startwithActive' : true, 'maxDepth' : 2, 'activeClassOnAncestors' : true, 'ancestorActiveClass' : 'active-parent', } %} {% set navigation = craft.navee.getNav('mainNav', navConfig) %}
+          <ul class="page-list">
+            {% nav node in navigation %}
+            <li {% if node.class %} class="{{ node.class }}" {% endif %}>
+              <a href="{{ node.link }}" {% if node.target %} target="{{ node.target }}" {% endif %}>{{ node.title }}</a> {% ifchildren %}
+              <i class="icon-plus"></i>
+              <ul>{% children %}</ul>
+              {% endifchildren %}
+            </li>
+            {% endnav %} {% if not currentUser %}
+            <li class="user not-logged-in">
+              <a href="{{siteUrl('signup?t=tab-1')}}" class="lns">Log In / Sign Up</a>
+            </li>
+            {% elseif currentUser %}
+            <li class="user logged-in nolink">
+              <a class="user-name" href="#">{{ currentUser.firstName }}</a><i class="icon-plus"></i>
+              <ul class="user-menu">
+                {% if currentUser.isInGroup('customer') %}
+                <li class="user-drop">
+                  <!--   <a href="{{siteUrl}}user/{{currentUser.id}}">Edit Profile</a> -->
+                  {% if currentUser.streetAddress %}
+                  <a href="{{siteUrl}}user/{{ currentUser.id }}">Edit Profile</a>
+                  <a href="{{siteUrl}}user/{{ currentUser.id }}#pet-records">Pet Records</a>
+                  <a href="{{siteUrl}}user/{{currentUser.id}}/vaccine-info">Vaccine Info</a>
+                  {% else %}
+                  <a href="{{siteUrl}}basicinfo">Edit Profile</a> {% endif %}
+                  <a href="{{ logoutUrl }}">Logout</a>
+                </li>
+                {% elseif currentUser.isInGroup('veterinarian') %}
+                <li class="user-drop vet-drop">
+                  <a href="{{siteUrl}}user/{{currentUser.id}}">Edit Profile</a>
+                  <a href="{{siteUrl}}user/{{currentUser.id}}/availability">Availability Calendar</a>
+                  <a href="{{siteUrl}}user/{{currentUser.id}}/upcoming">Upcoming Appointments</a>
+                  {% if not currentUser.turnOffClientRecordsSearch %}
+                        <a href="{{siteUrl}}search">Client Search</a>
+                  {% endif %}
+                  <a href="{{ logoutUrl }}">Logout</a>
+                </li>
+                {% elseif currentUser.admin %}
+                <li class="user-drop other">
+                  {% if not currentUser.turnOffClientRecordsSearch %}
+                        <a href="{{siteUrl}}search">Client Search</a>
+                  {% endif %}
+                  <a href="{{ logoutUrl }}">Logout</a>
+                </li>
+                {% elseif currentUser.isInGroup('employee') %}
+                <div class="user-drop other">
+                  {% if not currentUser.turnOffClientRecordsSearch %}
+                  <a href="{{siteUrl}}search">Client Search</a>
+                  {% endif %}
+                  <a href="{{ logoutUrl }}">Logout</a>
+                </div>
+                {% else %}
+                <li class="user-drop other">
+                  <a href="{{ logoutUrl }}">Logout</a>
+                </li>
+                {% endif %}
+              </ul>
+            </li>
+            {% endif %}
+          </ul>
+        </nav>
+      </div>
+
+      <div class="tagline clearfix">
+        {{ entry.tagline }}
+        <div class="btn-container clearfix">
+          <a href="schedule" class="button white">Book an Appointment<span>+</span></a>
+        </div>
+        <div class="overlay"></div>
+      </div>
+    </section>
+
+    <section class="home-vid clearfix">
+      <div class="container">
+        <div class="contain-vid">
+          <iframe width="640" height="360" src="https://www.youtube.com/embed/wvzguj4PLqo?rel=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+        </div>
+      </div>
+    </section>
+
+    <section class="humboldt clearfix">
+      <div class="container">
+        <div class="plusq">
+          {{entry.meetVetter1}}
+        </div>
+        <div class="plusq">
+          {{entry.meetVetter1b}}
+        </div>
+        <div class="harea">
+          {{entry.meetVetter2}}
+        </div>
+        <div>
+    </section>
+
+    <section class="need-a-vet clearfix">
+      <div class="container">
+        {{entry.howItWorks1}}
+        <div class="grid">
+          <div class="cell">
+            <i class="icon-calendar"></i> {{entry.howItWorks2}}
+          </div>
+          <div class="cell">
+            <i class="icon-check-circle"></i> {{entry.howItWorks3}}
+          </div>
+          <div class="cell">
+            <i class="icon-clock"></i> {{entry.howItWorks4}}
+          </div>
+        </div>
+        <div class="btn-container clearfix">
+          <a href="schedule" class="button teal">Get Started<span>+</span></a>
+        </div>
+      </div>
+    </section>
+    <section class="corgi clearfix">
+      <div class="sarea hideme">
+        {{entry.serviceArea}}
+      </div>
+    </section>
+
+    <section class="home-tests clearfix">
+      <div class="container">
+        <h3>{{entry.serviceTestimonialIntro}}</h3>
+        <div class="grid">
+          {% for t in entry.serviceTestimonials %} {% if t.type.handle == "vetterServiceTestimonials" %}
+          <div class="cell teal">
+            <div class="testimage"><img src="{{t.homeTestimonialImage[0].getUrl('testimonial')}}" alt="{{t.homeTestimonialImage[0].title}}"></div>
+            <cite>{{ t.attribution }}</cite>
+            <hr>
+            <div class="quocontain">
+              <span class="quote">&ldquo;</span>{{ t.quotations|striptags }}<span class="quote">&rdquo;</span>
+            </div>
+
+          </div>
+          {% endif %} {% endfor %}
+        </div>
+        <div class="btn-container tesbtn clearfix">
+          <a href="testimonials" class="button teal">Read More</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="emergency clearfix">
+      <div class="container">
+        <div class="grid">
+          <div class="cell full">
+            {{entry.emergency1}}
+          </div>
+          <div class="cell">
+            {{entry.emergency2}}
+          </div>
+          <div class="cell">
+            {{entry.emergency3}}
+          </div>
+          <div class="cell">
+            {{entry.emergency4}}
+          </div>
+          <div class="cell">
+            {{entry.emergency5}}
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    </div>
+
+
+    </div>
+    <!--#container-->
+</main>
+{% include '_includes/footer.html' %} {% block scripts %} {% include '_includes/scripts.html' %}
+<script>
+  $(document).ready(function() {
+
+    /* Every time the window is scrolled ... */
+    $(window).scroll(function() {
+
+      /* Check the location of each desired element */
+      $('.hideme').each(function(i) {
+
+        //console.log(this);
+
+        var bottom_of_object = $(this).offset().top + $(this).outerHeight();
+        var bottom_of_window = $(window).scrollTop() + $(window).height();
+
+        /* If the object is completely visible in the window, fade it it */
+        if (bottom_of_window > bottom_of_object) {
+
+          $(this).animate({
+            'opacity': '1'
+          }, 350);
+
+        }
+
+      });
+
+    });
+
+  });
+</script>
+<script>
+  $(document).ready(function() {
+    $('.mobile-header nav .nolink ul').toggle();
+    $(".mobile-header nav .nolink").click(function(e) {
+      $(this).children('ul').toggle();
+      $(this).find('i').toggleClass('minus');
+    });
+    $("#menuicon").click(function(e) {
+      $(this).toggleClass('active');
+      $('.mobile-header').toggleClass('active');
+    });
+  });
+</script>
+{% endblock %} {% if craft.twigSession.get('tab') %} {{craft.twigSession.destroySession('tab')}} {% endif %} {% endblock %}

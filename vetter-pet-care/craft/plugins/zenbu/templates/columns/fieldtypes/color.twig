@@ -1,0 +1,10 @@
+{#
+//    ----------------------------------------
+//      Color field
+//    ----------------------------------------
+#}
+{# <div class="colorField" style="background: {{entry[col.handle] | default('transparent')}}"></div> #}
+<div class="color small static">
+	<div class="colorpreview" style="background: {{entry[col.handle] | default('transparent')}}"></div>
+</div>
+<div class="colorhex code">{{entry[col.handle]}}</div>

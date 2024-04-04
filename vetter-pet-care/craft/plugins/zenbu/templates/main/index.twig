@@ -1,0 +1,65 @@
+{% extends "zenbu/global/main_layout" %}
+{% import "_includes/forms" as forms %}
+{% import "zenbu/global/macros" as zenbuMacros %}
+
+{#
+//    ----------------------------------------
+//      Sidebar
+//    ----------------------------------------
+#}
+{% set sidebar %}
+    {% include "zenbu/main/sidebar" %}
+{% endset %}
+
+{#
+//    ----------------------------------------
+//      Content
+//    ----------------------------------------
+#}
+{% set content %}
+
+    {% include "zenbu/main/_filterForm" %}
+
+    {#
+        Show/Hide sidebar button
+    #}
+    <a class="show-sidebar-button" :class="{'showing': sidebarHidden == false }" title="Show sidebar" @click="handleSidebarDisplay()">
+        <i class="fa fa-bars"></i>
+        <i class="fa fa-expand" :class="{'fa-caret-right': sidebarHidden == true, 'fa-caret-left': sidebarHidden != true}" v-cloak></i>
+    </a>
+
+    {#
+        Results
+    #}
+    <div class="resultArea" :class="{ 'loadingResultArea': loading == true }">
+        {% if craft.request.isAjax %}
+            {% include "zenbu/main/results" %}
+        {% endif %}
+    </div>
+
+    {# DEBUG #}
+    {% if craft.config.devMode %}
+        {% if craft.config.zenbuShowVueData is defined and craft.config.zenbuShowVueData != false %}
+            <div v-cloak>
+                <h3>JS Variables</h3>
+                <h4>Section / Entry Type</h4>
+                <pre><code>${sectionId} / ${entryTypeId}</code></pre>
+                <h4>Filter Rows</h4>
+                <pre><code>${rows}</code></pre>
+                <h4>Limit / Orderby / Sort / Locale</h4>
+                <pre><code>${limit} / ${orderby} / ${sort} / ${locale}</code></pre>
+            </div>
+        {% endif %}
+
+        {% if craft.config.zenbuDisableCache is defined and craft.config.zenbuDisableCache != false %}
+            <h3>Cache</h3>
+            <p>Zenbu cache disabled.</p>
+        {% endif %}
+    {% endif %}
+
+    {#
+        Delete entries
+    #}
+    {% include "zenbu/main/_deleteEntries" %}
+
+{% endset %}

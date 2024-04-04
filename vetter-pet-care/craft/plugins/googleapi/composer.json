@@ -1,0 +1,14 @@
+{
+	"name": "puffindev/googleapi",
+	"description": "This plugin enables the site to call  Google APIs",
+	"type": "craft-plugin",
+	"authors": [
+		{
+			"name": "Kenneth Huebsch",
+			"homepage": "https://puffin.dev"
+		}
+	],
+	"require": {
+		"craftcms/cms": "^3.0"
+	}
+}

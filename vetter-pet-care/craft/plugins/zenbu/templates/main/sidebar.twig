@@ -1,0 +1,28 @@
+<nav>
+	<ul v-show="savedSearches.length > 0" {% if savedSearches is empty %}style="display: none"{% endif %}>
+		<li class="heading"><span><i class="fa fa-list"></i> {{"Saved Searches"|t}}</span></li>
+	</ul>
+	<ul v-show="savedSearches === undefined" {% if savedSearches is empty %}style="display: none"{% endif %}>
+		{# <li><img src="{{ resourceUrl('images/spinner.gif') }}" alt="" class="loading"></li> #}
+	</ul>
+	<ul id="savedSearchesList" v-cloak>
+		<li v-for="savedSearch in savedSearches"><a @click.prevent="searchId = savedSearch.id; fetchSavedSearchFilters()" href="{{ url('zenbu/searches/fetchFilters') }}">${savedSearch.label}</a></li>
+	</ul>
+
+	<ul>
+		<li class="heading"><span><i class="fa fa-save"></i> {{"Save this search"|t}}</span></li>
+	</ul>
+	<ul>
+		<li>
+			<form id="saveSearch" action="{{ url('zenbu/searches/save') }}" method="post" @submit.prevent="saveSearch">
+				{{ getCsrfInput() }}
+				<p>
+				<input type="text" class="text" name="label" value="" placeholder="{{'Search name'|t}}" v-model="saveSearchInputFieldValue" />
+				</p>
+				<button type="submit" class="btn submit small" @click="saveSearchButtonClicked = true">
+					<span v-show="saveSearchButtonClicked == false">{{ "Save Search"|t }}</span>
+					<span v-show="saveSearchButtonClicked == true" v-cloak>{{"Saving"|t}} <i class="fa fa-spinner fa-pulse"></i></span></button>
+			</form>
+		</li>
+	</ul>
+</nav>

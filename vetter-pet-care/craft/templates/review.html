@@ -1,0 +1,992 @@
+{% extends "_layout" %}
+
+{% block content %}
+{% requireLogin %}
+{% if currentUser.isInGroup('veterinarian') %}
+{% redirect "/user/"~currentUser.id %}
+{% endif %}
+{% if currentUser.streetAddress and not (craft.twigSession.get('flow') == "schedule" or craft.twigSession.get('flow') == "signup")  %}
+  {% redirect "/" %}
+{% endif %}
+{% if not currentUser.streetAddress and craft.twigSession.get('flow') == "signup" %}
+{% redirect "/basicinfo" %}
+{% endif %}
+{% if craft.request.getParam('flow') is not null %}
+    {% set flow = craft.request.getParam('flow') %}
+    {{ craft.twigSession.add('flow', craft.request.getParam('flow')) }}
+{% else %}
+    {% set flow = craft.twigSession.get('flow') %}
+{% endif %}
+{% include "_includes/_tab_bar" %}
+{% if not craft.twigSession.get('tab')|length > 0 and flow == 'schedule' %}
+  {% redirect "/" %}
+{% endif %}
+  {% if flow == 'schedule' and craft.twigSession.get('tab')|length > 0 %}
+  {% switch craft.twigSession.get('tab') %}
+   {% case "0" %}
+     {% redirect "basicinfo" %}
+    {% case "1" %}
+      {% redirect "petinfo" %}
+       {% case "2" %}
+      {% redirect "billing" %}
+        {% endswitch %}
+  {% endif %}
+  {% set userzip = currentUser.customerZip.first() %}
+  {% set zip_citycode = craft.entries.section('zip').search('title:' ~ userzip) %}
+  {% set citycode = "" %}
+  {% for zcc in zip_citycode %}
+   {% set citycode = zcc.cityCode %}
+  {% endfor %}
+<div class="mini-head">
+  {% set petnum = craft.twigSession.get('num') %}
+  Appointment Window: <b>{{ craft.twigSession.get('start')|date("F d, Y") }} from {{craft.twigSession.get('start')|date("g:i a")}} - {{craft.twigSession.get('end')|date_modify("+60 minutes")|date("g:i a")}}</b>
+ <div id="clockdiv">
+     <span class="smalltext">Time left to complete booking</span>
+     <div class="time">
+     <span class="minutes"></span><span>:</span><span class="seconds"></span>
+     </div>
+ </div>
+</div>
+<div class="form-content">
+ <section class="rev-section">
+  <div class="section-title apptwin clearfix">
+   <h2>Appointment Window</h2>
+   <span class="window">
+   {{ craft.twigSession.get('start')|date("F d, Y") }} from {{craft.twigSession.get('start')|date("g:i a")}} - {{craft.twigSession.get('end')|date_modify("+60 minutes")|date("g:i a")}}
+  </span>
+  {% if craft.twigSession.get('petSchedule[]') %}
+  {% set petsSchedule = craft.twigSession.get('petSchedule[]') %}
+  <span class="forpets">for <b>{{petsSchedule|length}}</b> pet{% if petsSchedule|length > 1 %}s{% endif %}.</span>
+  {% endif %}
+   {% for petblock in user.pets %}
+     {% if petblock.type == 'pet' %}
+   	{% if loop.index == loop.last %}
+   <!--	<span class="forpets">for <b>{{loop.index}}</b> pets</span> -->
+   	{% endif %}
+    {% endif %}
+   {% endfor %}
+</div>
+{% for pet in petsSchedule %}
+{% for petblock in user.pets %}
+{% if petblock.petFirstName == pet %}
+  {% if petblock.type == 'pet' %}
+	 {% set image = petblock.petPhoto.first() %}
+		<div class="review-pet-list clearfix">
+		<a href="{{siteUrl}}petinfo" class="pet-name-box"><div class="pet-name"><i class="icon-paw"></i>{{petblock.petFirstName}}</div></a>
+  </div>
+  {% endif %}
+{% endif %}
+{% endfor %}
+{% endfor %}
+<hr>
+</section>
+
+<section class="rev-section">
+ <div class="section-title clearfix">
+  <h2>Basic Information</h2><a href="{{siteUrl}}basicinfo">Edit</a>
+ </div>
+ <div class="section-info clearfix">
+  <!--<div class="section-row clearfix">
+   <div class="section-label">
+    <label for="firstname">First Name</label>
+    {{currentUser.firstName}}
+   </div>
+   <div class="section-label">
+    <label for="lastname">Last Name</label>
+    {{currentUser.lastName}}
+   </div>
+  </div>-->
+  <div class="section-row clearfix">
+   <div class="section-label">
+    <!-- <label for="streetaddress">Street Address</label> -->
+    {{currentUser.firstName}} {{currentUser.lastName}}<br>
+    {{currentUser.streetAddress}}<br>
+    {% if currentUser.streetAddress2 %}{{currentUser.streetAddress2}}<br>{% endif %}
+   {{currentUser.city}} {{currentUser.states}} {{currentUser.customerZip.first()}}<br>
+   {{currentUser.cellPhone}}
+   </div>
+   <!-- <div class="section-label">
+    <label for="cellphone">Cell Phone</label>
+        {{currentUser.cellPhone}}
+   </div> -->
+  </div>
+ </div>
+ <hr>
+</section>
+<section class="rev-section">
+ <div class="section-title clearfix">
+  <h2>Billing Information</h2><a href="{{siteUrl}}billing">Edit</a>
+ </div>
+{% if craft.charge.customer %}
+    {% set customer_stripe = '' %}
+  {% set customer = craft.charge.customer %}
+    {% set cards = customer.getSavedCards %}
+     {% if cards %}
+       {% for card in cards %}
+            {% set customer_stripe = card.customer %}
+<div class="saved-card-info-container">
+ <h4>Payment Information</h4>
+<div class="saved-card-info">
+  <div class="saved-info">
+    <div class="saved-name">{{currentUser.nameOnCard}}</div>
+    <div class="saved-card"><strong>{{ card.brand }}</strong> ending in <strong>{{card.last4}}</strong></div>
+    <div class="saved-exp">Expires <strong>{{ card.exp_month }}/{{ card.exp_year|slice(2) }}</strong></div>
+  </div>
+
+</div>
+</div>
+   {% endfor %}
+  {% endif %}
+{% endif %}
+ <div class="section-info clearfix">
+  <div class="section-row clearfix">
+   <div class="section-label">
+    <label for="streetaddress">Billing Address</label>
+   {{currentUser.billingAddress}}<br>
+    {% if currentUser.billingAddress2 %}{{currentUser.billingAddress2}}<br>{% endif %}
+   {{currentUser.billingCity}} {{currentUser.billingState}} {{currentUser.billingZip}}<br>
+   {{currentUser.billingCellphone}}
+   </div>
+   <!-- <div class="section-label">
+    <label for="cellphone">Cell Phone</label>
+        {{currentUser.billingCellphone}}
+   </div> -->
+  </div>
+  </div>
+
+{% if currentUser.coupons_used|length > 0 %}
+  {% for coupon in currentUser.coupons_used %}
+    {% if coupon.used_status == "unused" %}
+      <div><p>Discount Code has been submitted : <b>{{coupon.coupon_code}}</b></p></div>
+    {% endif %}
+  {% endfor %}
+{% endif %}
+
+  <hr>
+</section>
+
+
+<section class="rev-section">
+
+ <div class="section-title alternate clearfix">
+  <h2 class="alt">Alternate Contact <span class="opt">(optional)</span></h2>
+  <div class="expl">{{customerAccountSetUp.alternateContactExplanation}}</div>
+ </div>
+ <form method="post" class="alternate" accept-charset="UTF-8">
+ <input type="hidden" name="action" value="users/saveUser">
+   <input type="hidden" name="userId" value="{{ currentUser.id }}">
+ {{ getCsrfInput() }}
+ <div class="section-row clearfix">
+
+  <span class="input input--yoshiko alternatecontactname">
+  <input class="input__field input__field--yoshiko" type="text" id="alt_con" name = "fields[alternateContactName]" value="{{currentUser.alternateContactName}}" />
+  <label class="input__label input__label--yoshiko" for="alt_con">
+  <span class="input__label-content input__label-content--yoshiko" data-content="Cell Phone">Full Name</span>
+  </label>
+  </span>
+
+  <span class="input input--yoshiko alternatecontactcellnumber">
+  <input class="input__field input__field--yoshiko" type="text" id="alt_phone" name = "fields[alternateContactCellNumber]" value="{{currentUser.alternateContactCellNumber}}"/>
+  <label class="input__label input__label--yoshiko" for="alt_phone">
+  <span class="input__label-content input__label-content--yoshiko" data-content="Cell Phone">Cell Phone</span>
+  </label>
+  </span>
+
+ </div>
+ </form>
+</section>
+
+<section class="rev-section">
+ <div class="section-title alternate reason clearfix">
+  <h2 class="alt">Reason for Appointment*</h2>
+ </div>
+ <div class="section-info clearfix">
+  <form method="post" class="apptRecord" accept-charset="UTF-8">
+  {#
+  <input type="checkbox" class="ros" name="fields[reasonForAppointment][]" value="generalWellnessCheckUp" />General Wellness Check-Up<br>
+  <input type="checkbox" class="ros" name="fields[reasonForAppointment][]" value="vaccinations" />Vaccinations<br>
+  <input type="checkbox" class="ros" name="fields[reasonForAppointment][]" value="puppyKittenWellnessPackage" />Puppy/Kitten Wellness Package<br>
+  <input type="checkbox" class="ros" name="fields[reasonForAppointment][]" value="seniorWellnessPackage" />Senior Wellness Package<br>
+  <input type="checkbox" class="ros" name="fields[reasonForAppointment][]" value="urinationIssues" />Urination Issues<br>
+  <input type="checkbox" class="ros" name="fields[reasonForAppointment][]" value="vomitingDiarrhea" />Vomiting/Diarrhea<br>
+  <input type="checkbox" class="ros" name="fields[reasonForAppointment][]" value="travelCertificates" />Travel Certificates<br>
+  <input type="checkbox" class="ros" name="fields[reasonForAppointment][]" value="itsBeenAWhileSinceWeveSeenAVet" />It’s been a while since we’ve seen a vet<br>
+  #}
+  {% set myFieldOptions = craft.fields.getFieldbyHandle('reasonForAppointment') %}
+  <div class="rfa-inst">{{myFieldOptions.instructions}}</div>
+  {% for option in myFieldOptions.settings.options %}
+      <div class="input-row checkboxes">
+      <input type="checkbox" class="ros" name="fields[reasonForAppointment][]" value="{{option.value}}" /><span class="checkbox-label">{{option.label}}</span>
+      </div>
+  {% endfor %}
+  </form>
+  <form method="post" class="alternate" accept-charset="UTF-8">
+  <input type="hidden" name="action" value="users/saveUser">
+    <input type="hidden" name="userId" value="{{ currentUser.id }}">
+  {{ getCsrfInput() }}
+  <div class="specinst">
+  <b>{{booking.specialInstructionsForVetHeader}}</b>
+  <p>{{booking.specialInstructionsForVet}}</p>
+  <textarea id="specialInst" value=""></textarea>
+  </div>
+  <div class="input-row checkboxes">
+ <input type="checkbox" name="updates" class="txtupdates" id ="txtupdates" value="updates" /> <span class="checkbox-label">Receive text updates concerning your appointment?</span>
+ </div>
+ <div class="input-row checkboxes">
+  <input type="checkbox" name="tos" class="tos" id="tos_check" value="tos" /><span class="checkbox-label">I agree with Vetter's <a id="tos" href="">Terms of Service*</a></span>
+  </div>
+  <div id="tos-modal" class="modal tos-modal">
+      <div class="modal-content">
+          <div class="modal-header clearfix">
+              <span class="tos-Modal-close"><i class="icon-cancel"></i></span>
+              <h2>Client Terms of Service for Vetter Pet Care, LLC</h2>
+          </div>
+          <div class="tos-modal-body" >
+            {{booking.termsOfService}}
+          </div>
+      </div>
+  </div>
+  </form>
+ </div>
+<form method="post" class="apptRecord hidden-form" accept-charset="UTF-8"  enctype="multipart/form-data">
+  <input type="hidden" name="action" value="entries/saveEntry" />
+  <input type="hidden" name="sectionId" value="11" />
+  <input type="hidden" name="enabled" value="1" />
+  <input type="hidden" name="title" value="Test booking" />
+{% for pet in petsSchedule %}
+{% for petblock in user.pets %}
+{% if petblock.petFirstName == pet %}
+  {% if petblock.type == 'pet' %}
+    <input type="hidden" name="fields[pets][new{{ loop.index }}][type]" value="pet">
+    <input type="hidden" name="fields[pets][new{{ loop.index }}][enabled]" value="1">
+		<input type="hidden" name="fields[pets][new{{ loop.index }}][fields][petFirstName]" value="{{ petblock.petFirstName }}" />
+    <input type="hidden" name="fields[pets][new{{ loop.index }}][fields][birthdate]" value="{{ petblock.birthdate }}" />
+    <input type="hidden" name="fields[pets][new{{ loop.index }}][fields][species]" value="{{ petblock.species }}" />
+    <input type="hidden" name="fields[pets][new{{ loop.index }}][fields][breed]" value="{{ petblock.breed }}" />
+    <input type="hidden" name="fields[pets][new{{ loop.index }}][fields][gender]" value="{{ petblock.gender }}" />
+    <input type="hidden" name="fields[pets][new{{ loop.index }}][fields][spayedOrNeutered]" value="{{ petblock.spayedOrNeutered }}" />
+    <input type="hidden" name="fields[pets][new{{ loop.index }}][fields][generalInformation]" value="{{ petblock.generalInformation }}" />
+    <input type="hidden" name="fields[pets][new{{ loop.index }}][fields][aggressiveBehavior]" value="{{ petblock.aggressiveBehavior }}" />
+    <input type="hidden" name="fields[pets][new{{ loop.index }}][fields][detailAboutAggressiveBehavior]" value="{{ petblock.detailAboutAggressiveBehavior }}" />
+    <input type="hidden" name="fields[pets][new{{ loop.index }}][fields][weight]" value="{{ petblock.weight }}" />
+    <input type="hidden" name="fields[pets][new{{ loop.index }}][fields][color]" value="{{ petblock.color }}" />
+    <input type="hidden" name="fields[pets][new{{ loop.index }}][fields][canineRabiesDateGiven]" value="{{ petblock.canineRabiesDateGiven }}" />
+    <input type="hidden" name="fields[pets][new{{ loop.index }}][fields][canineRabiesNextDue]" value="{{ petblock.canineRabiesNextDue }}" />
+    <input type="hidden" name="fields[pets][new{{ loop.index }}][fields][da2ppDateGiven]" value="{{ petblock.da2ppDateGiven }}" />
+    <input type="hidden" name="fields[pets][new{{ loop.index }}][fields][da2ppNextDue]" value="{{ petblock.da2ppNextDue }}" />
+    <input type="hidden" name="fields[pets][new{{ loop.index }}][fields][leptospirosisDateGiven]" value="{{ petblock.leptospirosisDateGiven }}" />
+    <input type="hidden" name="fields[pets][new{{ loop.index }}][fields][leptospirosisNextDue]" value="{{ petblock.leptospirosisNextDue }}" />
+    <input type="hidden" name="fields[pets][new{{ loop.index }}][fields][bordetellaDateGiven]" value="{{ petblock.bordetellaDateGiven }}" />
+    <input type="hidden" name="fields[pets][new{{ loop.index }}][fields][bordetellaNextDue]" value="{{ petblock.bordetellaNextDue }}" />
+    <input type="hidden" name="fields[pets][new{{ loop.index }}][fields][influenzaDateGiven]" value="{{ petblock.influenzaDateGiven }}" />
+    <input type="hidden" name="fields[pets][new{{ loop.index }}][fields][influenzaNextDue]" value="{{ petblock.influenzaNextDue }}" />
+    <input type="hidden" name="fields[pets][new{{ loop.index }}][fields][lymeDateGiven]" value="{{ petblock.lymeDateGiven }}" />
+    <input type="hidden" name="fields[pets][new{{ loop.index }}][fields][lymeNextDue]" value="{{ petblock.lymeNextDue }}" />
+    <input type="hidden" name="fields[pets][new{{ loop.index }}][fields][negativeHwtDateGiven]" value="{{ petblock.negativeHwtDateGiven }}" />
+    <input type="hidden" name="fields[pets][new{{ loop.index }}][fields][negativeHwtNextDue]" value="{{ petblock.negativeHwtNextDue }}" />
+    <input type="hidden" name="fields[pets][new{{ loop.index }}][fields][felineRabiesDateGiven]" value="{{ petblock.felineRabiesDateGiven }}" />
+    <input type="hidden" name="fields[pets][new{{ loop.index }}][fields][felineRabiesNextDue]" value="{{ petblock.felineRabiesNextDue }}" />
+    <input type="hidden" name="fields[pets][new{{ loop.index }}][fields][fvrcpDateGiven]" value="{{ petblock.fvrcpDateGiven }}" />
+    <input type="hidden" name="fields[pets][new{{ loop.index }}][fields][fvrcpNextDue]" value="{{ petblock.fvrcpNextDue }}" />
+    <input type="hidden" name="fields[pets][new{{ loop.index }}][fields][felvDateGiven]" value="{{ petblock.felvDateGiven }}" />
+    <input type="hidden" name="fields[pets][new{{ loop.index }}][fields][felvNextDue]" value="{{ petblock.felvNextDue }}" />
+
+{% endif %}
+{% endif %}
+{% endfor %}
+{% endfor %}
+
+   <!-- achan 06-25-2019 add petlist -->
+  <input type="hidden" name="petlist" value="{% set loopcount = 0 %}{% for pet in petsSchedule %}{% for petblock in user.pets %}{% if petblock.petFirstName == pet %}{% if petblock.type == 'pet' %}{% set loopcount = loopcount + 1 %}{% if loopcount > 1 and loopcount > 1 %}, {% endif %}{{ petblock.petFirstName }}{% endif %}{% endif %}{% endfor %}{% endfor %}" />
+  </form>
+
+  
+<input class="button book blue tos_set" id="bookAppt" type="submit" value="Book Appointment" disabled="disabled">
+<div class="loader"></div>
+<div class="loadermessage"><p>Wait! Appointment Processing...</p></div>
+</section>
+</div>
+
+{% set vetData = craft.users.id(craft.twigSession.get('vet_id')).first %}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/timekit-js-sdk/1.6.1/timekit-sdk.min.js"></script>
+<script>
+$(function(){
+
+if(localStorage.getItem('name')){
+     $(".saved-name").text(localStorage.getItem('name'));
+	var form1 = '<form method="post" accept-charset="UTF-8">'+
+	            '<input type="hidden" name="action" value="users/saveUser" />'+
+		    '<input type="hidden" name="userId" value="{{ currentUser.id }}">'+
+		    '<input type="hidden" name="fields[nameOnCard]" value="'+localStorage.getItem("name")+'" />'+
+		   '</form>';
+
+name = $(form1).serialize();
+      $.ajax({
+         method: "post",
+	 data: name,
+         dataType: "json",
+         url: "{{siteUrl}}",
+         success: function(data, response){
+
+		  }
+	     });
+}
+  timekit.setUser(
+          'VPCTacDev@gmail.com',
+          'PZ7QKl0hmAZyHHjV7ZqWTgGXMn3FvMI4'
+  );
+  timekit.configure({
+          app:                         'vetter-971',
+          apiBaseUrl:                 'https://api.timekit.io/',
+          apiVersion:                 'v2',
+          timezone:                   'America/New_York',
+          goToFirstEvent: true,
+          calendar: '445b8b7a-492a-48b6-9433-741d086463fc',
+          name: 'Vetter Pet Care Calendar',
+          includeStyles: false,
+          // localization: {
+          //        showTimezoneHelper: false,
+          //                },
+          convertResponseToCamelcase: false,
+          convertRequestToSnakecase:  true,
+          autoFlattenResponse: true
+  });
+
+  $(".tos").click(function(e){
+      if ($(this).is(':checked') && $('input.ros:checked').length > 0){
+          $(".tos_set").prop('disabled',false);
+      }else{
+          $(".tos_set").prop('disabled',true);
+      }
+  });
+
+  $(".ros").click(function(e){
+      if ($(".tos").is(':checked') && $('input.ros:checked').length > 0){
+          $(".tos_set").prop('disabled',false);
+      }else{
+          $(".tos_set").prop('disabled',true);
+      }
+  });
+
+  $("#bookAppt").click(function(e){
+      e.preventDefault();
+
+   if(!$('input.ros:checked').length > 0){
+    alert('You must select at least one Reason for Appointment before your appointment can be booked.');
+    return false;
+   }
+
+   if(!$("#tos_check").is(":checked")){
+    alert('You must accept the Terms of Service before your appointment can be booked.');
+    return false;
+   }
+   //$(this).removeAttr('disabled');
+
+    var start = "{{ craft.twigSession.get('start') }}";
+    var end = "{{ craft.twigSession.get('end') }}";
+    var cal_id = "{{ craft.twigSession.get('cal_id') }}";
+    var participants = "{{ craft.twigSession.get('partic') }}";
+    /*
+timekit.createBooking(
+          {
+                  graph:          'instant',       // Inserted based on "bookingGraph" specified. See description above on flow graph
+                  action:         'confirm',       // If "instant" graph is chosen, it will instantly perform the "confirm" action. See description above on flow graph
+                  event: {
+                    where:        'Online',        // Default, you may want to customize this to a specific location, TBD or whatever fits
+                    invite:       true,            // Default, makes sure that participants (the visitor) is sent a Google invite
+                    my_rsvp:      'accepted',      // Default, makes sure that the host has accepted the created event in Google
+                    start:        "{{ craft.twigSession.get('start') }}",      // Inserted dynamically from the chosen timeslot
+                    end:          "{{ craft.twigSession.get('end') }}",      // Inserted dynamically from the chosen timeslot
+                    what:         'Booking', // Inserted dynamically based on the host and visitors names (you can replace it with a static string)
+                    calendar_id:  "{{ craft.twigSession.get('cal_id') }}", // Inserted dynamically from the "calendar" setting in the general config
+                    participants: ["{{ craft.twigSession.get('partic') }}"], // Inserted dynamically based on host and visitors ()
+                    description:  ''                // Inserted dynamically based on the visitor's supplied comment (if field is enabled)
+                  },
+                  customer: {
+                    name:         "{{currentUser.name}}",       // Inserted dynamically based on visitors name
+                    email:        "{{currentUser.email}}",      // Inserted dynamically based on visitors email
+                    timezone:     timekit.getConfig().timezone // Inserted dynamically based on visitors timezone (sniffed from browser/device settings)
+                  }
+}).then(function(response){
+*/
+
+      function pad (str, max) {
+          str = str.toString();
+          return str.length < max ? pad("0" + str, max) : str;
+      }
+
+
+      /* create appointment id in craft plugin */
+      var customerid = {{currentUser.id}};
+      var requesttime =  Date.now();
+      var iddata = {
+          customerid : customerid,
+          requesttime : requesttime,
+      };
+      var credit = {
+            customer_id: '{{ customer_stripe }}',
+            customer_amount: '100',
+            description: 'pre-service charge',
+      };
+
+      console.log('show loader');
+      $(".loader").show();
+      $(".loadermessage").show();
+      $(this).attr('disabled', 'disabled');
+
+      setTimeout(function () {
+          //$.post('/actions/apptId/createid', iddata , function(apptid_response) {
+          /* Verify credit card with charge
+                if fail redirect back to billing page with error
+                if pass continue on booking */
+
+       $.ajax({
+           async: false,
+           type: 'POST',
+           url:"/actions/apptId/verifycard",
+           data: credit,
+           success: function (verify_response) {
+               console.log(verify_response);
+
+            if (verify_response == "success") {
+
+                $.ajax({
+                    async: false,
+                    type: 'POST',
+                    url: "/actions/apptId/createid",
+                    data: iddata,
+                    success: function (apptid_response) {
+
+                        console.log(apptid_response);
+
+                        if (apptid_response == customerid) {
+                            console.log('get id');
+                            // $.post('/actions/apptId/getid', iddata , function(apptid_response){
+                            $.ajax({
+                                async: false,
+                                type: 'POST',
+                                url: "/actions/apptId/getid",
+                                data: iddata,
+                                success: function (apptid_response) {
+
+                                    var apptID = parseInt(apptid_response.trim(), 10);
+                                    console.log(apptID);
+
+                                    var start = "{{ craft.twigSession.get('start') }}";
+                                    var end = "{{ craft.twigSession.get('end') }}";
+                                    var cal_id = "{{ craft.twigSession.get('cal_id') }}";
+                                    var participants = "{{ craft.twigSession.get('partic') }}";
+
+
+                                    /* put create appointment record to here */
+                                    var firstToSchedule = "{{ craft.twigSession.get('firstToSchedule')}}";
+                                    var vet_id = "{{craft.twigSession.get('vet_id')}}";
+                                    var customer = "{{currentUser.email}}";
+                                    var appointmentStart = start;
+                                    var apptDate = moment(start, 'YYYY-MM-DD HH:mm').toDate();
+                                    var bookingDate = moment().toDate();
+                                    var assignedVetName = firstToSchedule;
+                                    var customerFirstName = "{{currentUser.firstName}}";
+                                    var customerLastName = "{{currentUser.lastName}}";
+                                    var customerCity = "{{currentUser.city}}";
+                                    var customerStreetAddress1 = "{{currentUser.streetAddress}}";
+                                    var customerStreetAddress2 = "{{currentUser.streetAddress2}}";
+                                    var user = "{{currentUser.firstName}} {{currentUser.lastName}}";
+                                    var userEmail = "{{currentUser}}";
+                                    var customerId = "C-{{citycode}}-{{currentUser.id}}";
+                                    var customerRealId = "{{currentUser.id}}";
+                                    var customerZip = "{{currentUser.customerZip.first()}}";
+                                    var customerState = "{{currentUser.states}}";
+                                    var customerCell = "{{currentUser.cellPhone}}";
+                                    var specialInst = $("#specialInst").val();
+                                    var alt_con = $("#alt_con").val();
+                                    var alt_phone = $("#alt_phone").val();
+                                    //var apptID = "{{craft.entries.section('appointmentRecords').total() + 1}}";
+                                    var vetEmail = "{{vetData.email}}";
+                                    var vetcellPhone = "{{vetData.cellPhone}}";
+                                    var vetFirstName = "{{vetData.firstName}}";
+                                    var vetLastName = "{{vetData.lastName}}";
+                                    var VetID = 'V-' + pad(vet_id, 5);
+                                    var CustID = "{{currentUser.id}}";
+                                   var adminNotes = "{{ currentUser.adminNotes|replace({'\r\n':'newlineline '}) }}";
+
+                                    /* achan  06-25-2019 per customer request add pet name */
+                                    var petlist = "{% set loopcount = 0 %}{% for pet in petsSchedule %}{% for petblock in user.pets %}{% if petblock.petFirstName == pet %}{% if petblock.type == 'pet' %}{% set loopcount = loopcount + 1 %}{% if loopcount > 1 and loopcount > 1 %}, {% endif %}{{ petblock.petFirstName }}{% endif %}{% endif %}{% endfor %}{% endfor %}";
+
+
+                                    if ($(".txtupdates").prop('checked')) {
+                                        var txtupdates = $(".txtupdates").val();
+                                    } else {
+                                        var txtupdates = '';
+                                    }
+
+                                    $('.apptRecord').append('<input type="hidden" name="title" value="Booking for ' + assignedVetName + '" />' +
+                                        '<input type="hidden" name="fields[appointmentDate]" value="' + apptDate + '" />' +
+                                        '<input type="hidden" name="fields[appointmentStartTime]" value="' + appointmentStart + '" />' +
+                                        '<input type="hidden" name="fields[appointmentIdNumber]" value="' + apptID + '" />' +
+                                        '<input type="hidden" name="fields[assignedVeterinarianName]" value="' + assignedVetName + '" />' +
+                                        '<input type="hidden" name="fields[bookingDate]" value="' + bookingDate + '" />' +
+                                        '<input type="hidden" name="fields[customerCity]" value="' + customerCity + '" />' +
+                                        '<input type="hidden" name="fields[customerstate]" value="' + customerState + '" />' +
+                                        '<input type="hidden" name="fields[customerZipCode]" value="' + customerZip + '" />' +
+                                        '<input type="hidden" name="fields[cellPhone]" value="' + customerCell + '" />' +
+                                        '<input type="hidden" name="fields[customerName]" value="' + user + '" />' +
+                                        '<input type="hidden" name="fields[customeremail]" value="' + userEmail + '" />' +
+                                        '<input type="hidden" name="fields[customerStreetAddress1]" value="' + customerStreetAddress1 + '" />' +
+                                        '<input type="hidden" name="fields[customerStreetAddress2]" value="' + customerStreetAddress2 + '" />' +
+                                        '<input type="hidden" name="fields[alternateContactName]" value="' + alt_con + '" />' +
+                                        '<input type="hidden" name="fields[alternateContactCellNumber]" value="' + alt_phone + '" />' +
+                                        '<input type="hidden" name="fields[customerIdNumber]" value="' + customerId + '" />' +
+                                        '<input type="hidden" name="fields[customerRealId]" value="' + customerRealId + '" />' +
+                                        '<input type="hidden" name="fields[txtupdates]" value="' + txtupdates + '" />' +
+                                        '<input type="hidden" name="fields[assignedVeterinarianIdNumber]" value="V-0' + vet_id + '" />' +
+                                        '<input type="hidden" name="fields[holdEntryId]" value="' + localStorage.getItem('bookingid') + '" />' +
+                                        '<input type="hidden" name="fields[specialInstructionsForVet]" value="' + specialInst + '" />' +
+                                        '<input type="hidden" name="fields[petlist]" value="' + petlist + '" />');
+
+
+                                    apptdata = $(".apptRecord").serialize();
+
+
+                                    /* convert the date to required format */
+                                    apptdateArray = ($.trim(apptDate).split(' '));
+
+
+                                    /* convert week date * */
+                                    switch (apptdateArray[0]) {
+                                        case 'Mon':
+                                            apptdateArray[0] = 'Monday';
+                                            break;
+                                        case 'Tue':
+                                            apptdateArray[0] = 'Tuesday';
+                                            break;
+                                        case 'Wed':
+                                            apptdateArray[0] = 'Wednesday';
+                                            break;
+                                        case 'Thu':
+                                            apptdateArray[0] = 'Thursday';
+                                            break;
+                                        case 'Fri':
+                                            apptdateArray[0] = 'Friday';
+                                            break;
+                                        case 'Sat':
+                                            apptdateArray[0] = 'Saturday';
+                                            break;
+                                        case 'Sun':
+                                            apptdateArray[0] = 'Sunday';
+                                            break;
+                                    }
+
+                                    /* convert the Month */
+                                    switch (apptdateArray[1]) {
+                                        case 'Jan':
+                                            apptdateArray[1] = 'January';
+                                            break;
+                                        case 'Feb':
+                                            apptdateArray[1] = 'February';
+                                            break;
+                                        case 'Mar':
+                                            apptdateArray[1] = 'March';
+                                            break;
+                                        case 'Apr':
+                                            apptdateArray[1] = 'April';
+                                            break;
+                                        case 'May':
+                                            apptdateArray[1] = 'May';
+                                            break;
+                                        case 'Jun':
+                                            apptdateArray[1] = 'June';
+                                            break;
+                                        case 'Jul':
+                                            apptdateArray[1] = 'July';
+                                            break;
+                                        case 'Aug':
+                                            apptdateArray[1] = 'August';
+                                            break;
+                                        case 'Sep':
+                                            apptdateArray[1] = 'September';
+                                            break;
+                                        case 'Oct':
+                                            apptdateArray[1] = 'October';
+                                            break;
+                                        case 'Nov':
+                                            apptdateArray[1] = 'November';
+                                            break;
+                                        case 'Dec':
+                                            apptdateArray[1] = 'December';
+                                            break;
+                                        default:
+                                            break;
+                                    }
+
+                                    /* copy start time */
+
+                                    var StartTime = '{{craft.twigSession.get("start")|date("g:i a")}}';
+
+                                    /* Add 90 minutes as end time */
+                                    var EndTime = '{{craft.twigSession.get("end")|date_modify("+60 minutes")|date("g:i a")}}';
+
+
+                                    /* trigger appt confirm email for customer */
+                                    var data = {
+                                        appointmentDate: apptDate,
+                                        appointmentStartTime: apptdateArray[0] + ', ' + apptdateArray[1] + ' ' + apptdateArray[2] + ' ' + apptdateArray[3] + ' at ' + StartTime,
+                                        appointmentLongDate: apptdateArray[0] + ', ' + apptdateArray[1] + ' ' + apptdateArray[2] + ' ' + apptdateArray[3],
+                                        StartTime: StartTime,
+                                        customerFirstName: customerFirstName,
+                                        customerLastName: customerLastName,
+                                        appointmentEndTime: EndTime,
+                                        appointmentIdNumber: apptID,
+                                        customerIdNumber: customerId,
+                                        customerStreetAddress1: customerStreetAddress1,
+                                        customerStreetAddress2: customerStreetAddress2,
+                                        customerCity: customerCity,
+                                        customerState: customerState,
+                                        customerZipCode: customerZip,
+                                        customeremail: userEmail,
+                                        emailType: 'custApptConfirmed',
+                                        CustID: CustID,
+                                        TextTo: customerCell,
+                                        vetcellPhone: vetcellPhone,
+                                    };
+
+                                    $.ajax({
+                                        async: false,
+                                        type: 'POST',
+                                        url: "/actions/emailUser/send_email",
+                                        data: data,
+                                        success: function (sendemail_response) {
+                                            if (sendemail_response.success) {
+                                                console.log('success');
+                                            }
+                                        }
+                                    });
+                                    /* end send confirmation email for customer*/
+
+                                    /* Create event on google calendar */
+                                    var CalendarData = {
+                                        customerFirstName: customerFirstName,
+                                        customerLastName: customerLastName,
+                                        customerCell: customerCell,
+                                        customerEmail: userEmail,
+                                        streetAddress: customerStreetAddress1,
+                                        streetAddress2: customerStreetAddress2,
+                                        city: customerCity,
+                                        customerZip: customerZip,
+                                        start: start,
+                                        end: end,
+                                        apptID: apptID,
+                                        vetFirstName: vetFirstName,
+                                        vetLastName: vetLastName,
+                                        petList: petlist,
+                                    };
+
+                                    $.ajax({
+                                        async: true,
+                                        method: "post",
+                                        data: CalendarData,
+                                        url: "/actions/googleApi/calendar/createCalendarEvent",
+                                        success: function (data) {}
+                                    });	
+                                    /* END create event on google calendar */
+
+
+                                    /* trigger appt confirm email for vet */
+                                    var vetdata = {
+                                        appointmentDate: apptDate,
+                                        appointmentLongDate: apptdateArray[0] + ', ' + apptdateArray[1] + ' ' + apptdateArray[2] + ' ' + apptdateArray[3],
+                                        appointmentStartTime: apptdateArray[0] + ', ' + apptdateArray[1] + ' ' + apptdateArray[2] + ' ' + apptdateArray[3] + ' at ' + StartTime,
+                                        StartTime: StartTime,
+                                        appointmentIdNumber: apptID,
+                                        customerFirstName: customerFirstName,
+                                        customerLastName: customerLastName,
+                                        customerIdNumber: customerId,
+                                        customerStreetAddress1: customerStreetAddress1,
+                                        customerStreetAddress2: customerStreetAddress2,
+                                        customerCity: customerCity,
+                                        customerState: customerState,
+                                        customerZipCode: customerZip,
+                                        vetEmail: vetEmail,
+                                        vetcellPhone: vetcellPhone,
+                                        TextTo: vetcellPhone,
+                                        vetFirstName: vetFirstName,
+                                        vetID: VetID,
+                                        emailType: 'vetApptNotification',
+                                        CustID: CustID,
+                                        petlist:petlist,
+                                    };
+
+                                    $.ajax({
+                                        async: false,
+                                        type: 'POST',
+                                        url: "/actions/emailUser/send_email",
+                                        data: vetdata,
+                                        success: function (sendemail_response) {
+                                            if (sendemail_response.success) {
+                                                console.log('success');
+                                            }
+                                        }
+                                    });
+                                    /* end send confirmation email for vet*/
+
+                                    /* trigger appt confirm email for Admin */
+                                    var Admindata = {
+                                        appointmentDate: apptDate,
+                                        appointmentLongDate: apptdateArray[0] + ', ' + apptdateArray[1] + ' ' + apptdateArray[2] + ' ' + apptdateArray[3],
+                                        appointmentStartTime: apptdateArray[0] + ', ' + apptdateArray[1] + ' ' + apptdateArray[2] + ' ' + apptdateArray[3] + ' at ' + StartTime,
+                                        StartTime: StartTime,
+                                        appointmentIdNumber: apptID,
+                                        customerFirstName: customerFirstName,
+                                        customerLastName: customerLastName,
+                                        customerIdNumber: customerId,
+                                        customerStreetAddress1: customerStreetAddress1,
+                                        customerStreetAddress2: customerStreetAddress2,
+                                        customerCity: customerCity,
+                                        customerState: customerState,
+                                        customerZipCode: customerZip,
+                                        vetEmail: vetEmail,
+                                        vetcellPhone: vetcellPhone,
+                                        TextTo: vetcellPhone,
+                                        vetFirstName: vetFirstName,
+                                        vetLastName: vetLastName,
+                                        vetID: VetID,
+                                        CustID: CustID,
+                                        emailType: 'adminApptBookedByCust',
+                                        petlist:petlist,
+                                        adminNotes:adminNotes,
+                                    };
+
+                                    $.ajax({
+                                        async: false,
+                                        type: 'POST',
+                                        url: "/actions/emailUser/send_email",
+                                        data: Admindata,
+                                        success: function (sendemail_response) {
+                                            if (sendemail_response.success) {
+                                                console.log('success');
+                                            }
+                                        }
+                                    });
+
+                                    /* end send confirmation email for vet*/
+                                    var CurrentDT = moment().toDate();
+
+                                    var diff = moment.duration(moment(apptDate).diff(moment(CurrentDT)));
+                                    var days = parseInt(diff.asDays()); //84
+                                    var hours = parseInt(diff.asHours()); //2039 hours, but it gives total hours in given miliseconds which is not expacted.
+                                    hours = hours - days * 24;  // 23 hours
+                                    var minutes = parseInt(diff.asMinutes()); //122360 minutes,but it gives total minutes in given miliseconds which is not expacted.
+                                    minutes = minutes - (days * 24 * 60 + hours * 60); //20 minutes.
+                                    console.log('days:' + days);
+                                    console.log('hours:' + hours);
+                                    console.log('minutes:' + minutes);
+                                    if (((days == 0) && (hours <= 23)) || ((days == 1) && (hours == 0) && (minutes <= 6))) {
+                                        /* if Appointment time is < 24 hours from now, send booking reminder custApptReminder */
+                                        var data = {
+                                            appointmentDate: apptDate,
+                                            appointmentStartTime: apptdateArray[0] + ', ' + apptdateArray[1] + ' ' + apptdateArray[2] + ' ' + apptdateArray[3] + ' at ' + StartTime,
+                                            appointmentLongDate: apptdateArray[0] + ', ' + apptdateArray[1] + ' ' + apptdateArray[2] + ' ' + apptdateArray[3],
+                                            StartTime: StartTime,
+                                            customerFirstName: customerFirstName,
+                                            customerLastName: customerLastName,
+                                            appointmentEndTime: EndTime,
+                                            appointmentIdNumber: apptID,
+                                            customerIdNumber: customerId,
+                                            customerStreetAddress1: customerStreetAddress1,
+                                            customerStreetAddress2: customerStreetAddress2,
+                                            customerCity: customerCity,
+                                            customerState: customerState,
+                                            customerZipCode: customerZip,
+                                            customeremail: userEmail,
+                                            customerCell: customerCell,
+                                            vetFirstName: vetFirstName,
+                                            vetLastName: vetLastName,
+                                            emailType: 'custApptReminder',
+                                            textType: 'custApptReminderTxt',
+                                            CustID: CustID,
+                                            TextTo: customerCell,
+                                            vetcellPhone: vetcellPhone,
+                                        };
+                                        console.log('send customer reminder');
+
+
+                                        /* send text to customer because appt less than 24 hours when user select txtupdates */
+                                        if (txtupdates == 'updates') {
+                                            $.ajax({
+                                                async: false,
+                                                type: 'POST',
+                                                url: "/actions/twilioSms/sendSms",
+                                                data: data,
+                                                success: function (sendemail_response) {
+                                                    if (sendemail_response.success) {
+                                                        console.log('success');
+                                                    }
+                                                }
+                                            });
+                                        }
+
+                                        /* send email to customer */
+                                        $.ajax({
+                                            async: false,
+                                            type: 'POST',
+                                            url: "/actions/emailUser/send_email",
+                                            data: data,
+                                            success: function (sendemail_response) {
+                                                if (sendemail_response.success) {
+                                                    console.log('success');
+                                                }
+                                            }
+                                        });
+
+
+                                        /* end of custApptReminder*/
+
+                                        /* if Appointment time is < 24 hours from now, send booking reminder vetApptReminder */
+                                        var vetdata = {
+                                            appointmentDate: apptDate,
+                                            appointmentLongDate: apptdateArray[0] + ', ' + apptdateArray[1] + ' ' + apptdateArray[2] + ' ' + apptdateArray[3],
+                                            appointmentStartTime: apptdateArray[0] + ', ' + apptdateArray[1] + ' ' + apptdateArray[2] + ' ' + apptdateArray[3] + ' at ' + StartTime,
+                                            appointmentEndTime: EndTime,
+                                            StartTime: StartTime,
+                                            appointmentIdNumber: apptID,
+                                            customerFirstName: customerFirstName,
+                                            customerLastName: customerLastName,
+                                            customerIdNumber: customerId,
+                                            customerStreetAddress1: customerStreetAddress1,
+                                            customerStreetAddress2: customerStreetAddress2,
+                                            customerCity: customerCity,
+                                            customerState: customerState,
+                                            customerZipCode: customerZip,
+                                            vetEmail: vetEmail,
+                                            TextTo: vetcellPhone,
+                                            vetcellPhone: vetcellPhone,
+                                            vetFirstName: vetFirstName,
+                                            vetLastName: vetLastName,
+                                            vetID: VetID,
+                                            emailType: 'vetApptReminder',
+                                            textType: 'vet24hrsApptNotificationTxt',
+                                            CustID: CustID,
+                                            petlist:petlist,
+                                        };
+                                        console.log('send Vet reminder');
+
+                                        $.ajax({
+                                            async: false,
+                                            type: 'POST',
+                                            url: "/actions/emailUser/send_email",
+                                            data: vetdata,
+                                            success: function (sendemail_response) {
+                                                if (sendemail_response.success) {
+                                                    console.log('success');
+                                                }
+                                            }
+                                        });
+
+                                        /* send vet vet24hrsApptNotificationTxt */
+
+                                        $.ajax({
+                                            async: false,
+                                            type: 'POST',
+                                            url: "/actions/twilioSms/sendSms",
+                                            data: vetdata,
+                                            success: function (sendemail_response) {
+                                                if (sendemail_response.success) {
+                                                    console.log('success');
+                                                }
+                                            }
+                                        });
+
+
+                                        /* end of vetApptReminder*/
+                                    }
+
+                                    $.ajax({
+                                        async: false,
+                                        type: 'POST',
+                                        url: "{{siteUrl}}",
+                                        data: apptdata,
+                                        success: function (data) {
+                                            if (data.success) {
+                                                var contact_data = $('.alternate').serialize();
+                                                $.ajax({
+                                                    async: false,
+                                                    method: "post",
+                                                    data: contact_data,
+                                                    dataType: "json",
+                                                    url: "{{siteUrl}}",
+                                                    success: function (data, response) {
+                                                        $.ajax({
+                                                            async: false,
+                                                            type: 'POST',
+                                                            url: "api/setTab",
+                                                            data: {tab: "4"},
+                                                            success: function (data, status) {
+                                                                if (status) {
+                                                                    console.log('confirmation success');
+                                                                    $.ajax({
+                                                                        async: false,
+                                                                        method: "post",
+                                                                        data: {holdid: localStorage.getItem('bookingid')},
+                                                                        dataType: "json",
+                                                                        url: "actions/discounts/confirm",
+                                                                        success: function (data) {
+                                                                            {% if craft.config.environmentVariables.env == "prod" %}
+                                                                            ga('send', 'event', {
+                                                                                eventCategory: 'Book Appointment',
+                                                                                eventAction: 'click',
+                                                                                eventLabel: 'Book Appointment'
+                                                                            });
+                                                                            {% endif %}
+                                                                            window.location.href = "{{siteUrl('confirmation')}}";
+                                                                        }
+                                                                    });
+                                                                } else {
+                                                                    console.log(status);
+                                                                }
+                                                            }
+                                                        });
+                                                    }
+                                                });
+                                            } else {
+                                                console.log(data);
+                                            }
+                                        }
+                                    });
+                                    /* end of create appointment record */
+                                } /* end of function () */
+                            });
+                            /* end of ajax get id */
+
+                        }  /* end if check apptid_response == customerid */
+                        else {
+                            /* return false if system didn't create appt id */
+                            return false;
+                        }
+                    }  /* end of function () */
+                });
+                /* end of ajax create id */
+
+            } else{
+              /*  Charge fail , redirect back to billing */
+              console.log('charge fail');
+              window.location.href = "{{siteUrl('billing#payment-container')}}";
+              }
+           } /*end of function() */
+
+      }); /* end of ajax submit charge to verify credit card */
+      }, 100);
+
+
+
+      return false;
+
+     }); /* end of create Appt click */
+  });
+//});
+
+
+
+
+</script>
+{% endblock %}

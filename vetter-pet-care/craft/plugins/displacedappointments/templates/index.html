@@ -1,0 +1,385 @@
+{% extends "_layouts/cp" %}
+{% hook 'displacedappointments.prepCpTemplate' %}
+{% set selectedSubnavItem = 'index' %}
+{% set title = "Cancellations"|t %}
+
+{% block content %}
+<style type="text/css">
+    .appt-table {
+  display: table;
+  width: 100%; }
+  .appt-table .table_head {
+    display: table-header-group; }
+  .appt-table .table_label {
+    display: table-cell;
+    font-weight: bold;
+    text-align: center;
+    border-bottom: 2px solid #979797;
+    padding: 3px; }
+  .appt-table .table_body {
+    display: table-row-group;
+    background-color: #ffffff; }
+  .appt-table .table_row {
+    display: table-row;
+    line-height: 20px; }
+    .appt-table .table_row:nth-of-type(2n) {
+      background-color: #EFF0F4; }
+  .appt-table .table_cell {
+    display: table-cell;
+    padding: 15px 5px;
+    text-align: center; }
+    .appt-table .table_cell:last-of-type .table_link {
+      text-transform: uppercase;
+      text-decoration: underline !important;
+      color: #7186A4; }
+  .appt-table .table_cellblock {
+    padding: 10px 5px; }
+  .line {
+  border-bottom: 1px solid #d3d3d3;
+  padding: 1em;
+  width: 900%;
+ 
+  display: block; }
+  span.table_label.sortable {
+  position: relative;
+  cursor: pointer; }
+  span.table_label.sortable.sortable:after {
+    position: absolute;
+    top: 45%;
+    content: "";
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent; }
+  span.table_label.sortable.sortable[data-order="asc"]:after {
+    border-top: 5px solid #17345E; }
+  span.table_label.sortable.sortable[data-order="desc"]:after {
+    border-bottom: 5px solid #17345E; }
+</style>
+  <div class="appt-table" id="userappointments">
+<span class="table_head">
+<span class="table_label sortable" data-order="asc">Appointment Date &nbsp;</span>
+<span class="table_label sortable" data-order="asc">Appointment Time &nbsp;</span>
+<span class="table_label sortable" data-order="asc">Appointment Id &nbsp;</span>
+<span class="table_label sortable" data-order="asc">Customer &nbsp;</span>
+<span class="table_label sortable" data-order="asc">Veterinarian &nbsp;</span>
+<span class="table_label"></span>
+<span class="table_label"></span>
+<span class="table_label"></span>
+<span class="table_label"></span>
+<span class="table_label"></span>
+</span>
+<span class="table_body">
+
+{% for entry in craft.entries.section('appointmentRecords').search('cancel_status:"unavailable"').order("appointmentStartTime").limit(null) %}
+{% set users = craft.users.search('vetZip:' ~ entry.customerZipCode).limit(null) %}
+{% set startTime = entry.appointmentStartTime %}
+{% set break = 0 %}
+{% set results = [] %}
+{% set vetname = entry.assignedVeterinarianName %}
+{% for vet in users if break == 0%}
+{% set break1 = 0 %}
+{% set fullName = vet.firstName ~" "~vet.lastName %}
+{% if vetname != fullName %}
+{% set month = craft.calendar.events({
+ authorId: vet.id,
+ dateRangeStart: "now"|date_modify('-24 hours')|date('Y-m-d'),
+ dateRangeEnd: '6 month',
+    limit:null
+}) %}
+{% set this_entry = craft.entries.id(entry.id) %}
+  {% for data in this_entry %}
+    {% for auth_data in data.authors_list %}
+      {% if auth_data.author_name == fullName and auth_data.user_id == vet.id %}
+      {% set break1 = 1 %}
+      {% endif %}
+    {% endfor %}
+  {% endfor %}
+    
+
+    {# check appointment record for vet, if vet has appointment record at the same time, mark vet is not available#}
+  {% set params= {
+        section:'appointmentRecords',
+        appointmentStartTime: startTime,
+    assignedVeterinarianName: fullName,
+    limit: null,
+    } %}
+
+  {% for apptRecords in craft.entries(params) %}
+    {% if apptRecords.cancel_status != "cancelled" and apptRecords.cancel_status != "unavailable" and apptRecords.cancel_status != "customer_cancelled" and apptRecords.cancel_status != "sys_cancelled"%}
+            {# vet not available #}
+      {% set break1 = 1 %}
+    {% else %}
+            {% set break1 = 0 %}
+    {% endif %}
+  {% endfor %}
+
+   {% for event in month.events if break == 0 and break1 == 0 %}
+
+        {% set start_timedifference_in_sec_plus4 = event.startDate.timestamp|date_modify('+4 hours')|date('Z') %}
+        {% set start_timedifference_in_sec_zero = event.startDate.timestamp|date('Z') %}
+        {% set start_timedifference_in_sec_plus5 = event.startDate.timestamp|date_modify('+5 hours')|date('Z') %}
+
+        {% if start_timedifference_in_sec_zero == -14400 %}
+            {% if start_timedifference_in_sec_plus4 == -18000 %}
+              {%set start_time_est = event.startDate.timestamp|date_modify('+5 hours')%}
+            {% else %}
+              {%set start_time_est = event.startDate.timestamp|date_modify('+4 hours')%}
+            {% endif %}
+        {% else %}
+            {% if start_timedifference_in_sec_plus5 == -14400 %}
+              {%set start_time_est = event.startDate.timestamp|date_modify('+4 hours')%}
+            {% else %}
+              {%set start_time_est = event.startDate.timestamp|date_modify('+5 hours')%}
+            {% endif %}    
+        {% endif %}
+
+        {% set end_timedifference_in_sec_plus4 = event.endDate.timestamp|date_modify('+4 hours')|date('Z') %}
+        {% set end_timedifference_in_sec_zero = event.endDate.timestamp|date('Z') %}
+        {% set end_timedifference_in_sec_plus5 = event.endDate.timestamp|date_modify('+5 hours')|date('Z') %}
+
+        {% if end_timedifference_in_sec_zero == -14400 %}
+            {% if end_timedifference_in_sec_plus4 == -18000 %}
+              {%set end_time_est = event.endDate.timestamp|date_modify('+5 hours')%}
+            {% else %}
+              {%set end_time_est = event.endDate.timestamp|date_modify('+4 hours')%}
+            {% endif %}
+        {% else %}
+            {% if end_timedifference_in_sec_plus5 == -14400 %}
+              {%set end_time_est = event.endDate.timestamp|date_modify('+4 hours')%}
+            {% else %}
+              {%set end_time_est = event.endDate.timestamp|date_modify('+5 hours')%}
+            {% endif %}    
+        {% endif %}
+
+       {% if (startTime|date('U') >= start_time_est|date('U') and startTime|date('U') < end_time_est|date('U')) %}
+        {% set results = results | merge([{
+          "start" : startTime ,
+          "vetname" : fullName,
+          "userid" : vet.id,
+          "entryid" : entry.id,
+          "status" : "available"
+        }])
+      %}
+        {% set break1 = 1 %}
+       {% endif %}
+     {% endfor %}
+{% endif %}
+{% endfor %}
+  {% if not entry.processedstatus|length %}
+    {% set doa = entry.appointmentStartTime|date("m/d/Y") %}
+    {% set Ymd_doa = entry.appointmentStartTime|date("YmdHis") %}
+    {% set toa = entry.appointmentStartTime|date("h:ia") %}
+
+    {% switch entry.cancel_status %}
+        {% case "customer_cancelled" %}
+            {% set entry_status = "Customer Cancelled" %}
+        {% case "cancelled" %}
+            {% set entry_status = "Admin Cancelled" %}
+        {% case "sys_cancelled" %}
+            {% set entry_status = "Auto Cancelled" %}
+        {% case "rebooked" %}
+            {% set entry_status = "Rebooked" %}
+        {% case "unavailable" %}
+            {% set entry_status = "Action Needed" %}
+        {% default %}
+            {% set entry_status = "unknown, check with ADMIN" %}
+    {% endswitch %}
+
+        <div class="table_row">
+            <div class="table_cell"><p class="hidden">{{ Ymd_doa }}</p>{{ doa }}</div>
+            <div class="table_cell">{{ toa }}</div>
+            <div class="table_cell">{{ entry.appointmentIdNumber }}</div>
+            <div class="table_cell">
+            {{entry.customerName}}
+            </div>
+             <div class="table_cell">
+            {{entry.assignedVeterinarianName}}
+            </div>
+             <div class="table_cell msg" data-id="{{entry.id}}">{% if results|length == 0%} No Vets Available for this timeslot{% else %}
+    
+    <select id="{{entry.id}}">
+    <option></option>
+    {% for vet in results %}
+     <option data-ind="{{loop.index}}" data-id="{{entry.id}}" data-vetname="{{vet.vetname}}" data-status="{{vet.status}}" data-start="{{vet.start}}" data-uid="{{vet.userid}}"  value="{{vet.vetname}}">{{vet.vetname}}</option>
+    {% endfor %}
+    </select>
+    {% endif %}</div>
+             <div class="table_cell bttn" data-id="{{entry.id}}">{% if results|length > 0%}<button id="{{entry.id}}">Book</button>{% endif %}</div>
+            <div class="table_cell">{% if results|length > 0%}<a href="" class="table_link reschedule" data-start="{{entry.appointmentStartTime}}" data-zip="{{entry.customerZipCode}}" data-vetname="{{entry.assignedVeterinarianName}}" data-id="{{entry.id}}">Check for Vets</a>    -   
+           {% else %} <a href="" class="table_link refresh">Check for Vets</a>    - {% endif %}<a href="" class="table_link cancel" data-id="{{entry.id}}" data-cid="{{entry.customerRealId}}" data-vid="{{entry.assignedVeterinarianIdNumber|slice(3)}}">Cancel Appointment</a></div>
+        <div class="table_cell">{{entry_status}}</div>
+  </div>
+    {% endif %}
+  {% endfor %}
+ </span>
+</div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tinysort/2.3.6/tinysort.js"></script>
+<script>
+$(function(){
+var r_data = [];
+
+$(".refresh").click(function(e){
+    window.location.reload();
+});
+
+ $(".reschedule").click(function(e){
+  e.preventDefault();
+   var entryid = $(this).data('id');
+    var start = $(this).data('start');
+    var zip = $(this).data('zip');
+    var vetname = $(this).data('vetname');
+//    var r_data;
+    $.post("{{siteUrl}}api/admin-checkforavail",{ entryid : entryid, start : start, zip : zip, vetname : vetname},function(data){
+      console.log(data);
+      r_data = data;
+    if(data[0].status == "unavailable"){
+      $(".msg[data-id="+entryid+"]").html("No Vets Available for this timeslot");
+    } else {
+  
+      $(".msg[data-id="+entryid+"]").html("Vet[s] Available - please select <br><br>");
+      var button = $(`<button id=`+entryid+`>Book</button>`);
+      var selectVet = $(
+              `<select id=`+entryid+`>
+                <option></option>
+              </select>`);
+
+      $(".msg[data-id="+entryid+"]").append(selectVet);
+      jQuery.each(data, function(index) { 
+      $("select[id="+entryid+"]").append('<option data-ind='+index+' value='+data[index].vetname+'>'+data[index].vetname+'</option>');
+      });
+      $(".bttn[data-id="+entryid+"]").html("<br><br>");
+      $(".bttn[data-id="+entryid+"]").append(button);
+}
+    });
+});
+$(".bttn").on("click", function(e){
+var entryid = $(this).data('id');
+    if($("select[id="+entryid+"]").val().length > 0){
+      var ind = $("select[id="+entryid+"]").find(':selected').data('ind');
+      if(r_data.length > 0 && r_data[0].entryid == entryid){
+         var entry_id = r_data[ind].entryid;
+        var stat = r_data[ind].status;
+        var newvet = r_data[ind].vetname;
+        var vid = r_data[ind].userid;
+  } else {
+        var entry_id = entryid;
+        var stat =  $("select[id="+entryid+"]").find(':selected').data('status');
+        var newvet = $("select[id="+entryid+"]").find(':selected').data('vetname');
+        var vid = $("select[id="+entryid+"]").find(':selected').data('uid');
+
+  }
+            var data_rebook = {
+                entryid : entry_id,
+                status: stat,
+                vetname : newvet,
+                userid : vid,
+                 mode: "admin"
+            };
+         $.ajax({
+          type: 'POST',
+          url: "/actions/displacedAppointments/rebook",
+          data: data_rebook,
+           success: function(data) {
+            $(".bttn").hide();
+            $(".reschedule[data-id="+entryid+"]").text("Rebooked");
+            $(".reschedule[data-id="+entryid+"]").removeAttr('href');
+             $(".reschedule[data-id="+entryid+"]").removeClass('reschedule');
+             location.reload();
+             window.location.reload(true);
+             }
+           }).done(function() {
+             location.reload();
+             window.location.reload(true);
+            })
+            .fail(function() {
+              location.reload();
+             window.location.reload(true);
+            })
+            .always(function() {
+             location.reload();
+             window.location.reload(true);
+            });
+        }
+  });
+ $(".cancel").click(function(e){
+   e.preventDefault();
+   var entryid = $(this).data('id');
+   var customerid = $(this).data('cid');
+   var vetid = $(this).data('vid');
+     var data_cancel = {
+          entryid : entryid,
+          customerid : customerid,
+          vetid : vetid
+            };
+         $.ajax({
+          type: 'POST',
+          url: "/actions/displacedAppointments/cancel",
+          data: data_cancel,
+           success: function(data) {
+            $(".cancel[data-id="+entryid+"]").text("Cancelled");
+            $(".cancel[data-id="+entryid+"]").removeAttr('href');
+             $(".cancel[data-id="+entryid+"]").removeClass('reschedule');
+             location.reload();
+             window.location.reload(true);
+           }
+            }).done(function() {
+             location.reload();
+             window.location.reload(true);
+            })
+            .fail(function() {
+              location.reload();
+             window.location.reload(true);
+            })
+            .always(function() {
+             location.reload();
+             window.location.reload(true);
+            }); 
+  });
+ });
+
+
+
+var table = document.getElementById('userappointments')
+  ,tableHead = table.querySelector('span.table_head')
+  ,tableHeaders = tableHead.querySelectorAll('span.table_label.sortable')
+  ,tableBody = table.querySelector('span.table_body')
+;
+
+tinysort(
+            tableBody.querySelectorAll('div.table_row')
+            ,{
+                selector:'div.table_cell:nth-child(1)'
+                ,order: 'asc'
+            }
+        );
+
+tableHead.addEventListener('click',function(e){
+  var tableHeader = e.target
+    ,textContent = tableHeader.textContent
+    ,tableHeaderIndex,isAscending,order
+  ;
+  if (textContent!=='add row') {
+        // note: nodeName must be ALLCAPS
+    while (tableHeader.nodeName!=='SPAN') {
+      tableHeader = tableHeader.parentNode;
+    }
+    tableHeaderIndex = Array.prototype.indexOf.call(tableHeaders,tableHeader);
+    isAscending = tableHeader.getAttribute('data-order')==='asc';
+    order = isAscending?'desc':'asc';
+    tableHeader.setAttribute('data-order',order);
+              // tableHeader.classList.toggle('asc');
+              // tableHeader.classList.toggle('down-arrow');
+    tinysort(
+      tableBody.querySelectorAll('div.table_row')
+      ,{
+        selector:'div.table_cell:nth-child('+(tableHeaderIndex+1)+')'
+        ,order: order
+      }
+    );
+  }
+});
+</script>
+{% endblock %}
+

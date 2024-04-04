@@ -1,0 +1,188 @@
+{% extends "_layout-wide" %}
+{% set title = "Key Performance Indicators" %}
+
+
+{% if not currentUser.can('accessCp') %}
+	{% redirect "/" %}
+{% endif %}
+
+{% block content %}
+<h1>Key Performance Indicators</h1>
+
+{# Math and logic #}
+	{% set totalappts = craft.entries.section('appointmentRecords').limit(null) %}
+	{% set uniqueCustomerList = [] %}
+	{% set multiBookersList = [] %}
+	{% set repeatBookingsList = [] %}
+	{% set allZipBookedList = [] %}
+	{% set uniqueZipBookedList = [] %}
+	{% set uniqueZipCount = 0 %}
+	{% set allCustomerList = [] %}
+	{% set usedDiscountCode = [] %}
+	{% for entry in totalappts %}
+
+		{% if entry.customerRealId in uniqueCustomerList %}
+			{% set allCustomerList = allCustomerList | merge([entry.customerRealId]) %}
+		{% else %}
+			{% set uniqueCustomerList = uniqueCustomerList | merge([entry.customerRealId]) %}
+		{% endif %}
+
+		{% for customer in craft.users.id(entry.customerRealId).limit(null) %}
+		{% for coupon in customer.coupons_used %}
+				{% set usedDiscountCode = usedDiscountCode | merge([customer.coupons_used]) %}
+		{% endfor %}
+		{% endfor %}
+
+		{% if entry.customerZipCode in uniqueZipBookedList %}
+		{% set allZipBookedList = allZipBookedList | merge([entry]) %}
+
+		{% else %}
+		{% set uniqueZipBookedList = uniqueZipBookedList | merge([entry.customerZipCode]) %}
+
+		{% endif %}
+		
+	{% endfor %}
+
+	{% for custs in uniqueCustomerList %}
+	{% set entrycount = craft.entries.section('appointmentRecords').customerRealId(custs).total() %}
+	{% if entrycount > 1 %}
+	{% set multiBookersList = multiBookersList | merge([custs]) %}
+	{% endif %}
+	{% endfor %}
+
+	{% set repeatBooking = ((multiBookersList|length/uniqueCustomerList|length) * 100) %}
+
+	{#existing customer referred#}
+	{% set subs = craft.amForms.submissions.formHandle('referralForm').limit(null) %}
+	{% set ECV = [] %}
+	{% for sub in subs.find() %}
+	{% if sub.getFieldValue('howdYouFindVetter') == "existingVetterCustomerGiveUsTheirNameSoTheyCanGetADiscount" %}
+		{% set ECV = ECV | merge([sub.getFieldValue('howdYouFindVetter')]) %}
+	{% endif %}
+	{% endfor %}
+	{% if not subs.total < 1 %}
+	{% set existingRef = ((ECV|length/subs.total) * 100)%}
+	{% else %}
+	{% set existingRef = 0 %}
+	{% endif %}
+{# end of logic #}
+
+
+<div class="content">
+	{{ now|date("M d, Y") }}
+
+	<h4>Total Bookings</h4>
+	<p class="kpi-result"><strong>{{ totalappts.total() }}</strong></p>
+	
+	<h4>Repeat Customers</h4>
+		<p class="kpi-result"><strong>{{ repeatBooking|round(1) }}%</strong></p>
+		<p>
+			<strong>{{uniqueCustomerList|length}}</strong> - Customers who have booked (including appointments that were later cancelled.)<br>
+			<strong>{{multiBookersList|length}}</strong> - Customers who have booked more than once (including appointments that were later cancelled.)</p>
+
+	{#<h4>Average Duration Between Repeat Bookings</h4>
+		<p class="kpi-result"><strong>__ Days</strong></p>#}
+
+	<h4>Referral Business</h4>
+		<p class="kpi-result"><strong>{{existingRef|round(1)}}%</strong></p>
+		<p>This number is based on the optional “How Did You Hear About Us?” survey at the end of the first booking.  This percentage is calculated on the subset of Customers who opted to respond to the survey. </p>
+		<p>	<strong>{{subs.total}}</strong> - Customers who responded.<br>
+			<strong>{{ECV|length}}</strong> - Customers who said they were referred by an existing customer.</p>
+
+
+
+	<h4>Distribution of Bookings by Zip Codes</h4>
+	<div class="appt-table" id="zipdist">
+		<span class="table_head">
+			<span class="table_label sortable" data-order="asc">Zip Code &nbsp;</span>
+			<span class="table_label sortable" data-order="asc">Number of Bookings &nbsp;</span>
+			<span class="table_label sortable" data-order="asc">Percentage of Total &nbsp;</span>
+		</span>
+		<span class="table_body">
+			
+		{% for zip in craft.entries.section('zip').limit(null) %}
+		<div class="table_row">
+			<div class="table_cell">{{zip}}</div>
+			<div class="table_cell">
+				{% set zipEntryCount = totalappts.customerZipCode(zip).total() %}
+				{{zipEntryCount}}
+			</div>
+			<div class="table_cell kpi-result percs"><strong>{{ ((zipEntryCount / totalappts.total()) * 100 )|round(1)}}</strong>
+			</div>
+		</div>
+		{% endfor %}
+		 </span>
+		</div>
+
+	<h4>Referral Business via Discount Coupons</h4>
+	<p class="kpi-result"><strong>{{usedDiscountCode|length}}</strong> Total Discount Coupons Submitted</p>
+
+
+	<h2>Other Key Performance Indicators</h2>
+
+	<h4>Time of Day popularity</h4>
+		<p>Please refer to <a href="https://analytics.google.com/" target="_blank">Google Analytics</a></p>
+
+	<h4>Day of Week popularity</h4>
+		<p>Please refer to <a href="https://analytics.google.com/" target="_blank">Google Analytics</a></p>
+
+	<h4>Demand for New Service</h4>
+	<p>Please refer to the <a href="{{siteUrl}}admin/amforms/exports">Forms > Export</a> feature to download and analyze latest raw data for Zip Code requests. </p>
+
+	<p>Also, to see if there is significant interest from other cities, check <a href="https://analytics.google.com/" target="_blank">Google Analytics</a> for the <strong>Audience > Geo> Location > Cities</strong> metric  It shows the location of recent visitors. This metric is usually set for the preceding week, but you can adjust the range.</p>
+
+	<h4>Events</h4>
+		<p>Please visit <a href="https://analytics.google.com/" target="_blank">Google Analytics</a> and go to <strong>Behavior > Events > Overview</strong>.  Look for the "Event Category" section in the middle of the page.</p>  
+		<p>Events track specific user clicks. The clicks we are tracking are Check Availability, Slot Selected, and Book Appointment. If a specific type of Event has not happened during the date range being analyzed, it won’t appear in the Event Category list. Similarly, if there were old versions of the Event that were tracked previously, they would appear in the list if they were active during the date range being tracked. (Google Analytics doesn’t allow us to delete old metrics).
+			</p>
+
+	
+</div>
+
+{% endblock %}
+
+
+{% block footerJs %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tinysort/2.3.6/tinysort.js"></script>
+<script>
+var table = document.getElementById('zipdist')
+	,tableHead = table.querySelector('span.table_head')
+	,tableHeaders = tableHead.querySelectorAll('span.table_label.sortable')
+	,tableBody = table.querySelector('span.table_body')
+;
+
+tinysort(
+            tableBody.querySelectorAll('div.table_row')
+            ,{
+                selector:'div.table_cell:nth-child(1)'
+                ,order: 'asc'
+            }
+        );
+
+tableHead.addEventListener('click',function(e){
+	var tableHeader = e.target
+		,textContent = tableHeader.textContent
+		,tableHeaderIndex,isAscending,order
+	;
+	if (textContent!=='add row') {
+        // note: nodeName must be ALLCAPS
+		while (tableHeader.nodeName!=='SPAN') {
+			tableHeader = tableHeader.parentNode;
+		}
+		tableHeaderIndex = Array.prototype.indexOf.call(tableHeaders,tableHeader);
+		isAscending = tableHeader.getAttribute('data-order')==='asc';
+		order = isAscending?'desc':'asc';
+		tableHeader.setAttribute('data-order',order);
+              // tableHeader.classList.toggle('asc');
+              // tableHeader.classList.toggle('down-arrow');
+		tinysort(
+			tableBody.querySelectorAll('div.table_row')
+			,{
+				selector:'div.table_cell:nth-child('+(tableHeaderIndex+1)+')'
+				,order: order
+			}
+		);
+	}
+});
+</script>
+{% endblock %}

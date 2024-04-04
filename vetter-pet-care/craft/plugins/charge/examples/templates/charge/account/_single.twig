@@ -1,0 +1,67 @@
+<div class="panel panel-default">
+    <div class="panel-body">
+        <h3><strong>{{ charge.getShortname }}</strong> <code>{{ charge.mode }}</code></h3>
+        <p>ID: {{ charge.id }}, Hash: {{ charge.hash }}, Type:  <strong>{{ charge.type }}</strong></p>
+        <hr/>
+        <h4>Payments</h4>
+        <ul>
+            {% for payment in charge.payments %}
+                <li>{{ payment.formatAmount }} paid on {{ payment.dateCreated }}</li>
+            {% endfor %}
+        </ul>
+        <hr/>
+        {% if charge.type == 'recurring' %}
+            <p>This is a recurring Charge</p>
+            {% set subscription = charge.getSubscription %}
+
+            <p>Subscription is : <span class="label label-success">{{ subscription.status }}</span></p>
+
+            {% if subscription.status == 'active' %}
+                <hr/>
+                <h4>End Subscription</h4>
+                <p>You can cancel your recurring payment. <br/>
+                    You will still have access until the end of the current payment period on <em>{{ subscription.currentPeriodEnd | date }}</em></p>
+
+                <form class="form-horizontal" method="post">
+                    {{ forms.hidden({ name: 'action', value: 'charge/endSubscription'}) }}
+                    {{ forms.hidden({ name: 'subscriptionId', value: subscription.id }) }}
+                    {{ getCsrfInput() }}
+
+                    <input type="submit" class="btn btn-danger" value="End this Subscription"/>
+                </form>
+                <hr/>
+
+                <h4>Change Your Subscription</h4>
+                <p>You can update your subscription.</p>
+                <form class="form-horizontal" method="post">
+                    {{ forms.hidden({ name: 'action', value: 'charge/updateSubscription'}) }}
+                    {{ forms.hidden({ name: 'subscriptionId', value: subscription.id }) }}
+                    {{ getCsrfInput() }}
+
+                    {% include 'charge/account/_planChoice' with  { activePlan: 'monthly' } %}
+                    {% if allErrors is defined %}
+                        {{ forms.errorBlock(allErrors) }}
+                    {% endif %}
+                    <input type="submit" class="btn btn-primary" value="Update your Subscription"/>
+                </form>
+                <hr/>
+
+                {% elseif subscription.status == 'cancelled' %}
+                    <p>The subscription is currently active but has been <span class="label label-warning">cancelled</span> and will not renew at the end of the current billing period.</p>
+                    <p>You will still have access to the site until <em>{{ subscription.currentPeriodEnd | date }}</em>.</p>
+
+                    <hr/>
+
+                    <p><strong>Reactivate subscription?</strong></p>
+                    <p>Changed your mind? No problem. You can reactivate your subscription during the cancellation period with no affect on your ongoing subscription.</p>
+                    <form class="form-horizontal" method="post">
+                        {{ forms.hidden({ name: 'action', value: 'charge/reactivateSubscription'}) }}
+                        {{ forms.hidden({ name: 'subscriptionId', value: subscription.id }) }}
+                        {{ getCsrfInput() }}
+                        <input type="submit" class="btn btn-primary" value="Reactivate your Subscription"/>
+                    </form>
+                    <hr/>
+                {% endif %}
+        {% endif %}
+    </div>
+</div>

@@ -1,0 +1,7 @@
+
+{% set totals = 0 %}
+{% set all_events = craft.calendar.events({dateRangeStart: "now"|date_modify('-24 hours')|date('Y-m-d'),dateRangeEnd: '6 month'}).limit(null) %}
+{% for event in all_events %}
+{% set totals = totals+1 %}
+{{totals}}.{{event.id}}:{{event.startDate}}
+{% endfor %}

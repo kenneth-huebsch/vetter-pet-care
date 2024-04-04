@@ -1,0 +1,212 @@
+{# # Layout template # --------------- # # This template defines your site’s
+global layout. It can be # “extended” by other templates to fill in the gaps. #
+# See Twig’s Template Inheritance documentation for more details: #
+http://twig.sensiolabs.org/doc/templates.html#template-inheritance #}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- <title>{% if title is defined %}{{ title }} - {% endif %}{{ siteName }}</title> -->
+    {% hook 'seomaticRender' %}
+    <link rel="home" href="{{ siteUrl }}" />
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+
+    <link
+      rel="apple-touch-icon-precomposed"
+      sizes="57x57"
+      href="https://s3.amazonaws.com/vetterpc-images/apple-touch-icon-57x57.png"
+    />
+    <link
+      rel="apple-touch-icon-precomposed"
+      sizes="114x114"
+      href="https://s3.amazonaws.com/vetterpc-images/apple-touch-icon-114x114.png"
+    />
+    <link
+      rel="apple-touch-icon-precomposed"
+      sizes="72x72"
+      href="https://s3.amazonaws.com/vetterpc-images/apple-touch-icon-72x72.png"
+    />
+    <link
+      rel="apple-touch-icon-precomposed"
+      sizes="144x144"
+      href="https://s3.amazonaws.com/vetterpc-images/apple-touch-icon-144x144.png"
+    />
+    <link
+      rel="apple-touch-icon-precomposed"
+      sizes="60x60"
+      href="https://s3.amazonaws.com/vetterpc-images/apple-touch-icon-60x60.png"
+    />
+    <link
+      rel="apple-touch-icon-precomposed"
+      sizes="120x120"
+      href="https://s3.amazonaws.com/vetterpc-images/apple-touch-icon-120x120.png"
+    />
+    <link
+      rel="apple-touch-icon-precomposed"
+      sizes="76x76"
+      href="https://s3.amazonaws.com/vetterpc-images/apple-touch-icon-76x76.png"
+    />
+    <link
+      rel="apple-touch-icon-precomposed"
+      sizes="152x152"
+      href="https://s3.amazonaws.com/vetterpc-images/apple-touch-icon-152x152.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      href="https://s3.amazonaws.com/vetterpc-images/favicon-196x196.png"
+      sizes="196x196"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      href="https://s3.amazonaws.com/vetterpc-images/favicon-96x96.png"
+      sizes="96x96"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      href="https://s3.amazonaws.com/vetterpc-images/favicon-32x32.png"
+      sizes="32x32"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      href="https://s3.amazonaws.com/vetterpc-images/favicon-16x16.png"
+      sizes="16x16"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      href="https://s3.amazonaws.com/vetterpc-images/favicon-128.png"
+      sizes="128x128"
+    />
+
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="https://s3.amazonaws.com/vetterpc-images/favicon.ico?v3"
+    />
+
+    <meta name="application-name" content="Vetter Pet Care" />
+    <meta name="msapplication-TileColor" content="#FFFFFF" />
+    <meta
+      name="msapplication-TileImage"
+      content="https://s3.amazonaws.com/vetterpc-images/mstile-144x144.png"
+    />
+    <meta
+      name="msapplication-square70x70logo"
+      content="https://s3.amazonaws.com/vetterpc-images/mstile-70x70.png"
+    />
+    <meta
+      name="msapplication-square150x150logo"
+      content="https://s3.amazonaws.com/vetterpc-images/mstile-150x150.png"
+    />
+    <meta
+      name="msapplication-wide310x150logo"
+      content="https://s3.amazonaws.com/vetterpc-images/mstile-310x150.png"
+    />
+    <meta
+      name="msapplication-square310x310logo"
+      content="https://s3.amazonaws.com/vetterpc-images/mstile-310x310.png"
+    />
+
+    <link rel="stylesheet" href="{{ siteUrl }}assets/css/style.css" />
+    <link rel="stylesheet" href="{{ siteUrl }}assets/css/print.css" />
+    {% if craft.config.environmentVariables.env == "prod" %}
+    <!-- Google Tag Manager -->
+    <script>
+      (function(w, d, s, l, i) {
+        w[l] = w[l] || [];
+        w[l].push({
+          "gtm.start": new Date().getTime(),
+          event: "gtm.js"
+        });
+        var f = d.getElementsByTagName(s)[0],
+          j = d.createElement(s),
+          dl = l != "dataLayer" ? "&l=" + l : "";
+        j.async = true;
+        j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
+        f.parentNode.insertBefore(j, f);
+      })(window, document, "script", "dataLayer", "GTM-T5TPFRL");
+    </script>
+    <!-- End Google Tag Manager -->
+
+    <script>
+      (function(i, s, o, g, r, a, m) {
+        i["GoogleAnalyticsObject"] = r;
+        (i[r] =
+          i[r] ||
+          function() {
+            (i[r].q = i[r].q || []).push(arguments);
+          }),
+          (i[r].l = 1 * new Date());
+        (a = s.createElement(o)), (m = s.getElementsByTagName(o)[0]);
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m);
+      })(
+        window,
+        document,
+        "script",
+        "https://www.google-analytics.com/analytics.js",
+        "ga"
+      );
+
+      ga("create", "UA-98653436-1", "auto");
+      ga("send", "pageview");
+    </script>
+
+    {% endif %}
+
+    <!-- BootStrap -->
+    <!-- !!! NEEDS to use bootstrap 3.0.2. Vetter's version (3.3.6) has undesireable popup behavior -->
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="{{ siteUrl }}assets/zips/boots.css"
+    />
+    <script src="{{ siteUrl }}assets/zips/boots3.0.2.js"></script>
+
+    <!-- SVG -->
+    <link href="{{ siteUrl }}assets/zips/svg-map.css" rel="stylesheet" />
+    <script src="{{ siteUrl }}assets/zips/svg-map.js"></script>
+
+    <!-- Hover -->
+    <link href="{{ siteUrl }}assets/zips/hover.css" rel="stylesheet" />
+  </head>
+
+  <body onresize="removePopovers()">
+    {% if craft.config.environmentVariables.env == "prod" %}
+    <!-- Google Tag Manager (noscript) -->
+    <noscript
+      ><iframe
+        src="https://www.googletagmanager.com/ns.html?id=GTM-T5TPFRL"
+        height="0"
+        width="0"
+        style="display:none;visibility:hidden"
+      ></iframe
+    ></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+    {% endif %}
+
+    <div id="container">
+      {% include '_includes/header.html' %}
+      <main id="content-main" class="wide zips" role="main">
+        {% set current = craft.request.lastSegment %} {% set section =
+        craft.request.getSegment(-2) %}
+        <div class="page page-{{ section }} page-{{ current }}">
+          {% block content %} {% endblock %}
+        </div>
+      </main>
+      {% include '_includes/footer.html' %} {% block scripts %} {% include
+      '_includes/scripts.html' %} {% endblock %}
+    </div>
+    <!--#container-->
+    {% block footerJs %} {% endblock %}
+  </body>
+</html>

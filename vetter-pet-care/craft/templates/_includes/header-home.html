@@ -1,0 +1,22 @@
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/timekit-js-sdk/1.6.1/timekit-sdk.min.js"></script> -->
+
+  {% if craft.twigSession.get('last')|length < 1 and craft.request.getLastSegment() != "signup" and craft.request.getLastSegment() != "basicinfo"  %}
+    {% if craft.request.getSegment(1)== 'user' %}
+      {% if (craft.request.getLastSegment() == 'upcoming')  or (craft.request.getLastSegment() == 'availability') %}
+        {{craft.twigSession.add('last', '/user/'~craft.request.getSegment(2)~'/'~craft.request.getLastSegment())}}
+      {% else %}
+        {{craft.twigSession.add('last', '/user/'~craft.request.getLastSegment())}}
+      {% endif %}
+    {% else %}
+        {{craft.twigSession.add('last', craft.request.getLastSegment())}}
+    {% endif %}
+  {% else %}
+    {% if (craft.request.getLastSegment()== 'setpassword') or (craft.request.getSegment(0)== 'setpassword')%}
+    {{craft.twigSession.add('last','')}}
+    {% endif %}
+  {% endif %}
+  {% if  craft.request.getParam('flow') is not null %}
+  {% set flow = craft.request.getParam('flow') %}
+    {{ craft.twigSession.add('flow', craft.request.getParam('flow')) }}
+  {% endif %}
+

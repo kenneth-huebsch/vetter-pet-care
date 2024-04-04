@@ -1,0 +1,11 @@
+{% header "Content-Type: application/json" %}
+{% set results = [] %}
+{% for appt in craft.entries.section('appointmentRecords') %}
+{%
+  set results = results | merge([{
+    "apptDate" : appt.appointmentDate ,
+    "name"     : appt.assignedVeterinarianName,
+  }])
+%}
+{% endfor %}
+{{ results | json_encode() | raw }}

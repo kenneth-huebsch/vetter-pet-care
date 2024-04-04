@@ -1,0 +1,70 @@
+{% extends "_layout" %}
+
+{% block content %}
+Appointment Window : <b>{{ craft.twigSession.get('start')|date("M d, Y") }} from {{craft.twigSession.get('start')|date("g:ia")}} - {{craft.twigSession.get('end')|date_modify("+30 minutes")|date("g:ia")}}</b>
+<h2>Billing Information</h2><br>
+<h3>Step two of two</h3>
+<form method="post" accept-charset="UTF-8" id="billAddr">
+  <input type="hidden" name="action" value="users/saveUser">
+   <input type="hidden" name="redirect" value="{{siteUrl}}review">
+  <input type="hidden" name="userId" value="{{ currentUser.id }}">
+        <input type="checkbox" id="sameBillingAddr" value="sameBillingAddr" value="true"> Same as home address?<br>
+              <h3><label for="streetaddress">Street Address</label></h3>
+              <input id="streetaddress" type="text" name="fields[billingAddress]" value="{{currentUser.billingAddress}}" placeholder="Street Address" width="100%"><br>
+        <div style="display:inline-block">
+              <span><h3><label for="address2">Address 2</label></h3>
+              <input id="address2" type="text" name="fields[billingAddress2]" value="{{currentUser.billingAddress2}}" placeholder="Address 2">
+                  </div>
+            <div style="display:inline-block">
+              <h3><label for="cellphone">Cell Phone</label></h3>
+                  <input id="cellphone" type="text" name="fields[billingCellphone]" value="{{currentUser.billingCellphone}}" placeholder="Cell Phone"></span>
+                <br>
+                 </div>
+                 <br>
+                  <div style="display:inline-block">
+                      <h3> <label  for="city">City</label></h3>
+                              <input type="text" name="fields[billingCity]" value="{{currentUser.billingCity}}" id="city" placeholder="City"/>
+                 </div>
+                 <div style="display:inline-block">
+                            <h3> <label  for="state">State</label></h3>
+                            <select id="states" name="fields[states]">
+                                <option>{{currentUser.billingState}}</option>
+                              {% for option in user.states.options %}
+                                    <option>{{option}}</option>
+                            {% endfor %}
+                           </select>
+        				<!--	<input type="text" name="fields[billingState]" value="{{currentUser.billingState}}" id="state" placeholder="State"/> -->
+                 </div>
+                 <div style="display:inline-block">
+                            <h3><label  for="zip">Zip</label></h3>
+        					<input type="text" name="fields[billingZip]" value="{{currentUser.billingZip}}" id="zip" placeholder="Zip" />
+                 </div>
+              <br>
+        <input type="checkbox" value="saveBilling" value="true"> Save billing information for future appointments?<br><br>
+        <p> You can modify or cancel your appointment up to 24 hours in advance without charge<br>
+         Within 24 hours, a $95 fee will be applied </p>
+      <input type="submit" id="createAppt" value="continue">
+    </form>
+    <script>
+   $(function(){
+       $("#sameBillingAddr").change(function(event){
+         if($("#sameBillingAddr").is(":checked")){
+           $("#streetaddress").val("{{currentUser.streetAddress}}");
+           $("#address2").val("{{currentUser.streetAddress2}}");
+           $("#cellphone").val("{{currentUser.cellPhone}}");
+           $("#city").val("{{currentUser.city}}");
+           $("#states").val("{{currentUser.states}}");
+           $("#zip").val("{{currentUser.customerZip.first()}}");
+         } else {
+           $("#streetaddress").val("");
+           $("#address2").val("");
+           $("#cellphone").val("");
+           $("#city").val("");
+           $("#states").val("");
+           $("#zip").val("");
+
+         }
+       });
+   });
+   </script>
+{% endblock %}

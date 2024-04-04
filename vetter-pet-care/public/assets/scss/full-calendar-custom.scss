@@ -1,0 +1,255 @@
+//colors
+$blue-light: #BEE1F4;
+$blue-dull: #549EC7;
+$blue-medium: #4F80E1;
+$blue-dark: #17345E;
+$blue-darker: #0B2140;
+$oldaccent: #F22E04;
+$accent: #fe5e00;
+$teal-light: #18CDCA;
+$teal-dark: #11A7A5;
+$grey-light: #D3F0EF;
+$grey-dark: #7186A4;
+$grey-cal: #6B7583;
+
+$white: #ffffff;
+
+//section colors
+$body-bg: #EEEFF3;
+$input-bg: #D8D8D8;
+$text: $blue-dark;
+$header: $blue-light;
+$page-bg: $teal-light;
+
+//widths and columns
+$total-width: 1226px;
+$column-width: 108px;
+$columns: 9;
+$gutter: 32px;
+
+@import "mq";
+
+@mixin transition {
+	-webkit-transition: all ease .3s;
+     -moz-transition: all ease .3s;
+     -ms-transition: all 0.3s ease;
+     -o-transition: all  ease .3s;
+     transition: all  ease .3s;
+}
+
+div.fc.fc-unthemed .fc-month-view .fc-bg .fc-day.fc-today, div.fc.fc-unthemed .fc-agendaWeek-view .fc-bg .fc-day.fc-today {
+  background-color: rgba($accent, 0.1);
+}
+div.fc.fc-unthemed .fc-month-view .fc-bg .fc-sun, div.fc.fc-unthemed .fc-month-view .fc-bg .fc-sat, div.fc.fc-unthemed .fc-agendaWeek-view .fc-bg .fc-sun, div.fc.fc-unthemed .fc-agendaWeek-view .fc-bg .fc-sat {
+background-color: $body-bg; }
+
+div.fc.fc-unthemed th, div.fc.fc-unthemed td, div.fc.fc-unthemed tbody, div.fc.fc-unthemed .fc-divider, div.fc.fc-unthemed .fc-row, div.fc.fc-unthemed .fc-popover, .fc-time-grid .fc-slats td.fc-axis  {
+  border-color: rgba($grey-dark, 0.5);
+}
+
+.fc-body {
+  font-family: AvenirLTPro-Roman;
+}
+
+  .fc-event {
+     @include transition;
+    background-color: $blue-light !important;
+    color: $text !important;
+    border-left: 0 !important;
+    border: 0;
+    font-weight: normal!important;
+    margin: 5px 3px;
+    border-radius: 0;
+    font-size: 16px;
+    line-height: 1.5;
+    text-align: center;
+    box-shadow: none;
+    .fc-time, .fc-title {
+      font-size: 16px;
+      font-weight: normal !important;
+    }
+    .fc-title {
+      visibility: hidden;
+      display: none;
+
+    }
+
+    .fc-time {
+     color: $text;
+     padding: 6px;
+     box-shadow: none;
+     @include MQ(Mplus) {
+      &:hover {
+       border-left: 0 !important;
+       box-shadow: none;
+       font-weight: normal;
+      }
+     }
+    }
+    @include MQ(Mneg) {
+     &:hover {
+      border-left: 0 !important;
+      box-shadow: none !important;
+      font-weight: normal !important;
+      .fc-content {
+        transform: translateX(10px) !important;
+        padding: 0 !important;
+      }
+     }
+    }
+    @include MQ(Mplus) {
+     box-shadow: none !important;
+
+     &:hover {
+       box-shadow: none !important;
+       font-weight: normal;
+       background-color: $blue-dark !important;
+       .fc-time, .fc-title {
+        color: $white !important;
+       }
+
+       .fc-content {
+         transform: translateX(0px) !important;
+       }
+      }
+    }
+  }
+
+#calendar {
+ //border: 1px solid $blue-darker;
+ margin-bottom: 60px;
+}
+
+.bookingjs {
+ .fc-event {
+  border-radius: 100px;
+ }
+ .fc-day-grid-event {
+  padding-left: 0;
+  &:hover {
+   padding-left: 0;
+  }
+ }
+
+}
+
+.fc .fc-toolbar {
+ padding: 20px;
+ background: $blue-darker;
+ color: $white;
+ margin-bottom: 0;
+ line-height: 1;
+ .fc-center {
+  h2 {
+   text-transform: uppercase;
+   font-size: 38px;
+   @include MQ(Mneg) {
+    font-size: 22px !important;
+   }
+  }
+ }
+}
+
+.bookingjs .fc-time-grid .fc-slats td {height: 15px;}
+#calendar .fc-time-grid .fc-slats td {
+ height: 34px;
+ @include MQ(Mneg) {
+  height: 54px;
+ }
+}
+#calendar .fc-time-grid .fc-slats .fc-minor td {
+    border-style: solid;
+}
+
+div.fc.fc-unthemed .fc-agendaWeek-view .fc-content .fc-title, div.fc.fc-unthemed .fc-agendaDay-view .fc-content .fc-title {
+ font-weight: normal !important;
+}
+
+.fc-time-grid-event .fc-content {
+ font-family: AvenirLTPro-Light;
+}
+
+.fc-time {
+ font-family: AvenirLTPro-Heavy;
+}
+
+.fc-time-grid-event {
+    .edit-avail {
+        display: none;
+        position: absolute;
+        font-size: 12px;
+        text-align: center;
+        bottom: 5px;
+        padding: 5px 20px;
+        color: $white;
+    }
+    &:hover {
+        .edit-avail {
+            display: block;
+
+        }
+    }
+}
+
+ .fc td:nth-of-type(odd) {
+      border-style: solid;
+  }
+
+#calendar.fc td:nth-of-type(odd) {
+      border-style: solid !important;
+  }
+
+.fc-row.fc-widget-header .fc-day-header  {
+  background: $blue-light;
+  font-family: AvenirLTPro-Heavy;
+  font-weight: normal;
+  color: $text;
+  text-transform: uppercase;
+  padding: 15px 0 7px;
+}
+
+tr[data-time*=":30"] {
+  .fc-time {
+    visibility: hidden;
+    border-top: 0;
+  }
+}
+
+tr:not(.fc-minor) {
+}
+tr[data-time*=":00"] {
+  .fc-time {
+
+  }
+}
+
+.fc .fc-axis {
+  font-size: 16px;
+  color: $grey-cal;
+  padding: 0 40px;
+  padding-top: 5px;
+  @include MQ(Mneg) {
+    padding: 0 10px;
+  }
+}
+//schedule calendar
+
+.bookingjs, #calendar {
+  font-family: inherit;
+  border-radius: 0;
+  box-shadow: 0 3px 40px 0 rgba(0,0,0,.15);
+  .fc .fc-toolbar>*>button  {
+    opacity: 1;
+    @include MQ(Mneg) {
+      padding: 5px 7px !important;
+    }
+  }
+  .fc-state-default {
+    background: transparent;
+    color: $white;
+  }
+
+}
+.bookingjs-timezonehelper {
+  display: none;
+}

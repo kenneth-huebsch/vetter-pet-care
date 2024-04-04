@@ -1,0 +1,15 @@
+{% extends "charge/_layouts/cp" %}
+{% set title = "One-off Billing"|t %}
+{% set selectedSubnavItem = 'One-off billing' %}
+{% set elementType = 'Charge_Oneoffbilling' %}
+{% block content %}
+
+<div class="Charges">
+</div>
+{% if charge_status == "succeeded" %}
+<p> Your charge has been completed </p>
+{% else %}
+<p> Error message:  {{charge_status}}</p>
+{% endif %}
+
+{% endblock %}

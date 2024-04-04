@@ -1,0 +1,253 @@
+{% extends "_layout" %}
+
+{% block content %}
+{% if craft.twigSession.get('petSchedule[]') %}
+{# {{craft.twigSession.destroySession('petSchedule[]')}} #}
+{% endif %}
+<!-- This code to ensure this page only for login user -->
+{% requireLogin %}
+<!-- get which flow user is in  -->
+
+{% if craft.request.getParam('flow') is not null %}
+    {% set flow = craft.request.getParam('flow') %}
+    {{ craft.twigSession.add('flow', craft.request.getParam('flow')) }}
+    {{ craft.twigSession.add('start', craft.request.getParam('start')) }}
+    {{ craft.twigSession.add('end', craft.request.getParam('end')) }}
+    {{ craft.twigSession.add('cal_id', craft.request.getParam('cal_id')) }}
+    {{ craft.twigSession.add('partic', craft.request.getParam('partic')) }}
+    {{ craft.twigSession.add('firstToSchedule', craft.request.getParam('firstToSchedule')) }}
+    {{ craft.twigSession.add('vet_id', craft.request.getParam('vet_id')) }}
+    {{ craft.twigSession.add('sel_zip', craft.request.getParam('zip')) }}
+    {{ craft.twigSession.add('num', craft.request.getParam('num')) }}
+    {{ craft.twigSession.add('curr', 0) }}
+{% elseif craft.twigSession.get('flow') == "schedule" %}
+{% else %}
+ {% if currentUser.isInGroup('veterinarian') %}
+       {% if currentUser.streetAddress %}
+         {% redirect "user/"~currentUser.id~"/upcoming" %} 
+       {% else %}
+         {% redirect "user/"~currentUser.id %} 
+       {% endif %}
+ {% endif %}
+ {% if not currentUser.streetAddress %}
+ {{ craft.twigSession.add('flow', "signup") }}
+ {% endif %}
+    {% if currentUser.streetAddress and craft.twigSession.get('last') != "petinfo" and craft.twigSession.get('last') != "basicinfo" and craft.twigSession.get('last') != "billing"  and craft.twigSession.get('last') != "review"%}
+       {% redirect craft.twigSession.get('last') %} 
+   {% endif %}
+    {% set flow = craft.twigSession.get('flow') %}
+{% endif %}
+{% if currentUser.streetAddress and (not craft.twigSession.get('flow') == "signup" or not craft.twigSession.get('flow') == "schedule") %}
+{% redirect "/" %}
+{% endif %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/timekit-js-sdk/1.6.1/timekit-sdk.min.js"></script>
+<script>
+$(function(){
+/*
+ window.onbeforeunload = function(e) {
+     if(!localStorage.getItem('bookingid')){
+     return 'Dialog text here.';
+   }
+};
+*/
+   if(localStorage.getItem('bookingid')){
+    $(".basicsubmit").prop("disabled", false);
+   }
+//$.post("{{siteUrl}}api/setTab",{tab:"0"},function(data){});
+$.ajax({
+                async: false,
+                type: 'POST',
+                url: "{{siteUrl}}api/setTab",
+                data: {tab:"0"},
+                success: function(data) {
+                }
+            });
+/*
+timekit.setUser(
+        'VPCTacDev@gmail.com',
+        'PZ7QKl0hmAZyHHjV7ZqWTgGXMn3FvMI4'
+);
+timekit.configure({
+        app:                         'vetter-971',
+        apiBaseUrl:                 'https://api.timekit.io/',
+        apiVersion:                 'v2',
+        timezone:                   'America/New_York',
+        goToFirstEvent: true,
+        calendar: '445b8b7a-492a-48b6-9433-741d086463fc',
+        name: 'Vetter Pet Care Calendar',
+        includeStyles: false,
+        // localization: {
+        //        showTimezoneHelper: false,
+        //                },
+        convertResponseToCamelcase: false,
+        convertRequestToSnakecase:  true,
+        autoFlattenResponse: true
+});
+
+ var start = "{{ craft.twigSession.get('start') }}";
+ var end = "{{ craft.twigSession.get('end') }}";
+ var calid = "{{ craft.twigSession.get('start') }}";
+ if(!localStorage.getItem('bookingid') && start && end && calid){
+  timekit.createBooking(
+           {
+                   graph:          'instant',       // Inserted based on "bookingGraph" specified. See description above on flow graph
+                   action:         'confirm',       // If "instant" graph is chosen, it will instantly perform the "confirm" action. See description above on flow graph
+                   event: {
+                     where:        'Online',        // Default, you may want to customize this to a specific location, TBD or whatever fits
+                     invite:       true,            // Default, makes sure that participants (the visitor) is sent a Google invite
+                     my_rsvp:      'accepted',      // Default, makes sure that the host has accepted the created event in Google
+                     start:        "{{ craft.twigSession.get('start') }}",      // Inserted dynamically from the chosen timeslot
+                     end:          "{{ craft.twigSession.get('end') }}",      // Inserted dynamically from the chosen timeslot
+                     what:         'Booking', // Inserted dynamically based on the host and visitors names (you can replace it with a static string)
+                     calendar_id:  "{{ craft.twigSession.get('cal_id') }}", // Inserted dynamically from the "calendar" setting in the general config
+                     participants: ["{{ craft.twigSession.get('partic') }}"], // Inserted dynamically based on host and visitors ()
+                     description:  ''                // Inserted dynamically based on the visitor's supplied comment (if field is enabled)
+                   },
+                   customer: {
+                     name:         "{{currentUser.name}}",       // Inserted dynamically based on visitors name
+                     email:        "{{currentUser.email}}",      // Inserted dynamically based on visitors email
+                     timezone:     timekit.getConfig().timezone // Inserted dynamically based on visitors timezone (sniffed from browser/device settings)
+                   },
+	                  "notify_owner_by_email": {
+	                      "enabled": false
+	                    },
+	                    // Send email to the customer (enabled by default)
+	                    "notify_customer_by_email": {
+	                      "enabled": false
+	                    },
+	                    // Send email to customer if the booking get cancelled (enabled by default)
+	                    "notify_customer_cancelled_by_email": {
+	                      "enabled": false
+	                    },
+	                    // Send email to owner if the booking get cancelled (enabled by default)
+	                    "notify_owner_cancelled_by_email": {
+	                      "enabled": false
+	                    }
+ }).then(function(response){
+   console.log(response.data.id);
+   localStorage.setItem('bookingid',response.data.id);
+   if(localStorage.getItem('bookingid')){
+    $(".basicsubmit").prop("disabled", false);
+   }
+ });
+
+ } else{}
+ */
+});
+
+</script>
+{% include "_includes/_tab_bar" %}
+
+{% if (flow == 'schedule') or craft.twigSession.get('flow') == "schedule" %}
+<div class="mini-head">
+  {% set petnum = craft.twigSession.get('num') %}
+  Appointment Window: <b>{{ craft.twigSession.get('start')|date("F d, Y") }} from {{craft.twigSession.get('start')|date("g:i a")}} - {{craft.twigSession.get('end')|date_modify("+60 minutes")|date("g:i a")}}</b>
+ <div id="clockdiv">
+     <span class="smalltext">Time left to complete booking</span>
+     <div class="time">
+     <span class="minutes"></span><span>:</span><span class="seconds"></span>
+     </div>
+ </div>
+</div>
+{% endif %}
+<form method="post" class="basic" accept-charset="UTF-8">
+    {{ getCsrfInput() }}
+    <input type="hidden" name="action" value="users/saveUser">
+    <input type="hidden" name="redirect" value="{{siteUrl}}petinfo">
+    <input type="hidden" name="userId" value="{{ currentUser.id }}">
+    <input type="hidden" name="success" value="1">
+
+         <div class="welcomemessage"><h2>Welcome to Vetter, {{ currentUser.friendlyName }}!</h2>
+         <h3>{% if currentUser.streetAddress %} Review saved information and update if necessary. {% else %} Continue your account setup below. {% endif %}</h3>
+         <p><strong>{{customerAccountSetUp.homeAddressExplanation}}</strong>
+          <em class="req">* Indicates a required field.</em>
+         </p></div>
+
+        <span class="input input--yoshiko streetaddress">
+          <input class="input__field input__field--yoshiko" type="text" id="streetaddress" name = "fields[streetAddress]" value="{{currentUser.streetAddress}}"/>
+            <label class="input__label input__label--yoshiko" for="streetaddress">
+              <span class="input__label-content input__label-content--yoshiko" data-content="Street Address">Street Address*</span>
+            </label>
+            <div id="error_streetaddress"></div>
+          </span>
+
+          <span class="input input--yoshiko address2">
+            <input class="input__field input__field--yoshiko" type="text" id="address2" name = "fields[streetAddress2]" value="{{currentUser.streetAddress2}}"/>
+              <label class="input__label input__label--yoshiko" for="address2">
+                <span class="input__label-content input__label-content--yoshiko" data-content="Address 2">Address 2</span>
+              </label>
+              <div id="error_address2"></div>
+         </span>
+
+         <span class="input input--yoshiko cellphone">
+           <input class="input__field input__field--yoshiko" type="text" id="cellphone" name = "fields[cellPhone]" value="{{currentUser.cellPhone}}"/>
+            <label class="input__label input__label--yoshiko" for="cellphone">
+              <span class="input__label-content input__label-content--yoshiko" data-content="Cell Phone">Cell Phone*</span>
+            </label>
+            <div id="error_cellphone"></div>
+          </span>
+
+          <span class="input input--yoshiko city">
+            <input class="input__field input__field--yoshiko" type="text" id="city" name = "fields[city]" value="{{currentUser.city}}"/>
+              <label class="input__label input__label--yoshiko" for="city">
+                <span class="input__label-content input__label-content--yoshiko" data-content="City">City*</span>
+              </label>
+              <div id="error_city"></div>
+          </span>
+
+          <span class="input input--yoshiko states">
+            <select id="states" name="fields[states]">
+              <option></option>
+              {% for option in user.states.options %}
+              {% set state = user.states|trim %}
+	             <option {% if state == option %} selected {% endif %} value="{{option}}">{{option}}</option>
+               {% endfor %}
+             </select>
+             <label class="input__label input__label--yoshiko" for="states">
+               <span class="input__label-content input__label-content--yoshiko" data-content="State">State*</span>
+             </label>
+             <div id="error_states"></div>
+           </span>
+           <span class="input input--yoshiko zip">
+             <select id="customerZip" name = "fields[customerZip][]">
+             <option value=""></option>
+              {% for entry in craft.entries.section('zip').order('title asc').limit(null) %}
+                  {% if craft.twigSession.get('flow') == "schedule" %}
+                     {% if user.customerZip.first() %}
+                            {% if user.customerZip.first() == entry.title %}
+                            <option value="{{entry.id}}" data-id="{{entry.title}}" selected>{{entry.title}}</option>
+                            {% else %}
+                             <option value="{{entry.id}}" data-id="{{entry.title}}">{{entry.title}}</option>
+                            {% endif %}
+                     {% elseif craft.twigSession.get('sel_zip') %}
+                           {% if entry.title == craft.twigSession.get('sel_zip') %}
+                           <option value="{{entry.id}}" data-id="{{entry.title}}" selected>{{entry.title}}</option>
+                           {% else %}
+                            <option value="{{entry.id}}" data-id="{{entry.title}}">{{entry.title}}</option>
+                           {% endif %}
+                     {% endif %}
+                 {% else %}
+                       {% if user.customerZip.first() %}
+                            {% if user.customerZip.first() == entry.title %}
+                            <option value="{{entry.id}}" data-id="{{entry.title}}" selected>{{entry.title}}</option>
+                            {% else %}
+                             <option value="{{entry.id}}" data-id="{{entry.title}}">{{entry.title}}</option>
+                            {% endif %}
+                        {% else %}
+                           <option value="{{entry.id}}" data-id="{{entry.title}}">{{entry.title}}</option>
+                        {% endif %}
+                 {% endif %}
+              {% endfor %}
+               <input type="hidden" id="selectedZip" value="{% if craft.request.getParam('zip') %}{{craft.request.getParam('zip')}}{% else %}{{craft.twigSession.get('sel_zip')}}{% endif %}" />
+             </select>
+
+             <label class="input__label input__label--yoshiko" for="customerZip">
+               <span class="input__label-content input__label-content--yoshiko" data-content="Zip">Zip*</span>
+             </label>
+             <div id="error_customerZip"></div>
+           </span>
+           <div class="clearfix btn-container">
+<input class="button blue basicsubmit" id="next" type="submit" data-flow="{{craft.twigSession.get('flow')}}" value="Continue">
+</div>
+  </form>
+{% endblock %}

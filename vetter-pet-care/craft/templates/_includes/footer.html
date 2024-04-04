@@ -1,0 +1,51 @@
+<footer id="footer">
+ <div class="container flex-footer">
+   <div class="foot-left">
+  <a href="{{ siteUrl }}" alt="{{ siteName }}" class="site-logo flex-full">{{ siteName }}</a>
+  <nav class="clearfix">
+   {{ craft.navee.nav('footerNav') }}
+  </nav>
+  </div>
+  <div class="foot-middle bop">
+    <img src="https://s3.amazonaws.com/vetterpc-images/BOP-Logo-2018.png" alt="Best of Philly - Best On-Demand Vets"/>
+    <span class="bop-text">Best On-Demand Vets</span>
+  </div>
+  <div class="foot-right social-media">
+   <ul class="clearfix">
+    {% if socialMedia.twitter|length %}
+    <li><a href="{{socialMedia.twitter}}" target="_blank"><i class="icon-twitter"></i></a></li>
+    {% endif %}
+    {% if socialMedia.instagram|length %}
+    <li><a href="{{socialMedia.instagram}}" target="_blank"><i class="icon-instagram"></i></a></li>
+    {% endif %}
+    {% if socialMedia.facebook|length %}
+    <li><a href="{{socialMedia.facebook}}" target="_blank"><i class="icon-facebook-square"></i></a></li>
+    {% endif %}
+   </ul>
+
+  </div>
+
+  <div class="copyright foot-full">
+   &copy; {{ now.year }} Vetter Pet Care. All rights reserved.
+  </div>
+ </div>
+</footer>
+{% if craft.twigSession.get('last') != craft.request.getLastSegment() and craft.request.getLastSegment() != "signup" %}
+  {% if craft.request.getSegment(1)== 'user' %}
+      {% if (craft.request.getLastSegment() == 'upcoming')  or (craft.request.getLastSegment() == 'availability') %}
+        {{craft.twigSession.add('last', '/user/'~craft.request.getSegment(2)~'/'~craft.request.getLastSegment())}}
+      {% else %}
+        {{craft.twigSession.add('last', '/user/'~craft.request.getLastSegment())}}
+      {% endif %}
+  {% else %}
+     {% if (craft.request.getLastSegment()== 'setpassword') or (craft.request.getSegment(0)== 'setpassword')%}
+        {{craft.twigSession.add('last','')}}
+      {% else %}
+        {{craft.twigSession.add('last', craft.request.getLastSegment())}}
+      {% endif %}
+    {% endif %}
+{% else %}
+    {% if (craft.request.getLastSegment()== 'setpassword') or (craft.request.getSegment(0)== 'setpassword')%}
+        {{craft.twigSession.add('last','')}}
+    {% endif %}
+{% endif %}

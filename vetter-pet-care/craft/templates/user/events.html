@@ -1,0 +1,6 @@
+{% header "Content-Type: application/json" %}
+{% set user = craft.users.id( craft.request.segment(2) ).first() %}
+{% set events = craft.calendar.events({
+    authorId: user.id,
+}).limit(null) %}
+{{ events.eventsAsSimpleObject|json_encode|raw }}

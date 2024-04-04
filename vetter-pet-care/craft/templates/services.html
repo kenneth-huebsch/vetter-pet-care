@@ -1,0 +1,76 @@
+{% extends "_layout-wide" %}
+
+{% set categories = craft.categories.group('services') %}
+
+
+{% block content %}
+	<h1>
+  {% if entry.displayTitle %}
+   {{ entry.displayTitle }}
+  {% else %}
+   {{ entry.title }}
+  {% endif %}
+ </h1>
+ <div class="content">
+  {{entry.body}}
+ </div>
+ <section class="grey-container">
+ <div class="s-lists">
+  <div class="service-list odd">
+  {% nav category in categories %}
+   <div class="question services">
+     <div class="question-title">
+     <h3>
+      <i></i>
+      <span class="title-name">{% if category.title|length %}{{ category.title }}{% if category.categoryPrice|length %}&nbsp;-&nbsp;<span class="fees">{{ category.categoryPrice }}</span>{% endif %}{% endif %}{% if category.fee|length %}<span class="catfee">&nbsp;-&nbsp;{{ category.fee }}</span>{% endif %}</span>
+      </h3></div>
+     <div class="question-inner">
+     {% if category.description|length %}
+      {{ category.description }}{% endif %}
+      {% ifchildren %}
+          <div class="sub">{% children %}</div>
+      {% endifchildren %}
+      {% if category.bottomNotes|length %}
+       {{ category.bottomNotes }}{% endif %}
+     </div>
+   </div>
+  {% endnav %}
+ </div>
+ <div class="service-list even">
+  {% nav category in categories %}
+  <div class="question services">
+    <div class="question-title">
+    <h3>
+     <i></i>
+     <span class="title-name">{% if category.title|length %}{{ category.title }}{% if category.categoryPrice|length %}&nbsp;-&nbsp;<span class="fees">{{ category.categoryPrice }}</span>{% endif %}{% endif %}{% if category.fee|length %}<span class="catfee">&nbsp;-&nbsp;{{ category.fee }}</span>{% endif %}</span>
+     </h3></div>
+    <div class="question-inner">
+    {% if category.description|length %}
+     {{ category.description }}{% endif %}
+     {% ifchildren %}
+         <div class="sub">{% children %}</div>
+     {% endifchildren %}
+     {% if category.bottomNotes|length %}
+      {{ category.bottomNotes }}{% endif %}
+    </div>
+  </div>
+  {% endnav %}
+ </div>
+ </div>
+ </section>
+
+ <section class="meds clearfix" style="background: url('{{entry.headerImage[0].url}}') center center no-repeat; background-size: cover;">
+  <div class="container clearfix">
+   <div class="marea">
+    <h3>Medications</h3>
+   {{entry.medication}}
+   </div>
+  </div>
+ </section>
+{% endblock %}
+
+{% block footerJs %}
+<script src="{{siteUrl('/assets/js/faq.js')}}"></script>
+{% endblock %}
+
+

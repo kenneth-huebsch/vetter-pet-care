@@ -1,0 +1,267 @@
+<script type="text/javascript">
+window.csrfTokenName = "{{ craft.config.csrfTokenName|e('js') }}";
+window.csrfTokenValue = "{{ craft.request.csrfToken|e('js') }}";
+
+var data = {};
+
+data.filter                    = [];
+data.sectionId                 = {{craft.request.getParam('sectionId', 0)}};
+data.entryTypeId               = {{craft.request.getParam('entryTypeId', 0)}};
+data.limit                     = {{craft.request.getParam('limit', 10)}};
+data.orderby                   = '{{craft.request.getParam("orderby", "postDate")}}';
+data.sort                      = '{{craft.request.getParam("sort", "DESC")}}';
+data.sidebarHidden             = {% if sidebar_hidden %}true{% else %}false{% endif %};
+data.searchId                  = 0;
+data.saveSearchButtonClicked   = false;
+data.saveSearchInputFieldValue = '';
+data.loading                   = false;
+data.locale                    = '{{baseLocale}}';
+data.originalBaseLocale        = '{{baseLocale}}';
+data.queryRunning              = false;
+data.fetchingSavedSearch       = false;
+
+/**
+ * Sections
+ */
+data.sections = {
+    0: {
+        id: 0,
+        name: '{{"All Sections"|t}}',
+        locales: [ { name: data.locale, label: '{{craft.i18n.getLocaleById(baseLocale).name}}' } ]
+    },
+  {% for index, s in sections %}
+    {{s.id}}: {
+        id: {{s.id}},
+        name: '{{s.name}}',
+        locales: [
+          {% for l, arr in s.locales %}
+            { name: '{{l}}', label: '{{craft.i18n.getLocaleById(l).name}}' },
+          {% endfor %}
+        ],
+        sectionType: '{{s.type}}',
+        entryTypes: [
+        {% for e in s.entryTypes %}
+          { id: {{e.id}}, name: '{{e.name}}' },
+        {% endfor %}
+        ]
+      },
+  {% endfor %}
+};
+
+/**
+ * firstFilters
+ */
+data.firstFilters = {
+  {% for sectionId, options in firstFilterOptions %}
+      {{sectionId}}: {
+      {% for entryTypeId, options2 in options %}
+        {{entryTypeId}}: {{options2|json_encode()|raw}},
+      {% endfor %}
+      },
+  {% endfor %}
+};
+
+data.firstFilterList= data.firstFilters[0][0];
+
+/**
+ * secondFilters
+ */
+data.secondFilters = {
+{% for filterType, secondFilter in secondFilterOptions %}
+    {{filterType}}: {{secondFilter|json_encode()|raw}},
+{% endfor %}
+};
+
+data.secondFilterList= data.secondFilters['contains'];
+
+/**
+ * Rows
+ */
+data.rows = [{
+              first : 'title',
+              second : 'contains',
+              third : '',
+              fourth : '',
+              secondFilterList : data.secondFilterList,
+              thirdFilterType : 'text',
+            }];
+
+/**
+ * Reset some vars if taken from stored filter data
+ */
+{% if storedFilterData %}
+
+  data.hasStoredFilterData = true;
+
+  {% for index, row in storedFilterData if row.filterAttribute1 in ['sectionId'] %}
+    data.sectionId = {{row.filterAttribute3}};
+  {% endfor %}
+  {% for index, row in storedFilterData if row.filterAttribute1 in ['entryTypeId'] %}
+    data.entryTypeId = {{row.filterAttribute3}};
+  {% endfor %}
+  {% for index, row in storedFilterData if row.filterAttribute1 in ['limit'] %}
+    data.limit  = {{row.filterAttribute2}};
+  {% endfor %}
+  {% for index, row in storedFilterData if row.filterAttribute1 in ['orderby'] %}
+    data.orderby = '{{row.filterAttribute2}}';
+    data.sort    = '{{row.filterAttribute3}}';
+  {% endfor %}
+  {% for index, row in storedFilterData if row.filterAttribute1 in ['locale'] %}
+    data.locale = '{{row.filterAttribute2}}';
+  {% endfor %}
+
+  data.rows = [
+    {% for index, row in storedFilterData if row.filterAttribute1 not in ['sectionId', 'entryTypeId', 'limit', 'orderby', 'locale'] %}
+  {
+      first : '{{row.filterAttribute1}}',
+      second : '{{row.filterAttribute2}}',
+      third : '{{row.filterAttribute3}}',
+      fourth : '',
+      secondFilterList :
+        {% switch row.filterAttribute1 %}
+          {% case 'status' %}
+            data.secondFilters['is']
+          {% case 'id' %}
+            data.secondFilters['is_isnot']
+          {% case 'author' %}
+            data.secondFilters['is_isnot']
+          {% case 'postDate' or 'expiryDate' or 'dateCreated' or 'dateUpdated' %}
+            data.secondFilters['date']
+          {% case 'title' or 'uri' %}
+            data.secondFilters['contains']
+          {% default %}
+            {% set secondFilterType = 'contains_plus_empty' %}
+            {% for field in customFields if field.id is defined and field.id == row.filterAttribute1 and field.type in ['Dropdown', 'RadioButtons', 'PositionSelect'] %}
+              {% set secondFilterType = 'is_isnot' %}
+            {% endfor %}
+            {% for field in customFields if field.id is defined and field.id == row.filterAttribute1 and field.type in ['Categories'] %}
+              {% set secondFilterType = 'is_isnot_w_contains_doesnotcontain_labels' %}
+            {% endfor %}
+            {% for field in customFields if field.id is defined and field.id == row.filterAttribute1 and field.type in ['Date'] %}
+              {% set secondFilterType = 'date' %}
+            {% endfor %}
+            data.secondFilters['{{secondFilterType}}']
+        {% endswitch %},
+      thirdFilterType :
+        {% switch row.filterAttribute1 %}
+          {% case 'status' %}
+            'status'
+          {% case 'id' %}
+            'text'
+          {% case 'author' %}
+            'author'
+          {% case 'postDate' or 'expiryDate' or 'dateCreated' or 'dateUpdated' %}
+            {% if row.filterAttribute2 in ['inthelast', 'inthenext'] %}
+            'dateDropdown'
+            {% elseif row.filterAttribute2 in ['between'] %}
+            'dateRange'
+            {% else %}
+            'datepicker'
+            {% endif %}
+          {% case 'title' or 'uri' %}
+            'text'
+          {% default %}
+            {% set thirdFilterType = 'text' %}
+            {% for field in customFields if field.id is defined and field.id == row.filterAttribute1 and field.type in ['PositionSelect'] %}
+              {% set thirdFilterType = 'positionSelect' %}
+            {% endfor %}
+            {% for field in customFields if field.id is defined and field.id == row.filterAttribute1 and field.type in ['Dropdown', 'RadioButtons'] %}
+              {% set thirdFilterType = 'dropdown' %}
+            {% endfor %}
+            {% for field in customFields if field.id is defined and field.id == row.filterAttribute1 and field.type in ['Categories'] %}
+              {% set thirdFilterType = 'categories' %}
+            {% endfor %}
+            {% for field in customFields if field.id is defined and field.id == row.filterAttribute1 and field.type in ['Date'] %}
+              {% if row.filterAttribute2 in ['inthelast', 'inthenext'] %}
+                {% set thirdFilterType = 'dateDropdown' %}
+              {% elseif row.filterAttribute2 in ['between'] %}
+                {% set thirdFilterType = 'dateRange' %}
+              {% else %}
+                {% set thirdFilterType = 'datepicker' %}
+              {% endif %}
+            {% endfor %}
+            '{{thirdFilterType}}'
+        {% endswitch %},
+  },
+    {% endfor %}
+  ];
+{% endif %}
+
+
+/**
+ * Statuses
+ */
+data.statuses = {
+  live: '{{"live"|t}}',
+  pending: '{{"pending"|t}}',
+  expired: '{{"expired"|t}}',
+  disabled: '{{"disabled"|t}}'
+};
+
+/**
+ * Authors
+ */
+data.authors = {
+  {% for author in authors %}
+  {{author.id}}: '{{author.name}}',
+  {% endfor %}
+};
+
+/**
+ * Saved Searches
+ */
+
+data.savedSearches = [
+  {% for savedSearch in savedSearches %}
+    {{savedSearch|json_encode()|raw}},
+  {% endfor %}
+];
+
+/**
+ * Fields
+ */
+
+data.customFields = [
+  {% for field in customFields %}
+    {{field|json_encode()|raw}},
+  {% endfor %}
+];
+
+/**
+ * Custom field options
+ */
+data.customFieldDropdownOptions = {
+  {% for field in customFields if field.type in ['Dropdown', 'RadioButtons', 'PositionSelect'] %}
+    {{field.id}}:  {{field.settings.options|json_encode()|raw}},
+  {% endfor %}
+};
+
+/**
+ * Orderby options
+ */
+data.orderbyFilters = {
+  {% for sectionId, options in orderby_options %}
+      {{sectionId}}: {
+      {% for entryTypeId, options2 in options %}
+        {{entryTypeId}}: {{options2|json_encode()|raw}},
+      {% endfor %}
+      },
+  {% endfor %}
+};
+
+data.orderbyFilterList= data.orderbyFilters[0][0];
+
+data.limitFilters = {{limit_options|json_encode|raw}}
+data.sortFilters = {{sort_options|json_encode|raw}}
+
+/**
+ * Category options
+ */
+data.customCategoryDropdownOptions = {
+  {% for field in categoryFieldData %}
+    {{field.id}}: {{field|json_encode()|raw}},
+  {% endfor %}
+};
+
+// console.table(data.savedSearches);
+</script>

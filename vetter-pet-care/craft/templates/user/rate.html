@@ -1,0 +1,130 @@
+{% extends "_layout-wide" %}
+
+{% requireLogin %}
+
+{% set user = craft.users.id( craft.request.segment(2) ).first() %}
+{% set appt = craft.request.segment(3) %}
+
+
+
+
+{% block content %}
+{% if not user.isInGroup('veterinarian') %}
+<h1>Not Found</h1>
+<div class="content page-rate">
+    This veterinarian could not be found.
+</div>
+{% else %}
+	<h1>Rate Your Vet!</h1>
+ <div class="content page-rate">
+        
+  <!-- photo of vet -->
+    <div class ='vet'>
+        <div class="vetProfile">
+            {% for asset in user.vetProfilePhoto %}
+            {% if not asset is empty %}
+            <div class="picture"><img class='img-circle' src="{{ asset.url }}" alt="vet photo"></div>
+            {% else %}
+            <div class="picture"><img class="img-circle" src="https://s3.amazonaws.com/vetterpc-images/default-placeholder-1024x1024.png" alt="vet photo"></div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="staff-name">{{ user.firstName }}  {{ user.lastName }}</div>
+    <p>Let us know what you thought of your vet at the recent appointment (select 1-5 star rating).</p>
+    
+    {% if not appt is null %}
+    <div class="ratevet unrated">{{ craft.starRatings.stars(user.id, appt) }}</div>
+    {% else %}
+    <div class="ratevet unrated">{{ craft.starRatings.stars(user.id) }}</div>
+    {% endif %}
+
+    <div class="after-voting">Your rating has been registered. If you want to change it, just click again.</div>
+    
+
+</div>
+<div class="form-container">
+  <div class="container pawprint">
+   <p>If you have additional details to submit, add them below. (Optional)</p>
+  <div class="form">
+
+
+  {% set form = craft.amForms.getForm('vetTestimonial') %}
+{% if craft.request.getParam('submitted') == form.handle %}
+    <p>{{ form.afterSubmitText|default('Thanks for your submission.'|t) }}</p>
+{% else %}
+    {%- set submitValue = (form.submitButton ? form.submitButton : 'Submit'|t) -%}
+<form method="post" class="testimonial-form" action="" accept-charset="UTF-8">
+    {{ getCsrfInput() }}
+
+    {# This should always be here! #}
+    <input type="hidden" name="action" value="amForms/submissions/saveSubmission">
+
+    {# Insert your form's handle. #}
+    <input type="hidden" name="handle" value="{{ form.handle }}">
+
+    {% if form.afterSubmit == 'redirectEntryId' and form.redirectEntryId -%}
+            <input type="hidden" name="redirect" value="{{ form.getRedirectUrl() }}">
+        {% elseif form.afterSubmit == 'redirectUrl' and form.redirectUrl|length %}
+            <input type="hidden" name="redirect" value="{{ form.redirectUrl }}">
+        {% endif -%}
+
+    {# Optional: Anti-spam protection. #}
+    {{ craft.amForms.displayAntispam() }}
+
+    {# This will namespace your inputs (for IDs and such), but it's not required though #}
+
+    <input type="hidden" name="namespace" value="{{ form.getNamespace() }}">
+    <div class="form-inputrow">
+        <div class="input-item">
+        <span class="input input--yoshiko customerName">
+        <input class="input__field input__field--yoshiko" type="text" id="customerName" name = "{{ form.getNamespace() }}[fields][customerName]" placeholder="{{currentUser.firstName}} {{currentUser.lastName}}" value="{{currentUser.firstName}} {{currentUser.lastName}}"></input>
+            <label class="input__label input__label--yoshiko" for="customerName">
+            <span class="input__label-content input__label-content--yoshiko" data-content="Customer Name">Customer Name</span>
+            </label>
+        </span>
+        </div>
+        <div class="input-item">
+            <span class="input input--yoshiko vetName">
+            <input class="input__field input__field--yoshiko" type="text" id="vetName" name = "{{ form.getNamespace() }}[fields][vetName]" placeholder="{{user.firstName}} {{user.lastName}}" value="{{user.firstName}} {{user.lastName}}"></input>
+                <label class="input__label input__label--yoshiko" for="vetName">
+                <span class="input__label-content input__label-content--yoshiko" data-content="Vet Name">Vet Name</span>
+                </label>
+            </span>
+        </div>
+    </div>
+
+   <div class="form-inputrow">
+   <div class="input-item">
+    {{ form.displayField('customerTestimonial') }}
+   </div>
+  </div>
+   <div class="btn-container">
+    <input class="button blue" disabled name="send" id="ratesubmit" type="submit" value="submit">
+   </div>
+</form>
+{%endif%}
+</div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block footerJs %}
+<script>
+$(".ratevet").on('click', function() {
+    $(this).removeClass('unrated');
+    $(this).fadeOut().fadeIn(3000);
+    $('.after-voting').show(300);
+});
+//check for empty fields and submit button disabling
+$('#customerName, #vetName, textarea[id*="fields-customerTestimonial"]').on('keyup input', function() {
+  if (($('#customerName').val() == '') || ($('#vetName').val() == '') || ($('textarea[id*="fields-customerTestimonial"]').val() == '')) {
+    $('#ratesubmit').prop('disabled', true);
+  } else {
+    $('#ratesubmit').prop('disabled', false);
+  }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends "zenbu/global/main_layout" %}
+{% import "_includes/forms" as forms %}
+{% import "zenbu/global/macros" as zenbuMacros %}
+
+{% set content %}
+	<form action="{{ url('zenbu/settings') }}">
+		{{ getCsrfInput() }}
+
+		<div class="filters">
+			{# SECTION #}
+	        <div class="select section_select">
+	            <select name="sectionId" id="section_select" class="" v-model="sectionId" @change="sectionChanged">
+	                {{zenbuMacros.selectOptions(section_dropdown_options, craft.request.getParam('sectionId'))}}
+	            </select>
+	        </div>
+
+	        {# ENTRY TYPE #}
+	        {% for sectionId, entryType in entryType_dropdown_options %}
+	            <div class="select" v-if="sectionId == {{sectionId}}" v-cloak>
+	                <select name="entryTypeId" class="entryType_select" v-model="entryTypeId" @change="entryTypeChanged" :disabled="sectionId != {{sectionId}}">
+	                    {# <option value="">{{'Entry Type'|t}}</option> #}
+	                    {{zenbuMacros.selectOptions(entryType, craft.request.getParam('entryTypeId'))}}
+	                </select>
+	            </div>
+	        {% endfor %}
+
+	        {# <img src="{{ resourceUrl('images/spinner.gif') }}" alt="" v-show="loading == true" class="loading" v-cloak> #}
+	    </div>
+	</form>
+
+
+	<hr>
+
+    <form action="{{ url('zenbu/settings/save') }}" method="post" v-cloak>
+		{{ getCsrfInput() }}
+
+    	<p><img src="{{ resourceUrl('images/spinner.gif') }}" alt="" v-show="loading == true" class="loading" v-cloak></p>
+
+    	<div class="resultArea" v-show="loading != true" v-cloak>
+            {# {% include "zenbu/display_settings/settings" %} #}
+        </div>
+
+
+		{% if currentUser.can('canCopyZenbuDisplaySettingsToUsers') and CraftEdition == 2 %}
+        <hr>
+        <div class="copyToGroups" v-cloak>
+        	{% if userGroups | length >= 1 %}
+        		<div class="field">
+		        	<h3>{{"Apply the above display settings to the following user groups:"|t}}</h3>
+		        	<div class="warning">{{"WARNING! This overwrites any previous display settings users in selected groups may have."|t}}</div>
+		        	<p>
+		        		<input type="checkbox" class="checkbox" id="selectAll" v-model="selectAll">
+		        		<label for="selectAll">{{'Select All'|t}}</label>
+					</p>
+		        	<ul>
+		        	    <li v-for="group in userGroups">
+		        	    	<input type="checkbox" name="applyTo[]" :id="'group_' + group.id" class="checkbox" :value="group.id" v-model="applyTo">
+		        	    	<label :for="'group_' + group.id">${group.name}</label>
+		        	    </li>
+		        	</ul>
+	        	</div>
+	        {% endif %}
+	        <hr>
+			<div class="field">
+				<h3>{{'Apply to all members'|t}}</h3>
+		        {{ forms.checkbox({
+					on: 	    false,
+					small: 		false,
+					name:       'applyTo[all]',
+					label:      'Apply the above display settings to <strong>all</strong> members of the site'|t
+				}) }}
+				<div class="warning">{{"WARNING! This overwrites any previous display settings any user may have."|t}}</div>
+			</div>
+        </div>
+        {% endif %}
+
+		<div class="buttons" v-cloak>
+			<button type="submit" class="btn submit" @click="saveButtonClicked = true">
+				<span v-show="saveButtonClicked == false">{{"Save Settings"|t}}</span>
+				<span v-show="saveButtonClicked == true">{{"Saving"|t}} <i class="fa fa-spinner fa-pulse"></i></span>
+			</button>
+        </div>
+    </form>
+{% endset %}

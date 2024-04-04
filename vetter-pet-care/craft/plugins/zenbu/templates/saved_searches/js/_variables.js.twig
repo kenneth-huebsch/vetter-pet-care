@@ -1,0 +1,25 @@
+<script type="text/javascript">
+window.csrfTokenName = "{{ craft.config.csrfTokenName|e('js') }}";
+window.csrfTokenValue = "{{ craft.request.csrfToken|e('js') }}";
+
+var data = {};
+
+data.sectionId         = {{craft.request.getParam('sectionId', 0)}};
+data.entryTypeId       = {{craft.request.getParam('entryTypeId', 0)}};
+data.selectAll         = false;
+data.saveButtonClicked = false;
+data.loading           = false;
+data.searchIds         = [];
+
+/**
+ * Saved Searches
+ */
+
+data.savedSearches = [
+  {% for savedSearch in savedSearches %}
+    {{savedSearch|json_encode()|raw}},
+  {% endfor %}
+]
+
+data.loading = false;
+</script>

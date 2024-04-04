@@ -1,0 +1,99 @@
+{% header "Content-Type: application/json" %}
+{% set results = [] %}
+{% set zip = craft.request.getParam('zip') %}
+{% set entryid = craft.request.getParam('entryid') %}
+{% set startTime = craft.request.getParam('start') %}
+{% set vetname = craft.request.getParam('vetname') %}
+{% set users = craft.users.search('vetZip:' ~ zip) %}
+{% set this_entry = craft.entries.id(entryid) %}
+{% set break = 0 %}
+{% for vet in users if break == 0%}
+{% set break1 = 0 %}
+{% set fullName = vet.firstName ~" "~vet.lastName %}
+{% if vetname != fullName %}
+{% set month = craft.calendar.events({
+ authorId: vet.id,
+ dateRangeStart: "now"|date_modify('-24 hours')|date('Y-m-d'),
+ dateRangeEnd: '6 month',
+limit:null
+}) %}
+
+  {% for data in this_entry %}
+    {% for auth_data in data.authors_list %}
+      {% if auth_data.author_name == fullName and auth_data.user_id == vet.id %}
+      {% set break1 = 1 %}
+      {% endif %}
+    {% endfor %}
+  {% endfor %}
+
+   {% for appointment in craft.entries.section('appointmentRecords') if break1 == 0%}
+    {% if appointment.assignedVeterinarianName == fullName %}
+      {% if appointment.appointmentStartTime == startTime %}
+      {% set break1 = 1 %}
+      {% endif %}
+   {% endif %}
+   {% endfor %}
+   {% for event in month.events if break == 0 and break1 == 0 %}
+
+      {% set start_timedifference_in_sec_plus4 = event.startDate.timestamp|date_modify('+4 hours')|date('Z') %}
+        {% set start_timedifference_in_sec_zero = event.startDate.timestamp|date('Z') %}
+        {% set start_timedifference_in_sec_plus5 = event.startDate.timestamp|date_modify('+5 hours')|date('Z') %}
+
+        {% if start_timedifference_in_sec_zero == -14400 %}
+            {% if start_timedifference_in_sec_plus4 == -18000 %}
+              {%set start_time_est = event.startDate.timestamp|date_modify('+5 hours')%}
+            {% else %}
+              {%set start_time_est = event.startDate.timestamp|date_modify('+4 hours')%}
+            {% endif %}
+        {% else %}
+            {% if start_timedifference_in_sec_plus5 == -14400 %}
+              {%set start_time_est = event.startDate.timestamp|date_modify('+4 hours')%}
+            {% else %}
+              {%set start_time_est = event.startDate.timestamp|date_modify('+5 hours')%}
+            {% endif %}    
+        {% endif %}
+
+        {% set end_timedifference_in_sec_plus4 = event.endDate.timestamp|date_modify('+4 hours')|date('Z') %}
+        {% set end_timedifference_in_sec_zero = event.endDate.timestamp|date('Z') %}
+        {% set end_timedifference_in_sec_plus5 = event.endDate.timestamp|date_modify('+5 hours')|date('Z') %}
+
+        {% if end_timedifference_in_sec_zero == -14400 %}
+            {% if end_timedifference_in_sec_plus4 == -18000 %}
+              {%set end_time_est = event.endDate.timestamp|date_modify('+5 hours')%}
+            {% else %}
+              {%set end_time_est = event.endDate.timestamp|date_modify('+4 hours')%}
+            {% endif %}
+        {% else %}
+            {% if end_timedifference_in_sec_plus5 == -14400 %}
+              {%set end_time_est = event.endDate.timestamp|date_modify('+4 hours')%}
+            {% else %}
+              {%set end_time_est = event.endDate.timestamp|date_modify('+5 hours')%}
+            {% endif %}    
+        {% endif %}
+
+       {% if (startTime|date('U') >= start_time_est|date('U') and startTime|date('U') < end_time_est|date('U')) %}
+        {%
+       set results = results | merge([{
+          "start" : startTime ,
+          "vetname" : fullName,
+          "userid" : vet.id,
+          "entryid" : entryid,
+          "status" : "available"
+        }])
+      %}
+        {% set break1 = 1 %}
+       {% endif %}
+     {% endfor %}
+   {% endif %}
+   {% if loop.index == users|length and results|length == 0 %}
+   {%
+   set results = results | merge([{
+      "start" : startTime ,
+      "vetname" : vetname,
+      "entryid" : entryid,
+      "status" : "unavailable"
+    }])
+  %}
+   {% endif %}
+{% endfor %}
+{{ results | json_encode() | raw }}

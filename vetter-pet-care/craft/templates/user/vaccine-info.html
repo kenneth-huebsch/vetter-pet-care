@@ -1,0 +1,166 @@
+{% extends "_layout-wide" %}
+
+{% requireLogin %}
+
+{% if currentUser.id != craft.request.segment(2) %}
+{% redirect "/" %}
+{% endif %}
+
+{% set user = craft.users.id( craft.request.segment(2) ).first() %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ siteUrl }}assets/css/bootstrap.css">
+
+<div class="vetter-pattern">
+	<div class="container vacc-content">
+	    <h1 class="text-center">Vaccine Information</h1>
+    </div>
+	<div class="content vacc-content">
+
+		<div class="pets">
+			{% for petblock in user.pets %}
+				{% if petblock.type == 'pet' %}
+					{% set image = petblock.petPhoto.first() %}
+					<div class='pet vacc-pet' data-petid="{{petblock.id}}">
+						<div class = 'existpet' data-petid="{{petblock.id}}">
+							{% if not image is empty %}
+								<div class="picture" style="background: transparent url('{{image.url }}') no-repeat center center; background-size: cover;"></div>
+							{% else %}
+								<div class="picture" style="background: transparent url('https://s3.amazonaws.com/vetterpc-images/pet_placeholderimage.jpg') no-repeat center center; background-size: cover;"></div>
+							{% endif %}
+							<div class="name">{{petblock.petFirstName}}</div>
+							<div class="overlay">
+								<a href="#" class="edit-pet" data-field="{{petblock.id}}" data-image="{{image.url}}" data-petid="{{petblock.id}}"
+									tabindex="0"><i class="icon-pencil"></i>View</a>
+							</div>
+						</div>
+					</div><!-- end pet -->
+
+					<div class="petinfo container" data-petid="{{petblock.id}}" >
+						<h2>{{petblock.petFirstName}}</h2>
+						<br/>
+						<div class='box pet_dragandrophandler' id="pets" data-name='pets' data-petid="{{petblock.id}}">
+							{% if not image is empty %}
+								<div class="picture" style="background: transparent url('{{image.url }}') no-repeat center center; background-size: cover;"></div>
+							{% else %}
+								<div class="picture" style="background: transparent url('https://s3.amazonaws.com/vetterpc-images/pet_placeholderimage.jpg') no-repeat center center; background-size: cover;"></div>
+							{% endif %}
+						</div>
+
+						<!-- No idea why this span needs to be here, but without it the page breaks -->
+						<span class="birth_year" data-petid={{petblock.id}}></span>
+
+						<div class="row">
+							<div class="col-xs-4"><label></label></div>
+							<div class="col-xs-4 col-sm-3"><label>Date Given</label></div>
+							<div class="col-xs-4"><label>Next Due</label></div>
+						</div>
+
+						{% if petblock.species|trim== "canine" %}
+							<div class="row">
+								<div class="col-xs-4"><label>Rabies:</label></div>
+								<div class ="col-xs-4 col-sm-3">
+									<span class="response">{% if petblock.canineRabiesDateGiven|length %}{{petblock.canineRabiesDateGiven|date("m/d/Y")}}{% endif %}</span>
+								</div>
+								<div class ="col-xs-4">
+									<span class="response">{% if petblock.canineRabiesNextDue|length %}{{petblock.canineRabiesNextDue|date("m/d/Y")}}{% endif %}</span>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-xs-4"><label>DA2PP:</label></div>
+								<div class="col-xs-4 col-sm-3">
+									<span class="response">{% if petblock.da2ppDateGiven|length %}{{petblock.da2ppDateGiven|date("m/d/Y")}}{% endif %}</span>
+								</div>
+								<div class="col-xs-4">
+									<span class="response">{% if petblock.da2ppNextDue|length %}{{petblock.da2ppNextDue|date("m/d/Y")}}{% endif %}</span>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-xs-4"><label>Leptospirosis:</label></div>
+								<div class="col-xs-4 col-sm-3">
+									<span class="response">{% if petblock.leptospirosisDateGiven|length %}{{petblock.leptospirosisDateGiven|date("m/d/Y")}}{% endif %}</span>
+								</div>
+								<div class="col-xs-4">
+									<span class="response">{% if petblock.leptospirosisNextDue|length %}{{petblock.leptospirosisNextDue|date("m/d/Y")}}{% endif %}</span>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-xs-4"><label>Bordetella:</label></div>
+								<div class="col-xs-4 col-sm-3">
+									<span class="response">{% if petblock.bordetellaDateGiven|length %}{{petblock.bordetellaDateGiven|date("m/d/Y")}}{% endif %}</span>
+								</div>
+								<div class="col-xs-4">
+									<span class="response">{% if petblock.bordetellaNextDue|length %}{{petblock.bordetellaNextDue|date("m/d/Y")}}{% endif %}</span>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-xs-4"><label>Influenza:</label></div>
+								<div class="col-xs-4 col-sm-3">
+									<span class="response">{% if petblock.influenzaDateGiven|length %}{{petblock.influenzaDateGiven|date("m/d/Y")}}{% endif %}</span>
+								</div>
+								<div class="col-xs-4">
+									<span class="response">{% if petblock.influenzaNextDue|length %}{{petblock.influenzaNextDue|date("m/d/Y")}}{% endif %}</span>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-xs-4"><label>Lyme:</label></div>
+								<div class="col-xs-4 col-sm-3">
+									<span class="response">{% if petblock.lymeDateGiven|length %}{{petblock.lymeDateGiven|date("m/d/Y")}}{% endif %}</span>
+								</div>
+								<div class="col-xs-4">
+									<span class="response">{% if petblock.lymeNextDue|length %}{{petblock.lymeNextDue|date("m/d/Y")}}{% endif %}</span>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-xs-4"><label>HW Test:</label></div>
+								<div class="col-xs-4 col-sm-3">
+									<span class="response">{% if petblock.negativeHwtDateGiven|length %}{{petblock.negativeHwtDateGiven|date("m/d/Y")}}{% endif %}</span>
+								</div>
+								<div class="col-xs-4">
+									<span class="response">{% if petblock.negativeHwtNextDue|length %}{{petblock.negativeHwtNextDue|date("m/d/Y")}}{% endif %}</span>
+								</div>
+							</div>
+						{% endif %}
+
+						{% if petblock.species|trim== "feline" %}
+							<div class="row">
+								<div class="col-xs-4"><label>Rabies:</label></div>
+								<div class="col-xs-4 col-sm-3">
+									<span class="response">{% if petblock.felineRabiesDateGiven|length %}{{petblock.felineRabiesDateGiven|date("m/d/Y")}}{% endif %}</span>
+								</div>
+								<div class="col-xs-4">
+									<span class="response">{% if petblock.felineRabiesNextDue|length %}{{petblock.felineRabiesNextDue|date("m/d/Y")}}{% endif %}</span>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-xs-4"><label>FVRCP:</label></div>
+								<div class="col-xs-4 col-sm-3">
+									<span class="response">{% if petblock.fvrcpDateGiven|length %}{{petblock.fvrcpDateGiven|date("m/d/Y")}}{% endif %}</span>
+								</div>
+								<div class="col-xs-4">
+									<span class="response">{% if petblock.fvrcpNextDue|length %}{{petblock.fvrcpNextDue|date("m/d/Y")}}{% endif %}</span>
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-xs-4"><label>FeLV:</label></div>
+								<div class="col-xs-4 col-sm-3">
+									<span class="response">{% if petblock.felvDateGiven|length %}{{petblock.felvDateGiven|date("m/d/Y")}}{% endif %}</span>
+								</div>
+								<div class="col-xs-4">
+									<span class="response">{% if petblock.felvNextDue|length %}{{petblock.felvNextDue|date("m/d/Y")}}{% endif %}</span>
+								</div>
+							</div>
+						{% endif %}
+						<br/>
+						<input class="button small blue" type="submit" value="Print" data-petid="{{petblock.id}}" onclick="window.print()" />
+						<a class="cancelCreatePet" href="#" onclick="$('div.petinfo[data-petid={{petblock.id}}]').slideUp();return false;">Back</a>
+					</div><!-- end petinfo -->
+				{% endif %}<!-- end if type == pet -->
+			{% endfor %}<!-- end for petbblock -->
+		</div><!-- end pets -->
+	</div>  <!-- end of content -->
+</div> <!-- end of vetter-pattern -->
+{% endblock %}
+
+{% block footerJs %}
+{% endblock %}

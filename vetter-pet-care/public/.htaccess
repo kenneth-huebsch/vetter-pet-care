@@ -1,0 +1,98 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # set password Authentication
+    #<If "%{HTTP_HOST} == 'vpc.thetactilegroup.com'">
+    #AuthType Basic
+    #AuthName "Restricted Content"
+    #AuthUserFile /etc/apache2/.htpasswd
+    #Require valid-user
+    #Allow from 127.0.0.1
+    #Satisfy Any
+    #</If>
+
+    # Send would-be 404 requests to Craft
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} !^/(favicon\.ico|apple-touch-icon.*\.png)$ [NC]
+    RewriteRule (.+) index.php?p=$1 [QSA,L]
+
+    # redirect index.php
+    RewriteCond %{THE_REQUEST} ^[^/]*/index\.php [NC]
+    RewriteCond %{THE_REQUEST} ^GET
+    RewriteRule ^index\.php(.+) $1 [R=301,L]
+
+
+    # redirect vetterpetcare.com to www.vetterpetcare.com
+    RewriteCond %{HTTP_HOST} ^vetterpetcare\.com [NC]
+    RewriteCond %{SERVER_PORT} 80
+    RewriteRule (.*)$ https://www\.vetterpetcare\.com/$1 [R=301,L]
+
+    RewriteCond %{HTTP_HOST} ^thevetter\.com [NC]
+    RewriteCond %{SERVER_PORT} 80
+    RewriteRule (.*)$ https://www\.vetterpetcare\.com/$1 [R=301,L]
+
+    RewriteCond %{HTTP_HOST} ^www\.thevetter\.com [NC]
+    RewriteCond %{SERVER_PORT} 80
+    RewriteRule (.*)$ https://www\.vetterpetcare\.com/$1 [R=301,L]
+
+    RewriteCond %{HTTP_HOST} ^dogvetter\.com [NC]
+    RewriteCond %{SERVER_PORT} 80
+    RewriteRule (.*)$ https://www\.vetterpetcare\.com/$1 [R=301,L]
+
+    RewriteCond %{HTTP_HOST} ^catvetter\.com [NC]
+    RewriteCond %{SERVER_PORT} 80
+    RewriteRule (.*)$ https://www\.vetterpetcare\.com/$1 [R=301,L]
+
+
+    # redirect http(s)://example.com to https://www.example.com
+    RewriteCond %{HTTP_HOST} !^www\. [NC]
+    RewriteCond %{HTTP_HOST} ^vetterpetcare\.com [NC]
+    RewriteRule ^ https://www.%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+    # redirect http to https://www.vetterpetcare.com
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https
+    RewriteCond %{HTTP_HOST} ^www.vetterpetcare\.com [NC]
+    RewriteRule (.*)$ https://www\.vetterpetcare\.com/$1 [R=301,L]
+
+   # redirect https://vetterpetcare.com to https://www.vetterpetcare.com
+    RewriteCond %{HTTP_HOST} !^www\. [NC]
+    RewriteCond %{HTTP_HOST} ^www.vetterpetcare\.com [NC]
+    RewriteRule ^ https://www.%{HTTP_HOST}%{REQUEST_URI} [R=301,L,NE]
+
+    # set Max upload file size
+        php_value upload_max_filesize 5M
+        php_value post_max_size 6M
+        php_value memory_limit 1048M
+        php_value max_execution_time 120
+
+</IfModule>
+
+# 1 Month for most static assets
+<FilesMatch "\.(css|jpg|jpeg|png|gif|js|ico|svg|woff2)$">
+#Header set Cache-Control "max-age=2592000, public"
+</FilesMatch>
+
+# compress text, html, javascript, css, xml:
+AddOutputFilterByType DEFLATE text/plain
+AddOutputFilterByType DEFLATE text/html
+AddOutputFilterByType DEFLATE text/xml
+AddOutputFilterByType DEFLATE text/css
+AddOutputFilterByType DEFLATE application/xml
+AddOutputFilterByType DEFLATE application/xhtml+xml
+AddOutputFilterByType DEFLATE application/rss+xml
+AddOutputFilterByType DEFLATE application/javascript
+AddOutputFilterByType DEFLATE application/js
+AddOutputFilterByType DEFLATE application/x-javascript
+AddOutputFilterByType DEFLATE image/svg+xml
+AddOutputFilterByType DEFLATE image/jpeg
+AddOutputFilterByType DEFLATE image/jpg
+AddOutputFilterByType DEFLATE application/font-woff2
+AddOutputFilterByType DEFLATE image/x-icon
+
+# Or, compress certain file types by extension:
+<ifModule mod_deflate.c>
+<Files *.html>
+SetOutputFilter DEFLATE
+</Files>
+</ifModule>

@@ -1,0 +1,213 @@
+{% extends "_layout-wide" %}
+{% requireLogin %}
+
+
+{% if currentUser.id != craft.request.segment(2) or not currentUser.isInGroup('veterinarian') %}
+{% redirect "/" %}
+{% endif %}
+
+{% set user = craft.users.id( craft.request.segment(2) ).first() %}
+{% set groups = user.getGroups() %}
+{% set groupName = groups[0].name %}
+{% set fullName = user.firstName ~" " ~user.lastName %}
+
+{% block content %}
+ <h1>
+  {% if user.displayTitle %}
+   {{ user.displayTitle }}
+   {% else %}
+   Upcoming Appointments
+   {% endif %}
+ </h1>
+
+ <div class="content">
+  <p>{{veterinarian.timeExplanation}}</p>
+
+<div class="appt-table" id="userappointments">
+<span class="table_head">
+<span class="table_label sortable" data-order="asc">Date &nbsp;</span>
+<span class="table_label" data-order="asc">Time &nbsp;</span>
+<span class="table_label sortable" data-order="asc">Client &nbsp;</span>
+<span class="table_label sortable" data-order="asc">Appointment ID &nbsp;</span>
+<span class="table_label"></span>
+<span class="table_label"></span>
+</span>
+<span class="table_body">
+
+{% set futureappt = craft.entries.section('appointmentRecords').order('appointmentStartTime').limit(null) %}
+{% for entry in futureappt.assignedVeterinarianIdNumber('v-0' ~ user.id) %}
+
+{% if entry.appointmentStartTime > now and entry.appointmentStartTime < now|date_modify("+30 days") %}
+
+{% if entry.cancel_status != "cancelled" and entry.cancel_status != "unavailable" and entry.cancel_status != "customer_cancelled" and entry.cancel_status != "sys_cancelled"%}
+<div class="table_row">
+    <div class="table_cell">{{ entry.appointmentStartTime|date("m/d/Y") }}</div>
+    <div class="table_cell">{{ entry.appointmentStartTime|date("h:i a") }}</div>
+    <div class="table_cell">{% for customer in craft.users.id(entry.customerRealId) %}
+    {{ customer.firstName }} {{ customer.lastName }}
+    {% endfor %}</div>
+    <div class="table_cell">{{ entry.appointmentIdNumber }}</div>
+    <div class="table_cell"><a href="{{siteUrl}}appointment-records/{{entry.slug}}" class="table_link">View Appointment Record</a></div>
+   {# {% if entry.cancel_status == "unavailable" %}
+
+   <!-- <div class="table_cell"><a class="table_link">Cancelled</a></div> -->
+
+    {% else %} #}
+    <div class="table_cell"><a href="#" data-start ={{entry.appointmentStartTime}} data-displaystart="{{entry.appointmentStartTime| date('l F d, Y')}}  at {{entry.appointmentStartTime| date('h:i a')}}" data-zip="{{entry.customerZipCode}}" data-vetname="{{entry.assignedVeterinarianName}}" data-id="{{entry.id}}" data-vid="{{entry.assignedVeterinarianIdNumber}}" class="table_link vet_cancel_init">Cancel</a></div>
+  {#  {% endif %} #}
+</div>
+   {% endif %}
+
+{% endif %}
+{% endfor %}
+ </span>
+</div>
+
+<h1>Previous Appointments</h1>
+<div class="appt-table" id="userpastappointments">
+<span class="table_head">
+<span class="table_label sortable" data-order="asc">Date &nbsp;</span>
+<span class="table_label" data-order="asc">Time &nbsp;</span>
+<span class="table_label sortable" data-order="asc">Client &nbsp;</span>
+<span class="table_label sortable" data-order="asc">Appointment ID &nbsp;</span>
+<span class="table_label"></span>
+<span class="table_label"></span>
+</span>
+<span class="table_body">
+{% set pastappt = craft.entries.section('appointmentRecords').order('appointmentStartTime').limit(null) %}
+
+{% for entry in pastappt.assignedVeterinarianIdNumber('v-0' ~ user.id) %}
+
+{% if entry.appointmentStartTime < now and entry.appointmentStartTime > now|date_modify("-30 days") %}
+<div class="table_row">
+    <div class="table_cell">{{ entry.appointmentStartTime|date("m/d/Y") }}</div>
+    <div class="table_cell">{{ entry.appointmentStartTime|date("h:i a") }}</div>
+    <div class="table_cell">{% for customer in craft.users.id(entry.customerRealId) %}
+    {{ customer.firstName }} {{ customer.lastName }}
+    {% endfor %}</div>
+    <div class="table_cell">{{ entry.appointmentIdNumber }}</div>
+    <div class="table_cell"><a href="{{siteUrl}}appointment-records/{{entry.slug}}" class="table_link">View Appointment Record</a></div>
+    <div class="table_cell"></div>
+</div>
+{% endif %}
+{% endfor %}
+ </span>
+</div>
+<div class="btn-container clearfix">
+        <a id="loadMore" class="button small blue">Load more</a>
+</div>
+
+
+
+
+</div>
+{% endblock %}
+
+{% block footerJs %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tinysort/2.3.6/tinysort.js"></script>
+<script>
+var table = document.getElementById('userappointments')
+	,tableHead = table.querySelector('span.table_head')
+	,tableHeaders = tableHead.querySelectorAll('span.table_label.sortable')
+	,tableBody = table.querySelector('span.table_body')
+;
+
+tinysort(
+            tableBody.querySelectorAll('div.table_row')
+            ,{
+                selector:'div.table_cell:nth-child(1)'
+                ,order: 'asc'
+            }
+        );
+
+tableHead.addEventListener('click',function(e){
+	var tableHeader = e.target
+		,textContent = tableHeader.textContent
+		,tableHeaderIndex,isAscending,order
+	;
+	if (textContent!=='add row') {
+        // note: nodeName must be ALLCAPS
+		while (tableHeader.nodeName!=='SPAN') {
+			tableHeader = tableHeader.parentNode;
+		}
+		tableHeaderIndex = Array.prototype.indexOf.call(tableHeaders,tableHeader);
+		isAscending = tableHeader.getAttribute('data-order')==='asc';
+		order = isAscending?'desc':'asc';
+		tableHeader.setAttribute('data-order',order);
+              // tableHeader.classList.toggle('asc');
+              // tableHeader.classList.toggle('down-arrow');
+		tinysort(
+			tableBody.querySelectorAll('div.table_row')
+			,{
+				selector:'div.table_cell:nth-child('+(tableHeaderIndex+1)+')'
+				,order: order
+			}
+		);
+	}
+});
+
+
+var table2 = document.getElementById('userpastappointments')
+    ,tableHead2 = table2.querySelector('span.table_head')
+    ,tableHeaders2 = tableHead2.querySelectorAll('span.table_label.sortable')
+    ,tableBody2 = table2.querySelector('span.table_body')
+;
+
+tinysort(
+            tableBody2.querySelectorAll('div.table_row')
+            ,{
+                selector:'div.table_cell:nth-child(1)'
+                ,order: 'desc'
+            }
+        );
+
+tableHead2.addEventListener('click',function(e){
+    var tableHeader2 = e.target
+        ,textContent2 = tableHeader2.textContent2
+        ,tableHeaderIndex,isAscending,order
+    ;
+    if (textContent2!=='add row') {
+        // note: nodeName must be ALLCAPS
+        while (tableHeader2.nodeName!=='SPAN') {
+            tableHeader2 = tableHeader2.parentNode;
+        }
+        tableHeaderIndex = Array.prototype.indexOf.call(tableHeaders2,tableHeader2);
+        isAscending = tableHeader2.getAttribute('data-order')==='asc';
+        order = isAscending?'desc':'asc';
+        tableHeader2.setAttribute('data-order',order);
+              // tableHeader.classList.toggle('asc');
+              // tableHeader.classList.toggle('down-arrow');
+        tinysort(
+            tableBody2.querySelectorAll('div.table_row')
+            ,{
+                selector:'div.table_cell:nth-child('+(tableHeaderIndex+1)+')'
+                ,order: order
+            }
+        );
+    }
+});
+
+$(document).ready(function () {
+
+    size_tr = $("#userpastappointments .table_row").length;
+    x = 20;
+
+    if (x > size_tr) {
+          $('#loadMore').hide();
+        }
+
+    $('#userpastappointments .table_row:gt('+x+')').css('display','none');
+    $('#loadMore').click(function () {
+        x = (x+20 <= size_tr) ? x+20 : size_tr;
+        console.log("original:" + size_tr +  " new:" + x);
+        $('#userpastappointments .table_row:lt('+x+')').css('display','table-row');
+        if (x == size_tr) {
+          $('#loadMore').hide();
+        }
+    });
+
+
+});
+
+</script>
+{% endblock %}

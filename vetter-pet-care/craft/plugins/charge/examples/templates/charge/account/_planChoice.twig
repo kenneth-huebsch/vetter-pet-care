@@ -1,0 +1,54 @@
+
+    {% set yearlyLabel = 'Yearly - $149/year' %}
+    {% set monthlyLabel = 'Monthly - $19/mo' %}
+
+    {% if activePlan is defined %}
+        {% if activePlan == 'yearly' %}
+            {% set yearlyLabel = yearlyLabel ~ ' (Current)' %}
+        {% endif %}
+
+        {% if activePlan == 'monthly' %}
+            {% set monthlyLabel = monthlyLabel ~ ' (Current)' %}
+        {% endif %}
+    {% endif %}
+
+    {% set selectedPlan = (activePlan is defined ? activePlan : 'yearly') %}
+
+    {% set options = {
+        'planChoiceDefault': 'yearly',
+        'planChoices' : {
+            'yearly' : {
+                'label': yearlyLabel,
+                'planAmount' : 149,
+                'planInterval' : 'year',
+                'planIntervalCount' : 1,
+                'actions' : {
+                    'onSuccess': {
+                        'subscription' : 'member-yearly'
+                    },
+                }
+            },
+            'monthly' : {
+                'label': monthlyLabel,
+                'planAmount' : 19,
+                'planInterval' : 'month',
+                'planIntervalCount' : 1,
+                'actions' : {
+                    'onSuccess': {
+                        'subscription' : 'member'
+                    },
+                }
+            }
+        }
+    } %}
+    {{ craft.charge.setPaymentOptions(options) }}
+
+    {{ forms.selectField({
+        label: 'Plan Choice',
+        name: 'planChoice',
+        id: 'planChoice',
+        selected: selectedPlan,
+        options: options.planChoices,
+        value: (selectedPlan),
+        errors: (charge is defined ? charge.getErrors('planChoice'))
+    }) }}

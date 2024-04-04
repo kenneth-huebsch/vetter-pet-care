@@ -1,0 +1,7 @@
+craft/templates/backup/*
+craft/storage/backups/*
+craft/storage/*
+.sass-cache/
+node_modules
+.DS_Store
+.idea/*

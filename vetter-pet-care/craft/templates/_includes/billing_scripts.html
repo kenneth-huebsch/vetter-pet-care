@@ -1,0 +1,196 @@
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/3.1.62/jquery.inputmask.bundle.js"></script>
+<script src="https://js.stripe.com/v2/stripe.js"></script>
+<script src="{{ resourceUrl('charge/js/jquery.charge.js') }}"></script>
+<script>
+    $(function() {
+
+        $("#editCard").click(function(e) {
+            e.preventDefault();
+            $(".saved-card-info-container").hide();
+            $("#charge-form-container").show();
+            $("#charge-form").show();
+
+            $("#payment-errors").removeClass("alert");
+            $("#payment-errors").removeClass("alert-warning");
+            $("#payment-errors").empty();
+        });
+
+        $(".js-checkbox").change(function(e) {
+            if ($(this).prop('checked')) {
+                $('.js-saveBilling').val(1);
+            } else {
+                $('.js-saveBilling').val(0);
+            }
+        });
+        $(".sameashome").change(function(e) {
+            if ($(this).prop('checked')) {
+                $('.js-sameashome').val(1);
+            } else {
+                $('.js-sameashome').val(0);
+            }
+        });
+        $(".check-code").click(function(e) {
+            e.preventDefault();
+            var userid = $('.discount-code').data('userid');
+            var discountcode = $('.discount-code').val();
+            $.ajax({
+                type: 'POST',
+                url: "/actions/discounts/checkDiscount",
+                data: {
+                    discount_code: discountcode,
+                    userid: userid
+                },
+                success: function(data) {
+                        if (data.rsp_type > 0) {
+                            $(".discount, .cord.result").removeClass('discount-error');
+                            $(".check-code").hide();
+                            $(".discount-code").prop("disabled", true);
+                        } else {
+                            $(".discount, .cord.result").addClass('discount-error');
+                        }
+                        $(".result").html("<b>" + data.results + "</b>");
+                    }
+                    //  console.log(data);
+
+            });
+
+        });
+        /*
+               $("#createAppt").click(function(e){
+                    e.preventDefault();
+
+                var flow = $(this).data('flow');
+                var id = $(this).data('uid');
+
+                  var error_flag = 0;
+                  if($("#streetaddress").val().trim().length < 1){
+                  $("#streetaddress").parent().addClass('field-error');
+                        $("#error_streetaddress").html("Street Address is required.");
+                        error_flag = 1;
+                      }
+                   if($("#cellphone").val().trim().length < 1){
+                  $("#cellphone").parent().addClass('field-error');
+                        $("#error_cellphone").html("Cell Phone is required.");
+                        error_flag = 1;
+                      }
+                   if($("#city").val().trim().length < 1){
+                  $("#city").parent().addClass('field-error');
+                        $("#error_city").html("City is required.");
+                        error_flag = 1;
+                      }
+                   if($("#states").val() == null){
+                  $("#states").parent().addClass('field-error');
+                        $("#error_states").html("State is required.");
+                        error_flag = 1;
+                      }
+                    if($("#zip").val().trim().length < 1){
+                  $("#zip").parent().addClass('field-error');
+                        $("#error_zip").html("Zipcode is required.");
+                        error_flag = 1;
+                      }
+                    if(error_flag < 1){
+
+                      var billAddr = $("#billAddr").serialize();
+                        $.ajax({
+                         type: 'POST',
+                         url: "{{siteUrl}}",
+                         data: billAddr,
+                         success: function(){
+                          if(flow == "schedule"){
+                            window.location.href = "/review";
+                          } else {
+                            window.location.href = "/user/"+id;
+                          }
+                         }
+                      });
+                        } else {
+                            return false;
+                        }
+                    });
+
+        */
+
+
+        function getTimeRemaining(endtime) {
+            var t = Date.parse(endtime) - Date.parse(new Date());
+            var seconds = Math.floor((t / 1000) % 60);
+            var minutes = Math.floor((t / 1000 / 60) % 15);
+            return {
+                'total': t,
+                'minutes': minutes,
+                'seconds': seconds
+            };
+        }
+
+        function initializeClock(id, endtime) {
+            if (document.getElementById(id)) {
+                var clock = document.getElementById(id);
+                var minutesSpan = clock.querySelector('.minutes');
+                var secondsSpan = clock.querySelector('.seconds');
+                var cycles = 0;
+
+                function updateClock() {
+                    var t = getTimeRemaining(endtime);
+                    if (t.minutes < 1 && t.seconds < 1 && cycles > 0) {
+                        alert('Your appointment booking time has expired, and the time slot you chose has been surrendered. We are redirecting you back to the Schedule page to select a time slot and restart the booking process.');
+                        var id = localStorage.getItem('bookingid');
+                        var data = {
+                            entryId: id,
+                        };
+                        //  data[window.csrfTokenName] = window.csrfTokenValue; // Append CSRF Token
+                        $.ajax({
+                            context: this,
+                            type: "post",
+                            dataType: "json",
+                            data: data,
+                            url: "/actions/discounts/deleteHold",
+                            success: function(data, response) {
+                                localStorage.clear();
+                                $.get('api/killsess', function(data) {
+                                    window.location.href = "/schedule";
+                                    clearInterval(timeinterval);
+                                });
+
+                            }
+                        });
+                        localStorage.clear();
+                        $.get('api/killsess', function(data) {
+                            window.location.href = "/schedule";
+                            clearInterval(timeinterval);
+                        });
+                        //    clearInterval(timeinterval);
+                    } else {
+                        minutesSpan.innerHTML = ('0' + t.minutes).slice(-2);
+                        secondsSpan.innerHTML = ('0' + t.seconds).slice(-2);
+                        localStorage.setItem('cur_time', endtime);
+                    }
+                    cycles++;
+                }
+                updateClock();
+                var timeinterval = setInterval(updateClock, 1000);
+            }
+        }
+        if (localStorage.getItem('cur_time')) {
+            deadline = localStorage.getItem('cur_time');
+        } else {
+            var deadline = new Date(Date.parse(new Date()) + 15 * 24 * 60 * 60 * 1000);
+        }
+        initializeClock('clockdiv', deadline);
+        $(".bill:enabled").click(function(e) {
+            //    e.preventDefault();
+            //$.post("api/setTab",{tab:"3"},function(data){
+            //    window.location.href = "/review";
+            //});
+            $.ajax({
+                async: false,
+                type: 'POST',
+                url: "api/setTab",
+                data: {
+                    tab: "3"
+                },
+                success: function(data) {}
+            });
+        });
+    });
+</script>

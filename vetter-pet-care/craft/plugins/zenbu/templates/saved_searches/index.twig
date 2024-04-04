@@ -1,0 +1,57 @@
+{% extends "zenbu/global/main_layout" %}
+
+{% set content %}
+
+	{% if savedSearches is defined and savedSearches is not empty %}
+	<form id="resultList" action="{{ actionUrl('zenbu/savedSearches/update') }}" method="post">
+		{{ getCsrfInput() }}
+		<table class="data fullwidth settingsTable">
+			<thead>
+				<tr>
+					<th></th>
+					<th>
+						<input type="checkbox" class="checkbox" id="selectAll" v-model="selectAll">
+						<label for="selectAll"></label>
+					</th>
+					<th>{{"Name"|t}}</th>
+				</tr>
+			</thead>
+			<tbody>
+			{% for search in savedSearches %}
+				<tr>
+					<td width="1%"><a class="move icon" title="Reorder" role="button">&nbsp;</a></td>
+					<td width="1%" class="not-sortable">
+						<input type="checkbox" class="checkbox" name="searchIds[]" value="{{search.id}}" id="searchIds_{{search.id}}" v-model="searchIds">
+						<label for="searchIds_{{search.id}}"></label>
+					</td>
+					<td class="not-sortable"><input type="text" class="text" name="search[{{search.id}}][label]" value="{{search.label | default('-')}}" size="100%" /></td>
+				</tr>
+			{% endfor %}
+			</tbody>
+		</table>
+
+		<div class="actionDisplay">
+			<br />
+
+			<button type="submit" class="btn submit" @click="saveButtonClicked = true">
+				<span v-show="saveButtonClicked == false">{{"Update Saved Searches"|t}}</span>
+				<span v-show="saveButtonClicked == true" v-cloak>{{"Updating"|t}} <i class="fa fa-spinner fa-pulse"></i></span>
+			</button>
+
+			<div class="btn menubtn savedSearchActions" role="button" v-show="searchIds.length > 0" v-cloak>{{ "Other Actions"|t }}</div>
+			<div class="menu">
+			    <ul>
+			        <li><a class="action" data-param="action" data-value="delete" data-confirm="{{"Do you really want to delete the selected saved searches?"|t}}" data-returnUrl="{{ url('zenbu/searches') }}">{{"Delete Selected Saved Searches"|t}}</a></li>
+			    </ul>
+			</div>
+		</div>
+
+	</form>
+	{% else %}
+
+		<p>{{"You do not have any saved searches."|t}}</p>
+		<a href="{{ url('zenbu') }}" class="btn submit">&laquo; {{"Return"|t}}</a>
+
+	{% endif %}
+
+{% endset %}

@@ -1,0 +1,177 @@
+{% extends "_layouts/cp" %}
+{% hook 'displacedappointments.prepCpTemplate' %}
+{% set title = "Vet/Admin Cancelled"|t %}
+{% set selectedSubnavItem = 'vetter_cancelled' %}
+
+{% block content %}
+<style type="text/css">
+    .appt-table {
+  display: table;
+  width: 100%; }
+  .appt-table .table_head {
+    display: table-header-group; }
+  .appt-table .table_label {
+    display: table-cell;
+    font-weight: bold;
+    text-align: center;
+    border-bottom: 2px solid #979797;
+    padding: 3px; }
+  .appt-table .table_body {
+    display: table-row-group;
+    background-color: #ffffff; }
+  .appt-table .table_row {
+    display: table-row;
+    line-height: 20px; }
+    .appt-table .table_row:nth-of-type(2n) {
+      background-color: #EFF0F4; }
+  .appt-table .table_cell {
+    display: table-cell;
+    padding: 15px 5px;
+    text-align: center; }
+    .appt-table .table_cell:last-of-type .table_link {
+      text-transform: uppercase;
+      text-decoration: underline !important;
+      color: #7186A4; }
+  .appt-table .table_cellblock {
+    padding: 10px 5px; }
+  .line {
+  border-bottom: 1px solid #d3d3d3;
+  padding: 1em;
+  width: 900%;
+ 
+  display: block; }
+  span.table_label.sortable {
+  position: relative;
+  cursor: pointer; }
+  span.table_label.sortable.sortable:after {
+    position: absolute;
+    top: 45%;
+    content: "";
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent; }
+  span.table_label.sortable.sortable[data-order="asc"]:after {
+    border-top: 5px solid #17345E; }
+  span.table_label.sortable.sortable[data-order="desc"]:after {
+    border-bottom: 5px solid #17345E; }
+</style>
+  <div class="appt-table" id="userappointments">
+<span class="table_head">
+<span class="table_label sortable" data-order="asc">Appointment Date &nbsp;</span>
+<span class="table_label sortable" data-order="asc">Appointment Time &nbsp;</span>
+<span class="table_label sortable" data-order="asc">Appointment Id &nbsp;</span>
+<span class="table_label sortable" data-order="asc">Customer &nbsp;</span>
+<span class="table_label sortable" data-order="asc">Cancelling Vet &nbsp;</span>
+<span class="table_label">Status</span>
+<span class="table_label sortable" data-order="asc">Rebooked To &nbsp;</span>
+<span class="table_label">Action</span>
+</span>
+<span class="table_body">
+
+{% for entry in craft.entries.section('appointmentRecords').search('cancel_status:"rebooked" OR "unavailable" OR "cancelled" OR "sys_cancelled"')%}
+
+    {% set doa = entry.appointmentStartTime|date("m/d/Y") %}
+    {% set Ymd_doa = entry.appointmentStartTime|date("YmdHis") %}
+    {% set toa = entry.appointmentStartTime|date("h:ia") %}
+
+     {% switch entry.cancel_status %}
+        {% case "customer_cancelled" %}
+            {% set entry_status = "Customer Cancelled" %}
+        {% case "cancelled" %}
+            {% set entry_status = "Admin Cancelled" %}
+        {% case "sys_cancelled" %}
+            {% set entry_status = "Auto Cancelled" %}
+        {% case "rebooked" %}
+            {% set entry_status = "Rebooked" %}
+        {% case "unavailable" %}
+            {% set entry_status = "Action Needed" %}
+        {% default %}
+            {% set entry_status = "unknown, check with ADMIN" %}
+    {% endswitch %}
+
+
+        <div class="table_row">
+            <div class="table_cell"><p class="hidden">{{ Ymd_doa }}</p>{{ doa }}</div>
+            <div class="table_cell">{{ toa }}</div>
+             <div class="table_cell"> <a href="{{siteUrl}}admin/entries/appointmentRecords/{{entry.id}}">{{ entry.appointmentIdNumber }}</a></div>
+            <div class="table_cell">
+            {{entry.customerName}}
+            </div>
+             <div class="table_cell">
+             {% if entry.cancel_status == "rebooked" %}
+
+             {% for author_data in entry.authors_list %}
+               {% if loop.last %}
+                {{author_data.author_name}}
+               {% endif %}
+             {% endfor %}
+
+             {% else %}
+
+             {{entry.assignedVeterinarianName}}
+
+             {% endif %}</div>
+	    <div class="table_cell">{{entry_status}}</div>
+       <div class="table_cell">{% if entry.cancel_status == "rebooked" %}{{entry.assignedVeterinarianName}}{% endif %}</div>
+            <div class="table_cell"> 
+            {% if entry.cancel_penalty == "true" %}
+            Cancelled within 48 hours <b>Apply Charge</b>
+            {% else %}
+            No Charge
+            {% endif %}</div>
+        </div>
+      
+
+  {% endfor %}
+ </span>
+</div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tinysort/2.3.6/tinysort.js"></script>
+<script>
+
+$(function(){
+var table = document.getElementById('userappointments')
+  ,tableHead = table.querySelector('span.table_head')
+  ,tableHeaders = tableHead.querySelectorAll('span.table_label.sortable')
+  ,tableBody = table.querySelector('span.table_body')
+;
+
+tinysort(
+            tableBody.querySelectorAll('div.table_row')
+            ,{
+                selector:'div.table_cell:nth-child(1)'
+                ,order: 'asc'
+            }
+        );
+
+tableHead.addEventListener('click',function(e){
+  var tableHeader = e.target
+    ,textContent = tableHeader.textContent
+    ,tableHeaderIndex,isAscending,order
+  ;
+  if (textContent!=='add row') {
+        // note: nodeName must be ALLCAPS
+    while (tableHeader.nodeName!=='SPAN') {
+      tableHeader = tableHeader.parentNode;
+    }
+    tableHeaderIndex = Array.prototype.indexOf.call(tableHeaders,tableHeader);
+    isAscending = tableHeader.getAttribute('data-order')==='asc';
+    order = isAscending?'desc':'asc';
+    tableHeader.setAttribute('data-order',order);
+              // tableHeader.classList.toggle('asc');
+              // tableHeader.classList.toggle('down-arrow');
+    tinysort(
+      tableBody.querySelectorAll('div.table_row')
+      ,{
+        selector:'div.table_cell:nth-child('+(tableHeaderIndex+1)+')'
+        ,order: order
+      }
+    );
+  }
+});
+ });
+</script>
+{% endblock %}
+
+

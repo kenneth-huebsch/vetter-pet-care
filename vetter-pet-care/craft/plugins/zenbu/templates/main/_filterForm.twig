@@ -1,0 +1,224 @@
+<form action="{{ url('zenbu') }}" id="zenbuSearchFilter">
+    {{ getCsrfInput() }}
+    <div class="new-entry right" v-cloak>
+
+        {% for section in sections %}
+            {#
+            //    ----------------------------------------
+            //      Retrieve sectionId from filter cache,
+            //      if there's a filter cache
+            //    ----------------------------------------
+            #}
+            {% if storedFilterData is defined and storedFilterData is not empty %}
+                {% for filter in storedFilterData if filter.filterAttribute1 in ['sectionId'] %}
+                    {% set sectionId = filter.filterAttribute3 %}
+                {% endfor %}
+            {% endif %}
+
+            {#
+            //    ----------------------------------------
+            //      "New X Entry" button
+            //    ----------------------------------------
+            #}
+            {% if section.type != 'single' %}
+                <div class="btngroup new-entry-sectionId-{{section.id}}" v-if="sectionId == '{{section.id}}'">
+                    <a class="btn add icon" href="{{cpUrl('/entries/' ~ section.handle ~ '/new')}}">{{ "New {section} Entry" | t({section: section.name})}}</a>
+                </div>
+            {% endif %}
+        {% endfor %}
+
+        {% if sectionId == 0 %}
+            <div class="btngroup new-entry-sectionId-0" v-if="sectionId == 0">
+                <div class="btn menubtn add icon savedSearchActions" role="button">{{ "New Entry"|t }}</div>
+                <div class="menu">
+                    <ul>
+                        {% for section in sections %}
+                            {% if section.type != 'single' %}
+                                <li><a href="{{cpUrl('/entries/' ~ section.handle ~ '/new')}}">{{section}}</a></li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="filters">
+
+            <div class="section-filter">
+                {# SECTION #}
+                <div class="select section_select">
+                    <select id="section_select" class="" v-model="sectionId" @change="sectionChanged" disabled="disabled" :disabled="false">
+                        {{zenbuMacros.selectOptions(section_dropdown_options, craft.request.getParam('sectionId'))}}
+                    </select>
+                </div>
+
+                {# ENTRY TYPE #}
+                {% for sectionId, entryType in entryType_dropdown_options %}
+                    <div class="select" v-if="sectionId == {{sectionId}}" v-cloak>
+                        <select class="entryType_select" v-model="entryTypeId" @change="entryTypeChanged" :disabled="sectionId != {{sectionId}}">
+                            {# <option value="">{{'Entry Type'|t}}</option> #}
+                            {{zenbuMacros.selectOptions(entryType, craft.request.getParam('entryTypeId'))}}
+                        </select>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <table>
+                <tr v-for="(row, index) in rows" :key="index">
+                    {# FIRST #}
+                    <td>
+                        <div class="select">
+                            <select v-model="rows[index]['first']" id="" class="firstFilter" @change="clearThirdFilter(index) & updateRows(index, 'first') & runQuery($event)" disabled="disabled" :disabled="false">
+                                <optgroup v-for="(array, label) in firstFilterList" :label="label">
+                                    <option :value="key" v-for="(val, key) in array{#  | orderBy val #}" :selected="row.first == key ? true : false" v-text="val">{% for i in 1..20 %}{{'&nbsp;'|raw}}{% endfor %}</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                    </td>
+                    {# SECOND #}
+                    <td>
+                        <div class="select">
+                            <select v-model="rows[index]['second']" id="" class="secondFilter" @change="updateRows(index, 'second') & runQuery($event)" disabled="disabled" :disabled="false">
+                                <option :value="key" v-for="(val, key, index) in row.secondFilterList" :selected="row.second == key ? true : false" v-text="val">{% for i in 1..20 %}{{'&nbsp;'|raw}}{% endfor %}</option>
+                            </select>
+                        </div>
+                    </td>
+                    {# THIRD #}
+                    <td>
+                        {# Regular ol' input field #}
+                        <input v-model="rows[index]['third']" type="text" class="text" v-if="row.thirdFilterType == 'text'" @keyup.enter="updateRows(index, 'third') & runQuery($event)" @input="updateRows(index, 'third') & runQuery($event)" :autofocus="true" placeholder="" disabled="disabled" :disabled="false">
+
+                        {# Regular ol' input field _now with datepicker!_ #}
+                        <input v-model="rows[index]['third']" type="text" class="text datepicker single-date" :value="row.third" v-if="row.thirdFilterType == 'datepicker'" @keyup.enter="updateRows(index, 'third') & runQuery($event)" @input="updateRows(index, 'third') & runQuery($event)" :autofocus="true" v-cloak placeholder="">
+
+                        {# Dropdown of day ranges #}
+                        <div class="select" v-if="row.thirdFilterType == 'dateDropdown'" v-cloak>
+                            <select v-model="rows[index]['third']" @change="updateRows(index, 'third') & runQuery($event)">
+                                <option value="1">{{'day'|t}}</option>
+                                <option value="3">{{'3 days'|t}}</option>
+                                <option value="5">{{'5 days'|t}}</option>
+                                <option value="7">{{'week (7 days)'|t}}</option>
+                                <option value="30">{{'month (30 days)'|t}}</option>
+                                <option value="182">{{'6 months (182 days)'|t}}</option>
+                                <option value="365">{{'year (365 days)'|t}}</option>
+                            </select>
+                        </div>
+
+                        {# Date range input/datepicker fields #}
+                        <input v-model="rows[index]['third']" type="text" class="text datepicker from" :value="row.third" v-if="row.thirdFilterType == 'dateRange'" @keyup.enter="updateRows(index, 'third') & runQuery($event)" @input="updateRows(index, 'third') & runQuery($event)" :autofocus="true" size="12" v-cloak>
+                        <small v-if="row.thirdFilterType == 'dateRange'" v-cloak> & </small>
+                        <input v-model="rows[index]['fourth']" type="text" :name="'filter[' + index + '][4th]'" class="text datepicker to" :value="row.fourth" v-if="row.thirdFilterType == 'dateRange'" @keyup.enter="updateRows(index, 'third') & runQuery($event)" @input="updateRows(index, 'third') & runQuery($event)" :autofocus="true" size="12" v-cloak>
+
+                        {# Dropdown of statuses #}
+                        <div class="select" v-if="row.thirdFilterType == 'status'" v-cloak>
+                            <select v-model="rows[index]['third']" @change="updateRows(index) & runQuery($event)">
+                                <option value="null">{{"any status"|t}}</option>
+                                <option :value="key" v-for="(val, key) in statuses" :selected="row.third == key ? true : false">${val}</option>
+                            </select>
+                        </div>
+
+                        {# Dropdown of authors #}
+                        <div class="select" v-if="row.thirdFilterType == 'author'" v-cloak>
+                            <select v-model="rows[index]['third']" @change="updateRows(index, 'third') & runQuery($event)">
+                                <option value="null">{{"any author"|t}}</option>
+                                <option :value="key" v-for="(val, key) in authors" :selected="row.third == key ? true : false">${val}</option>
+                            </select>
+                        </div>
+
+                        {# Lightswitch Dropdown #}
+                        <div class="select" v-if="row.thirdFilterType == 'lightswitch'" v-cloak>
+                            <select v-model="rows[index]['third']" @change="updateRows(index, 'third') & runQuery($event)">
+                                <option value="1" :selected="row.third == 1 ? true : false">{{'On / Yes'|t}}</option>
+                                <option value="0" :selected="row.third == 0 ? true : false">{{'Off / No'|t}}</option>
+                            </select>
+                        </div>
+
+                        {# Regular ol' Dropdown/Radio buttons #}
+                        <div class="select" v-if="row.thirdFilterType == 'dropdown'" v-cloak>
+                            <select v-model="rows[index]['third']" @change="updateRows(index, 'third') & runQuery($event)">
+                                <option
+                                v-for="(option, key) in customFieldDropdownOptions[row.first]"
+                                :value="option.value"
+                                :selected="row.third == option.value || (! _.includes(customFieldDropdownOptions[row.first], row.third) && key == 0) ? true : false">${option.label}</option>
+                            </select>
+                        </div>
+
+                        {# Position Select #}
+                        <div class="select" v-if="row.thirdFilterType == 'positionSelect'" v-cloak>
+                            <select v-model="rows[index]['third']" @change="updateRows(index, 'third') & runQuery($event)">
+                                <option
+                                v-for="option in customFieldDropdownOptions[row.first]"
+                                :value="option"
+                                :selected="row.third == option || (! _.includes(customFieldDropdownOptions[row.first], row.third) && option.index == 0) ? true : false">${option}</option>
+                            </select>
+                        </div>
+
+                        {# Categories Dropdown #}
+                        <div class="select" v-if="row.thirdFilterType == 'categories'" v-cloak>
+                            <select v-model="rows[index]['third']" @change="updateRows(index, 'third') & runQuery($event)">
+                                <option value="">{{'-- select category --'|t}}</option>
+                                <optgroup :label="customCategoryDropdownOptions[row.first].categoryGroup.name">
+                                <option
+                                v-for="category, categoryId in customCategoryDropdownOptions[row.first].categories"
+                                :value="category.slug"
+                                :selected="row.third == category.slug || (! _.includes(customCategoryDropdownOptions[row.first].categories, row.third) && category.index == 0) ? true : false">${category.title}</option>
+                                </optgroup>
+                            </select>
+                        </div>
+
+                    </td>
+                    <td>
+                        <button type="button" class="addFilterRule" @click="addFilterRow(index)"><i class="fa fa-plus-circle fa-2x"></i></button>
+                        <button type="button" class="removeFilterRule" @click="removeFilterRow(index)" v-if="rows.length > 1"><i class="fa fa-minus-circle fa-2x"></i></button>
+                    </td>
+                </tr>
+            </table>
+
+            <table class="limit-and-orderby">
+                <tr>
+                    <td>
+                        {# Limit #}
+                        <div class="select">
+                            <select name="limit" @change="runQuery($event)" v-model="limit" disabled="disabled" :disabled="false">
+                                <option :value="key" v-for="(val, key) in limitFilters" :selected="key == limit" v-text="val">{% for i in 1..20 %}{{'&nbsp;'|raw}}{% endfor %}</option>
+                            </select>
+                        </div>
+                    </td>
+                    <td>
+                        {# Sort #}
+                        <div class="select">
+                            <select name="sort" @change="runQuery($event)" v-model="sort" disabled="disabled" :disabled="false">
+                                <option :value="key" v-for="(val, key) in sortFilters" :selected="key == sort" v-text="val">{% for i in 1..20 %}{{'&nbsp;'|raw}}{% endfor %}</option>
+                            </select>
+                        </div>
+                    </td>
+                    <td>
+                        {# Order by #}
+                        <div class="select">
+                            <select name="orderby" id="orderby" @change="runQuery($event)" v-model="orderby" disabled="disabled" :disabled="false">
+                                <optgroup v-for="(array, label) in orderbyFilterList" :label="label">
+                                    <option :value="key" v-for="(val, key) in array" :selected="key == orderby" v-text="val">{% for i in 1..20 %}{{'&nbsp;'|raw}}{% endfor %}</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                    </td>
+                    <td v-if="sections[sectionId].locales.length > 1" v-cloak>
+                        {# Locale #}
+                        <div class="select">
+                            <select name="locale" @change="runQuery($event)" v-model="locale" disabled="disabled" :disabled="false">
+                                <option :value="localeOption.name" v-for="localeOption in sections[sectionId].locales" :selected="localeOption.name == locale">${localeOption.label}</option>
+                            </select>
+                        </div>
+                    </td>
+                    <td>
+                       <img src="{{ resourceUrl('images/spinner.gif') }}" alt="" style="display: none; border-top: 1px solid white" class="loading" v-show="loading == true">
+                    </td>
+                </tr>
+            </table>
+
+        <hr>
+
+    </div>
+</form>
+{# ${rows|json} #}

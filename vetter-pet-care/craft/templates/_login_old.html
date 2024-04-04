@@ -1,0 +1,73 @@
+{% extends "_layout" %}
+
+{% block content %}
+ <div class="grid">
+     <div class="cell">
+         <img src="	https://s3.amazonaws.com/vetterpc-images/signup.jpg" alt="signup image">
+     </div>
+     <div class="cell">
+         <h2 class="grid-1 inline active"><a href="/login">Log In</a></h2>
+         <h2 class="grid-2 inline"><a href="/user/sign-up">Sign Up</h2>
+     {% for provider in craft.social.getLoginProviders() %}
+
+     <p>
+         <a href="{{ craft.social.loginUrl(provider.handle, { redirect: 'social' }) }}" class="btn btn-default btn-block btn-social" data-provider="{{ provider.handle }}">
+             <img src="{{ provider.getIconUrl() }}" alt="{{ provider.handle }}" />
+             Login with {{ provider.name }}
+         </a>
+     </p>
+
+     {% endfor %}
+
+             <h3 class="text-center"><span class="text">or</span> </h3>
+
+     {% macro errorList(errors) %}
+     {% if errors %}
+     <ul class="errors">
+         {% for error in errors %}
+         <li>{{ error }}</li>
+         {% endfor %}
+     </ul>
+     {% endif %}
+     {% endmacro %}
+
+     {% from _self import errorList %}
+
+     <div class="col-md-6 col-md-offset-3">
+
+         <h2>Login with your email address</h2>
+
+         <form method="post" action="" accept-charset="UTF-8">
+             {{ getCsrfInput() }}
+
+             <input type="hidden" name="action" value="users/login">
+
+             <span class="input input--yoshiko">
+					<input class="input__field input__field--yoshiko" type="text" id="email" name = "loginName"
+                           {%- if account is defined %} value="{{ account.email }}"{% endif -%}/>
+					<label class="input__label input__label--yoshiko" for="email">
+						<span class="input__label-content input__label-content--yoshiko" data-content="Email">Email</span>
+					</label>
+                     {% if account is defined %}
+                        {{ errorList(account.getErrors('email')) }}
+                    {% endif %}
+				</span>
+             <span class="input input--yoshiko">
+					<input class="input__field input__field--yoshiko" type="password" id="password" name = "password"
+                           {%- if account is defined %} value="{{ account.password }}"{% endif -%}/>
+					<label class="input__label input__label--yoshiko" for="password">
+						<span class="input__label-content input__label-content--yoshiko" data-content="Password">Password</span>
+					</label>
+                    {% if account is defined %}
+                        {{ errorList(account.getErrors('password')) }}
+                    {% endif %}
+				</span>
+             <br/>
+             <p><a href ="/forgot-password">Forgot Password?</a></p><br/>
+             <p><input type="submit" class="button teal" value="Login"></p>
+         </form>
+       </div>
+      </div>
+     </div>
+
+{% endblock %}

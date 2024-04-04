@@ -1,0 +1,35 @@
+{#
+//    ----------------------------------------
+//      Lightswitch field
+//    ----------------------------------------
+#}
+{% set style = settings.settings[col.id].LightswitchStyle is defined and settings.settings[col.id].LightswitchStyle is not empty ? settings.settings[col.id].LightswitchStyle : 'on_off' %}
+
+{% if entry[col.handle] == 1 %}
+{# <div class="lightswitch disabled on" aria-checked="true">
+	<div class="lightswitch-container" style="margin-left: 0px;">
+		<div class="label on"></div>
+		<div class="handle"></div>
+		<div class="label off"></div>
+	</div>
+</div> #}
+	{% if style == 'yes_no' %}
+		{{'Yes'|t}}
+	{% else %}
+		{{'On'|t}}
+	{% endif %}
+
+{% else %}
+{# <div class="lightswitch disabled" aria-checked="true">
+	<div class="lightswitch-container" style="margin-left: -11px;">
+		<div class="label on"></div>
+		<div class="handle"></div>
+		<div class="label off"></div>
+	</div>
+</div> #}
+	{% if style == 'yes_no' %}
+		{{'No'|t}}
+	{% else %}
+		{{'Off'|t}}
+	{% endif %}
+{% endif %}

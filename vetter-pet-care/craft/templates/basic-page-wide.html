@@ -1,0 +1,18 @@
+{% extends "_layout-wide" %}
+
+{% block content %}
+
+{% if entry.headerImage | length %}
+<div class="mast" style="background: url('{{entry.headerImage[0].url}}') center center no-repeat; background-size: cover;"></div>
+{% endif %}
+	<h1>
+  {% if entry.displayTitle %}
+   {{ entry.displayTitle }}
+  {% else %}
+   {{ entry.title }}
+  {% endif %}
+ </h1>
+ <div class="content">
+  {{entry.body}}
+ </div>
+{% endblock %}

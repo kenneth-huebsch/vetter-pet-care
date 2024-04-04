@@ -1,0 +1,14 @@
+{
+	"name": "NA/pdfmanager",
+	"description": "Populate editable fields in a pdf form with craft data.",
+	"type": "craft-plugin",
+	"authors": [
+		{
+			"name": "Kenneth Huebsch",
+			"homepage": "https://puffin.dev"
+		}
+	],
+	"require": {
+		"composer/installers": "~1.0"
+	}
+}

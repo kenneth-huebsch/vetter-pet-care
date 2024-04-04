@@ -1,0 +1,125 @@
+{% header "Content-Type: application/json" %}
+{% set query = craft.request.getParam('q') %}
+{% set numSelected = craft.request.getParam('pet') %}
+{% set users = craft.users.search('vetZip:' ~ query) %}
+{% set timeslot = [] %}
+{
+{% for user in users %}
+  {% set hold_entries = craft.entries.section('holdappointment').search('vetemail:'~user.email) %}
+    {% for entry in hold_entries %}
+    {% if entry.petnum > 1%}
+     {% set timeslot = timeslot|merge([entry.timeslot|date('U')~entry.vetemail]) %}
+     {% set timeslot = timeslot|merge([entry.timeslot|date_modify('+30 minutes')|date('U')~entry.vetemail]) %}
+    {% else %}
+    {% set timeslot = timeslot|merge([entry.timeslot|date('U')~entry.vetemail]) %}
+    {% endif %}
+    {% endfor %}
+{% set month = craft.calendar.events({
+ authorId: user.id,
+ dateRangeStart: "now"|date_modify('-24 hours')|date('Y-m-d'),
+ dateRangeEnd: '6 month'
+}).limit(null) %}
+"{{user.id}}" : [{
+ "userEmail": "{{user.email}}",
+ "userName" : "{{user.firstName}} {{user.lastName}}",
+ "v_id"     : "{{user.id}}",
+ "userId": "{{user.id}}",
+ "available": [
+  {% set result = [] %}
+  {% for event in month.events %}
+    {% set next = 0 %}
+    {% set next2 = 0 %}
+  
+    {% if event.startDate.timestamp|date('U') >= "now"|date('U') %}  
+
+        {% set start_timedifference_in_sec_plus4 = event.startDate.timestamp|date_modify('+4 hours')|date('Z') %}
+        {% set start_timedifference_in_sec_zero = event.startDate.timestamp|date('Z') %}
+        {% set start_timedifference_in_sec_plus5 = event.startDate.timestamp|date_modify('+5 hours')|date('Z') %}
+
+        {% if start_timedifference_in_sec_zero == -14400 %}
+            {% if start_timedifference_in_sec_plus4 == -18000 %}
+              {%set start_time_est = event.startDate.timestamp|date_modify('+5 hours')%}
+            {% else %}
+              {%set start_time_est = event.startDate.timestamp|date_modify('+4 hours')%}
+            {% endif %}
+        {% else %}
+            {% if start_timedifference_in_sec_plus5 == -14400 %}
+              {%set start_time_est = event.startDate.timestamp|date_modify('+4 hours')%}
+            {% else %}
+              {%set start_time_est = event.startDate.timestamp|date_modify('+5 hours')%}
+            {% endif %}    
+        {% endif %}
+
+        {% set dateTimeEvent = date(event.startDate.timestamp|date('c')) %}
+        {% set dateTimeNow = date(event.endDate.timestamp|date('c')) %}
+        {% set dateInterval = dateTimeEvent.diff(dateTimeNow) %}
+        {% set days = dateInterval|date('%a') %}
+        {% set hours = dateInterval|date('%h') %}
+        {% set totalHours = days * 24 + hours %}
+        {% set newhours = (event.endDate.timestamp - event.startDate.timestamp)/3600 %}
+        
+
+          {% for i in range(1, newhours * 2) %}
+             {% if loop.first %}
+             {% if "now"|date_modify("+720 minutes")|date('U') <= start_time_est|date_modify('+30 minutes')|date('U') %}        
+               {% if start_time_est|date('U')~user.email not in timeslot %}
+                    {% if numSelected > 1 %}
+                           {% if start_time_est|date_modify('+30 minutes')|date('U')~user.email in timeslot %}
+                           {% else %}
+                        
+                             {% set result = result | merge([{
+                                  "tactile" : tactile,
+                                  "postDate": event.postDate.getTimestamp(),
+                                  "start": start_time_est|date('c'),
+                                  "end": start_time_est|date_modify('+30 minutes')|date('c')
+                                 }]) %}
+                              {% endif %}
+                     {% else %}
+                            {% set result = result | merge([{
+                                    "postDate": event.postDate.getTimestamp(),
+                                    "start": start_time_est|date('c'),
+                                    "end": start_time_est|date_modify('+30 minutes')|date('c')
+                                   }]) %}
+                  {% endif %}
+            {% endif %}
+          {% endif %}
+        {% else %}
+           
+                {% set next = next + 30 %}
+                {% set next2 = next + 30 %}
+                  {% if "now"|date_modify("+720 minutes")|date('U') <= start_time_est|date_modify('+'~next~' minutes')|date('U') %}        
+                        {% if start_time_est|date_modify('+'~next~' minutes')|date('U')~user.email not in timeslot %}
+                              {% if numSelected > 1%}
+                                 {% if loop.last  %}
+
+                                 {% elseif start_time_est|date_modify('+'~next~' minutes')|date_modify('+30 minutes')|date('U')~user.email in timeslot %}
+                                
+                                 
+
+                                 {% else %}
+                                  {% set result = result | merge([{
+                                         "postDate": event.postDate.getTimestamp(),
+                                          "start": start_time_est|date_modify('+'~next~' minutes')|date('c'),
+                                          "end": start_time_est|date_modify('+'~next2~' minutes')|date('c')
+                                        }]) %}
+
+                                 {% endif %}
+                              {% else %}
+                               {% set result = result | merge([{
+                                         "postDate": event.postDate.getTimestamp(),
+                                          "start": start_time_est|date_modify('+'~next~' minutes')|date('c'),
+                                          "end": start_time_est|date_modify('+'~next2~' minutes')|date('c')
+                                        }]) %}
+                              {% endif %}  
+                    {% endif %}
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+    {% endif %}  
+  {% endfor %}
+  {{ result | json_encode() | raw }}
+]
+}]{% if not loop.last %},{% endif %}
+
+{% endfor %}
+}

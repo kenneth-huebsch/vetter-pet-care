@@ -1,0 +1,16 @@
+{% extends "charge/_layouts/cp" %}
+{% set title = "One-off Billing"|t %}
+{% set selectedSubnavItem = 'One-off billing' %}
+{% set elementType = 'Charge_Oneoffbilling' %}
+{% block content %}
+
+
+<p> Please enter the customer email address <br>
+
+<form id="ConfirmStripeEmail" action="" class="form" method="post" accept-charset="UTF-8">
+    <input class='input_text' type="text" name="customer_email" placeholder = 'email' size="50"/>
+    <input type="hidden" name="action" value="charge/appointments/ConfirmStripeEmail">
+    <input class="button" type="submit" value="Submit" >
+</form>
+
+{% endblock %}

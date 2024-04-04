@@ -1,0 +1,294 @@
+ {% extends "charge/_layouts/cp" %} {% set title = "Process Payment"|t %} {% set selectedSubnavItem = 'appointments' %} {% block head %}
+<link href="{{ siteUrl }}assets/css/bootstrap.css" rel="stylesheet"> {% endblock %} {% block footer %}
+<script src="{{siteUrl('/assets/js/script.js')}}"></script>
+{% endblock %} {% block content %}
+<link rel="stylesheet" href="{{ siteUrl }}assets/css/style.css?v1">
+<div class="pane">
+
+    {% set customer = craft.users.id( entry.customerRealId ).first() %} {% if entry.headerImage | length %}
+    <div class="mast" style="background: url('{{entry.headerImage[0].url}}') center center no-repeat; background-size: cover;"></div>
+    {% endif %}
+
+    <div class="content booking-detail">
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="left-no-margin">
+                    <a href="{{siteUrl}}admin/charge/appointments" class="bta button blue">Back To Appointments</a>
+                </div>
+            </div>
+
+            {% if not (entry.cancel_status == "cancelled" or entry.cancel_status == "sys_cancelled" or entry.cancel_status == "customer_cancelled" or entry.cancel_status == "unavailable") %}
+            <div class="col-md-6">
+                <div class="cancel-appt right-no-margin" data-id="{{entry.id}}">
+                    <a href="#" class="customer_cancel_appt" data-start="{{entry.appointmentStartTime}}" data-displaystart="{{entry.appointmentStartTime | date('l F d, Y')}} at {{entry.appointmentStartTime | date('h:i a')}}" data-vetname="{{entry.assignedVeterinarianName}}"
+                        data-id="{{entry.id}}">Cancel For CUSTOMER</a>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-md-6">
+                <span class="right-no-margin"><b>Cancellation Status:</b> {{entry.cancel_status}}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if not (entry.cancel_status == "cancelled" or entry.cancel_status == "sys_cancelled" or entry.cancel_status == "customer_cancelled" or entry.cancel_status == "unavailable") %} {% if entry.appointmentStartTime|date('U') > now|date_modify("+12 hours")|date('U')
+        %}
+        <div class="cancel-appt right-no-margin"><a href="#" data-start="{{entry.appointmentStartTime}}" data-displaystart="{{entry.appointmentStartTime | date('l F d, Y')}} at {{entry.appointmentStartTime | date('h:i a')}}" data-zip="{{entry.customerZipCode}}" data-vetname="{{entry.assignedVeterinarianName}}"
+                data-id="{{entry.id}}" class="table_link vet_cancel_init">Switch Vets</a></div>
+        {% else %}
+        <span class="right-no-margin">Can't Switch Vets - Appt within 12hrs</span> {% endif %} {% endif %}
+        <br />
+
+        <div class="window"><b>Appointment Number #{{entry.appointmentIdNumber}}</b></div>
+        {% set petnum = entry.pets|length %}
+        <span class="times">
+  {{ entry.appointmentStartTime|date("m/d/Y") }} at {{entry.appointmentStartTime|date("h:iA")}}
+  {% if petnum < 2 %}
+  for {{ petnum }} pet
+   {% else %}
+   for {{ petnum }} pets
+   {% endif %}
+   </span>
+
+        <div class="line"></div>
+        <section class="rev-section">
+            <div class="section-title clearfix">
+                <span>Basic Information</span>
+            </div>
+            <div class="section-info clearfix">
+                <div class="section-row clearfix">
+                    {{customer.firstName}} {{customer.lastName}} <br> {{entry.customerIdNumber}} <br> {{customer.email}} <br><br>
+                    <div class="section-label">
+                        <label for="streetaddress">Address</label> {{customer.streetAddress}} <br> {% if customer.streetAddress2 != "" %}{{customer.streetAddress2}} <br>{% endif %} {{customer.city}} {{customer.states}} {{customer.customerZip.first()}}
+                    </div>
+                    <div class="section-label">
+                        <label for="cellphone">Cell Phone</label> {{customer.cellPhone}}
+                    </div>
+                </div>
+                {% if entry.alternateContactName|length %}
+                <div class="section-row clearfix">
+                    <div class="section-label">
+                        <label for="streetaddress">Alternate Contact</label> {{ entry.alternateContactName }}
+                    </div>
+
+                    {% if entry.alternateContactCellNumber|length %}
+                    <div class="section-label">
+                        <label for="cellphone">Cell Phone</label> {{ entry.alternateContactCellNumber }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %} {% if entry.specialInstructionsForVet|length %}
+                <div class="section-row clearfix">
+                    <label for="special">Special Instructions for the Vet</label>
+                    <div class="specialinfo">{{ entry.specialInstructionsForVet }}</div>
+                </div>
+                {% endif %}
+
+                <div class="section-row clearfix">
+                    <label for="special">Reason for Appointment</label>
+                    <div class="reasons">
+                        {% for reason in entry.reasonForAppointment %} {{ reason.label }}<br> {% endfor %}
+                    </div>
+                </div>
+                <div class="special-notes">
+                    <div class="section-row clearfix">
+                        <label for="special"> Admin Notes</label>
+                        <div class=“notes-admin”>{{customer.adminNotes}}</div>
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+        <div class="line"></div>
+        <section class="rev-section">
+            <div class="section-title clearfix">
+                <span>Pet Information</span>
+            </div>
+            <div class="section-info clearfix">
+                <div class="section-row clearfix pet-list">
+                    {% for pet in entry.pets %}
+                    <div class="pet">
+                        <div class="name">{{pet.petFirstName}}</div>
+                        <div class="pet-line"><label>Birthdate:</label><span class="response"> {{pet.birthdate|date("m/d/Y") }}</span></div>
+                        <div class="pet-line"><label>Species:</label><span class="response"> {{pet.species }}</span></div>
+                        <div class="pet-line"><label>Breed:</label><span class="response">{{pet.breed }}</span></div>
+                        <div class="pet-line"><label>Gender:</label><span class="response">{{pet.gender }}</span></div>
+                        <div class="pet-line"><label>Spayed or Neutured?</label><span class="response">{{pet.spayedOrNeutered}}</span></div>
+                        <div class="pet-line"><label>Aggression:</label><span class="response">{{pet.aggressiveBehavior}}</span></div>
+                        {% if pet.aggressiveBehavior == 'yes' %}
+                        <div class="pet-line"><label class="wide">Details About Aggressive Behavior:</label><span class="response wide">{{pet.detailAboutAggressiveBehavior}}</span></div>
+                        {% endif %}
+                        <div class="pet-line"><label class="wide">General Information:</label><span class="response wide">{{pet.generalInformation}}</span></div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+    </div>
+
+</div>
+<div class="pane">
+    <h2 id="payments">Payment</h2>
+    {% if customer.coupons_used|length > 0 %} {% for coupon in customer.coupons_used %} {% if coupon.used_status == "unused" %}
+    <p>Customer has discount code</p>
+    {{coupon.discount_type}} : {{coupon.coupon_code}} for {{coupon.value}}
+    <button class="redeem" data-id={{coupon.id}} data-apid="{{apptId}}" data-userid="{{customer.id}}" data-dc="{{coupon.coupon_code}}" data-dv="{{coupon.value}}">Use Discount for this appointment</button>
+    <div data-id={{coupon.id}} class="res"></div><br> {% elseif coupon.used_status == "used" %} {% if coupon.ap_id == apptId %}
+    <b>Discount {{coupon.coupon_code}} for {{coupon.value}} was used for this appointment </b><br><br> {% endif %} {% endif %} {% endfor %} {% endif %} {% if customer.cancellation_credit|length > 0 %} {% for credit in customer.cancellation_credit %} {%
+    if credit.used_status == "unused" %}
+    <p>Customer has cancellation credit from appointment #{{credit.appt_id}}</p>
+    <button class="apply" data-id={{credit.id}} data-apid="{{apptId}}" data-userid="{{customer.id}}">Apply credit for this appointment</button>
+    <div data-id={{credit.id}} class="cc_res"></div><br> {% elseif credit.used_status == "used" %} {% if credit.used_on == apptId %}
+    <b>Cancellation credit was applied for this appointment </b><br><br> {% endif %} {% endif %} {% endfor %} {% endif %} {% if entry.cancel_penalty|length %} {% if entry.cancel_status == "customer_cancelled" %}
+    <b>Customer cancelled within 24 hours, apply charge</b><br> {% endif %} {% endif %}
+    <table class="data fullwidth">
+        <thead>
+            <tr>
+                <th scope="col">Card</th>
+                <th scope="col"></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><span class="cardType typevisa"></span>
+                    <strong>{{ formattedCard }}</strong>
+                    <strong>({{ exp_month }}/{{ exp_year|slice(2) }})</strong>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="additionalCharges">
+    </div>
+    <p> Please enter the invoice amount, including any credits or discounts, <br> to be charged for Appointment {{entry.appointmentIdNumber}}. Do not add dollar signs. <br> Example: 105, or 450.75
+        <br><sub>(Sum of all charges)</sub></p>
+
+    <form id="test" action="" class="form" method="post" accept-charset="UTF-8">
+        <input type="hidden" name="action" value="charge/appointments/EntrySubmit">
+        <input type="hidden" name="customer_id" value="{{stripeId}}" />
+        <input type="hidden" name="entry_id" value="{{apptId}}" />
+        <input type="text" name="amnt" placeholder="amount" />
+        <input class="button" type="submit" value="Submit for Payment">
+    </form>
+    <!-- <input type="submit" id="addServiceCharge" value="Add Service Charge" /> -->
+
+</div>
+<!-- <input type="submit" id="addServiceCharge" value="Add Service Charge" /> -->
+</div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+<script src="https://js.stripe.com/v2/stripe.js"></script>
+<script src="{{ resourceUrl('charge/js/jquery.charge.js')}}"></script>
+<script>
+    $(function() {
+
+        $(".redeem").click(function(e) {
+            e.preventDefault();
+            var id = $(this).data('id');
+            var userid = $(this).data('userid');
+            var apid = $(this).data('apid');
+            var discountcode = $(this).data('dc');
+            var discountValue = $(this).data('dv');
+            $.ajax({
+                type: 'POST',
+                url: "/actions/discounts/updateCouponStatus",
+                data: {
+                    discount_code: discountcode,
+                    userid: userid,
+                    apid: apid
+                },
+                success: function(data) {
+                    $(".redeem[data-id=" + id + "]").remove();
+                    $(".res[data-id=" + id + "]").html("<b>Discount applied for " + discountValue + "</b>");
+                    console.log(data);
+                }
+            });
+
+        });
+        $(".apply").click(function(e) {
+            e.preventDefault();
+            var id = $(this).data('id');
+            var userid = $(this).data('userid');
+            var apid = $(this).data('apid');
+            $.ajax({
+                type: 'POST',
+                url: "/actions/displacedAppointments/applyCredit",
+                data: {
+                    userid: userid,
+                    apid: apid,
+                    blockid: id
+                },
+                success: function(data) {
+                    $(".apply[data-id=" + id + "]").remove();
+                    $(".cc_res[data-id=" + id + "]").html("<b>Cancellation credit was applied for this appointment </b>");
+                    console.log(data);
+                }
+            });
+
+        });
+        /*    	$("#addServiceCharge").click(function(e){
+        e.preventDefault();
+        var formid = uniqId();
+        $(".additionalCharges").append(`<tr>
+		<td><form class="add-charge" method="post" data-id="`+ formid +`" accept-charset="UTF-8">
+			&#8627
+			<input type="text" name="desc" id="desc" placeholder="Service Description" />
+			<input type="text" name="amnt" id="amount" placeholder="$50" />
+			<input type="submit" value="add" id="add" data-id="` + formid + `" />
+			<input type="hidden" name="action" value="charge/chargeCustomer">
+            <input type="hidden" name="customer_id" value="{{stripeId}}" />
+		</form></td><td><div id='result'></div></td></tr>`
+	   );
+	});
+	$("body").on("click", "#add", function(evnt){
+	evnt.preventDefault();
+       var formid = $(this).data('id');
+       var data = $('form[data-id="'+$(this).data('id')+'"]').serialize();
+         $('input[data-id="'+formid+'"]').prop("disabled", true);
+                $("#result").html("<b> Adding Charge...</b>");
+    $.ajax({
+        method: 'POST',
+        url: '{{siteUrl}}',
+        data: data,
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+    })
+        .success(function(data) {
+            console.log('success', data);
+
+            $("#result").html("<b> Succesfully charged</b>");
+        })
+        .error(function(data) {
+            console.log('error', data);
+
+            $("#result").html("<b> Error </b>")
+        });
+
+	});
+function uniqId() {
+  return Math.round(new Date().getTime() + (Math.random() * 100));
+}
+  /*
+	$("#test").submit( function(e) {
+    e.preventDefault();
+    var data = $(this).serialize();
+    console.log(data);
+        $.ajax({
+            method: 'POST',
+            url: '{{siteUrl}}',
+            data: data,
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+            })
+            .success(function(data) {
+                console.log('success', data);
+            })
+            .error(function(data) {
+                console.log('error', data);
+            });
+
+           });
+      */
+    });
+</script>
+
+<script src="{{siteUrl('/assets/js/script.js')}}"></script>
+{% endblock %}

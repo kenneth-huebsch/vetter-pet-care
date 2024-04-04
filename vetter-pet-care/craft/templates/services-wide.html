@@ -1,0 +1,42 @@
+{% extends "_layout-wide" %}
+
+{% block content %}
+
+{% if entry.headerImage | length %}
+<div class="mast" style="background: url('{{entry.headerImage[0].url}}') center center no-repeat; background-size: cover;"></div>
+{% endif %}
+	<h1>
+  {% if entry.displayTitle %}
+   {{ entry.displayTitle }}
+  {% else %}
+   {{ entry.title }}
+  {% endif %}
+ </h1>
+ <div class="content special">
+  {{entry.body}}
+    {% if entry.specialContent %}
+  {% for x in entry.specialContent %}
+    {% if x.type.handle == "specialHeader" %}
+    {% if x.icon != "none" %}
+    <h2 class="spec-header"><i class="{{ x.icon }}"></i>{{x.header}}</h2>
+    {% else %}
+    <h2>{{x.header}}</h2>
+    {% endif %}
+    {% endif %}
+
+    {% if x.type.handle == "normalContent" %}
+    {{x.contentText}}
+    {% endif %}
+
+    {% if x.type.handle == "accordionContent" %}
+    <div class="ac-container">
+     <div class="ac-title"><h3>{{x.accordionHeader}}</h3></div>
+         <div class="ac-body">
+             {{x.accordionBody}}
+        </div>
+    </div>
+    {% endif %}
+  {% endfor %}
+  {% endif %}
+ </div>
+{% endblock %}

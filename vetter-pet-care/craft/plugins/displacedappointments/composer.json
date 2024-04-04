@@ -1,0 +1,14 @@
+{
+	"name": "/displacedappointments",
+	"description": "Allow admin to either cancel appointments without a vet or reassign appointments to vets with availability",
+	"type": "craft-plugin",
+	"authors": [
+		{
+			"name": "Matthew Cieslak",
+			"homepage": "https://github.com/mattman93"
+		}
+	],
+	"require": {
+		"composer/installers": "~1.0"
+	}
+}

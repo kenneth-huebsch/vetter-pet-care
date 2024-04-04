@@ -1,0 +1,14 @@
+{% extends "_layout" %}
+
+{% block content %}
+	<h1>
+  {% if entry.displayTitle %}
+   {{ entry.displayTitle }}
+  {% else %}
+   {{ entry.title }}
+  {% endif %}
+ </h1>
+ <div class="content">
+  {{entry.body}}
+ </div>
+{% endblock %}

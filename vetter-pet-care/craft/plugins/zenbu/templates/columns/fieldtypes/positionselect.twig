@@ -1,0 +1,16 @@
+{#
+//    ----------------------------------------
+//      Lightswitch field
+//    ----------------------------------------
+#}
+
+{% set style = settings.settings[col.id].positionSelectStyle is defined and settings.settings[col.id].positionSelectStyle is not empty ? settings.settings[col.id].positionSelectStyle : 'text' %}
+
+{% if style == 'icon' %}
+	<span title="Left" class="big" data-icon="pos{{ entry[col.handle]|replace({'-': ''}) }}"></span>
+{% elseif style == 'text_icon' %}
+	<span title="Left" class="big" data-icon="pos{{ entry[col.handle]|replace({'-': ''}) }}"></span>
+	{{entry[col.handle]|capitalize}}
+{% else %}
+	{{entry[col.handle]|capitalize}}
+{% endif %}

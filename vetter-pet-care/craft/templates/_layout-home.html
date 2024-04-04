@@ -1,0 +1,29 @@
+{#
+ # Layout template
+ # ---------------
+ #
+ # This template defines your site’s global layout. It can be
+ # “extended” by other templates to fill in the gaps.
+ #
+ # See Twig’s Template Inheritance documentation for more details:
+ # http://twig.sensiolabs.org/doc/templates.html#template-inheritance
+ #}
+
+ <!DOCTYPE html>
+ <html lang="en">
+  {% include '_includes/head.html' %}
+  <body>
+{% if craft.config.environmentVariables.env == "prod" %}
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-T5TPFRL"
+                    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
+{% endif %}
+   {% include '_includes/header-home.html' %}
+    {% block content %}
+    {% endblock %}
+    {% block footerJs %}
+    
+    {% endblock %}
+  </body>
+ </html>

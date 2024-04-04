@@ -1,0 +1,365 @@
+{% import "_includes/forms" as forms %}
+
+
+{{ forms.textField({
+label: "Customer Account Creation Confirmation Subject"|t,
+instructions: "custAccountCreation" |t,
+name: 'custAccountCreationSubject',
+value: settings.custAccountCreationSubject,
+})}}
+
+{{ forms.textareaField({
+label: "Customer Account Creation Confirmation Message"|t,
+instructions: "Customer email message when customer register" |t,
+name: 'custAccountCreation',
+value: settings.custAccountCreation,
+rows:10,
+})}}
+
+{{ forms.textField({
+label: "Customer Account Appointment Confirmation Message Subject"|t,
+instructions: "custApptConfirmed" |t,
+name: 'custApptConfirmedSubject',
+value: settings.custApptConfirmedSubject,
+})}}
+
+{{ forms.textareaField({
+label: "Customer Account Appointment Confirmation Message"|t,
+instructions: "Customer email message when customer appointment confirmed" |t,
+name: 'custApptConfirmed',
+value: settings.custApptConfirmed,
+rows:10,
+})}}
+
+{{ forms.textField({
+label: "Customer Appointment Reminder with Vet Identification Subject"|t,
+instructions: "custApptReminder" |t,
+name: 'custApptReminderSubject',
+value: settings.custApptReminderSubject,
+})}}
+
+{{ forms.textareaField({
+label: "Customer Appointment Reminder with Vet Identification"|t,
+instructions: "Customer Appointment Reminder with Vet Identification" |t,
+name: 'custApptReminder',
+value: settings.custApptReminder,
+rows:10,
+})}}
+
+{{ forms.textField({
+label: "Customer Appointment Cancelled by Vet (with $25 discount) Subject"|t,
+instructions: "custApptCancelledByVet" |t,
+name: 'custApptCancelledByVetSubject',
+value: settings.custApptCancelledByVetSubject,
+})}}
+
+
+{{ forms.textareaField({
+label: "Customer Appointment Cancelled by Vet (with $25 discount)"|t,
+instructions: "Customer Appointment Cancelled by Vet (with $25 discount)" |t,
+name: 'custApptCancelledByVet',
+value: settings.custApptCancelledByVet,
+rows:10,
+})}}
+
+{{ forms.textField({
+label: "Customer Vet Reassignment – Appointment Still Confirmed Subject"|t,
+instructions: "custVetReassign" |t,
+name: 'custVetReassignSubject',
+value: settings.custVetReassignSubject,
+})}}
+
+{{ forms.textareaField({
+label: "Customer Vet Reassignment – Appointment Still Confirmed"|t,
+instructions: "Customer Vet Reassignment – Appointment Still Confirmed" |t,
+name: 'custVetReassign',
+value: settings.custVetReassign,
+rows:10,
+})}}
+
+{{ forms.textField({
+label: "Customer Appointment self-cancelled Subject"|t,
+instructions: "custApptSelfCancelled" |t,
+name: 'custApptSelfCancelledSubject',
+value: settings.custApptSelfCancelledSubject,
+})}}
+
+{{ forms.textareaField({
+label: "Customer Appointment self-cancelled"|t,
+instructions: "Customer Appointment self-cancelled" |t,
+name: 'custApptSelfCancelled',
+value: settings.custApptSelfCancelled,
+rows:10,
+})}}
+
+{{ forms.textField({
+label: "Customer Feedback Survey Email Subject"|t,
+instructions: "custFeedback" |t,
+name: 'custFeedbackSubject',
+value: settings.custFeedbackSubject,
+})}}
+
+{{ forms.textareaField({
+label: "Customer Feedback Survey Email"|t,
+instructions: "Customer Feedback Survey Email" |t,
+name: 'custFeedback',
+value: settings.custFeedback,
+rows:10,
+})}}
+
+{{ forms.textField({
+label: "Customer Make Appointment Soon Subject"|t,
+instructions: "custMakeApptSoon" |t,
+name: 'custMakeApptSoonSubject',
+value: settings.custMakeApptSoonSubject,
+})}}
+
+{{ forms.textareaField({
+label: "Customer Make Appointment Soon"|t,
+instructions: "Customer Make Appointment Soon" |t,
+name: 'custMakeApptSoon',
+value: settings.custMakeApptSoon,
+rows:10,
+})}}
+
+
+{{ forms.textField({
+label: "Vet Prelim Account Creation Confirmed Subject"|t,
+instructions: "vetAccountCreation" |t,
+name: 'vetAccountCreationSubject',
+value: settings.vetAccountCreationSubject,
+})}}
+
+{{ forms.textareaField({
+label: "Vet Prelim Account Creation Confirmed"|t,
+instructions: "Prelim Account Creation Confirmed" |t,
+name: 'vetAccountCreation',
+value: settings.vetAccountCreation,
+rows:10,
+})}}
+
+{{ forms.textField({
+label: "Vet Appointment Notification Subject"|t,
+instructions: "vetApptNotification" |t,
+name: 'vetApptNotificationSubject',
+value: settings.vetApptNotificationSubject,
+})}}
+
+{{ forms.textareaField({
+label: "Vet Appointment Notification"|t,
+instructions: "Appointment Notification" |t,
+name: 'vetApptNotification',
+value: settings.vetApptNotification,
+rows:10,
+})}}
+
+{{ forms.textField({
+label: "Vet Appointment Cancellation by Vet Subject"|t,
+instructions: "vetApptCancellationByVet" |t,
+name: 'vetApptCancellationByVetSubject',
+value: settings.vetApptCancellationByVetSubject,
+})}}
+
+{{ forms.textareaField({
+label: "Vet Appointment Cancellation by Vet"|t,
+instructions: "Vet Appointment Cancellation by Vet" |t,
+name: 'vetApptCancellationByVet',
+value: settings.vetApptCancellationByVet,
+rows:10,
+})}}
+
+{{ forms.textField({
+label: "Vet Appointment Cancellation by Customer Subject"|t,
+instructions: "vetApptCancellationByCust" |t,
+name: 'vetApptCancellationByCustSubject',
+value: settings.vetApptCancellationByCustSubject,
+})}}
+
+{{ forms.textareaField({
+label: "Vet Appointment Cancellation by Customer"|t,
+instructions: "Vet Appointment Cancellation by Customer" |t,
+name: 'vetApptCancellationByCust',
+value: settings.vetApptCancellationByCust,
+rows:10,
+})}}
+
+{{ forms.textField({
+label: "Vet Appointment Reminder Subject"|t,
+instructions: "vetApptReminder" |t,
+name: 'vetApptReminderSubject',
+value: settings.vetApptReminderSubject,
+})}}
+
+{{ forms.textareaField({
+label: "Vet Appointment Reminder"|t,
+instructions: "Appointment Reminder" |t,
+name: 'vetApptReminder',
+value: settings.vetApptReminder,
+rows:10,
+})}}
+
+{{ forms.textField({
+label: "Admin New Customer Account Created Subject"|t,
+instructions: "adminNewCustAcctCreated" |t,
+name: 'adminNewCustAcctCreatedSubject',
+value: settings.adminNewCustAcctCreatedSubject,
+})}}
+
+{{ forms.textareaField({
+label: "Admin New Customer Account Created "|t,
+instructions: "New Customer Account Created " |t,
+name: 'adminNewCustAcctCreated',
+value: settings.adminNewCustAcctCreated,
+rows:10,
+})}}
+
+{{ forms.textField({
+label: "Admin Appointment Booked by CustomerSubject"|t,
+instructions: "adminApptBookedByCust" |t,
+name: 'adminApptBookedByCustSubject',
+value: settings.adminApptBookedByCustSubject,
+})}}
+
+{{ forms.textareaField({
+label: "Admin Appointment Booked by Customer"|t,
+instructions: "Appointment Booked by Customer" |t,
+name: 'adminApptBookedByCust',
+value: settings.adminApptBookedByCust,
+rows:10,
+})}}
+
+{{ forms.textField({
+label: "Admin Veterinarian Cancelled > = 48hrs Advance - Reschedule in process Subject"|t,
+instructions: "adminVetCancelledGreaterThan48hrs" |t,
+name: 'adminVetCancelledGreaterThan48hrsSubject',
+value: settings.adminVetCancelledGreaterThan48hrsSubject,
+})}}
+
+{{ forms.textareaField({
+label: "Admin Veterinarian Cancelled > = 48hrs Advance - Reschedule in process"|t,
+instructions: "Veterinarian Cancelled > = 48hrs Advance - Reschedule in process" |t,
+name: 'adminVetCancelledGreaterThan48hrs',
+value: settings.adminVetCancelledGreaterThan48hrs,
+rows:10,
+})}}
+{{ forms.textField({
+label: "Admin Veterinarian Cancelled < 48hrs Advance Subject"|t,
+instructions: "adminVetCancelledLessThan48hrs" |t,
+name: 'adminVetCancelledLessThan48hrsSubject',
+value: settings.adminVetCancelledLessThan48hrsSubject,
+})}}
+
+{{ forms.textareaField({
+label: "Admin Veterinarian Cancelled < 48hrs Advance"|t,
+instructions: "Veterinarian Cancelled < 48hrs Advance" |t,
+name: 'adminVetCancelledLessThan48hrs',
+value: settings.adminVetCancelledLessThan48hrs,
+rows:10,
+})}}
+
+{{ forms.textField({
+label: "Admin Reschedule CompletedSubject"|t,
+instructions: "adminReschCompleted" |t,
+name: 'adminReschCompletedSubject',
+value: settings.adminReschCompletedSubject,
+})}}
+
+{{ forms.textareaField({
+label: "Admin Reschedule Completed"|t,
+instructions: "Reschedule Completed" |t,
+name: 'adminReschCompleted',
+value: settings.adminReschCompleted,
+rows:10,
+})}}
+
+{{ forms.textField({
+label: "Admin Appointment Cancelled by System Subject"|t,
+instructions: "adminApptCancelledBySys" |t,
+name: 'adminApptCancelledBySysSubject',
+value: settings.adminApptCancelledBySysSubject,
+})}}
+
+{{ forms.textareaField({
+label: "Admin Appointment Cancelled by System"|t,
+instructions: "adminApptCancelledBySys" |t,
+name: 'adminApptCancelledBySys',
+value: settings.adminApptCancelledBySys,
+rows:10,
+})}}
+
+{{ forms.textField({
+label: "Admin Appointment Cancelled By Admin Subject"|t,
+instructions: "adminApptCancelledByAdminSubject" |t,
+name: 'adminApptCancelledByAdminSubject',
+value: settings.adminApptCancelledByAdminSubject,
+})}}
+
+{{ forms.textareaField({
+label: "Admin Appointment Cancelled By Admin"|t,
+instructions: "adminApptCancelledByAdmin" |t,
+name: 'adminApptCancelledByAdmin',
+value: settings.adminApptCancelledByAdmin,
+rows:10,
+})}}
+
+
+{{ forms.textField({
+label: "Admin Client Cancelled < 24hrs Advance (charge them $95) Subject"|t,
+instructions: "adminClientCancelledLessThan24Hrs" |t,
+name: 'adminClientCancelledLessThan24HrsSubject',
+value: settings.adminClientCancelledLessThan24HrsSubject,
+})}}
+
+{{ forms.textareaField({
+label: "Admin Client Cancelled < 24hrs Advance (charge them $95)"|t,
+instructions: "Client Cancelled < 24hrs Advance (charge them $95)" |t,
+name: 'adminClientCancelledLessThan24Hrs',
+value: settings.adminClientCancelledLessThan24Hrs,
+rows:10,
+})}}
+
+{{ forms.textField({
+label: "Admin Client Cancelled >= 24hrs Advance (no charge) Subject"|t,
+instructions: "adminClientCancelledGreaterThan24Hrs" |t,
+name: 'adminClientCancelledGreaterThan24HrsSubject',
+value: settings.adminClientCancelledGreaterThan24HrsSubject,
+})}}
+
+{{ forms.textareaField({
+label: "Admin Client Cancelled >= 24hrs Advance (no charge)"|t,
+instructions: "Client Cancelled >= 24hrs Advance (no charge)" |t,
+name: 'adminClientCancelledGreaterThan24Hrs',
+value: settings.adminClientCancelledGreaterThan24Hrs,
+rows:10,
+})}}
+
+{{ forms.textField({
+label: "Admin No Hold ID Subject"|t,
+instructions: "adminNoHoldIDSubject" |t,
+name: 'adminNoHoldIDSubject',
+value: settings.adminNoHoldIDSubject,
+})}}
+
+{{ forms.textareaField({
+label: "Admin No Hold ID Message"|t,
+instructions: "Email to Admin, No Hold ID in Appointment Record" |t,
+name: 'adminNoHoldID',
+value: settings.adminNoHoldID,
+rows:10,
+})}}
+
+{{ forms.textField({
+label: "Admin Holding Appt Missing Subject"|t,
+instructions: "adminHoldingApptMissingSubject" |t,
+name: 'adminHoldingApptMissingSubject',
+value: settings.adminHoldingApptMissingSubject,
+})}}
+
+{{ forms.textareaField({
+label: "Admin Holding Appointment is Missing"|t,
+instructions: "Email to Admin, Holding Appointment is Missing" |t,
+name: 'adminHoldingApptMissing',
+value: settings.adminHoldingApptMissing,
+rows:10,
+})}}
+

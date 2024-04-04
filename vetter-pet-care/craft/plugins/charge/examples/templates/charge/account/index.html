@@ -1,0 +1,17 @@
+{% extends "charge/_layout" %}
+
+{% set charges = craft.charge.getChargesByUser %}
+
+{% block content %}
+    <h2>Account</h2>
+
+    {% if currentUser %}
+    <p>You have the following charges :</p>
+
+    {% for charge in charges %}
+        {% include 'charge/account/_single' with { charge : charge } %}
+    {% endfor %}
+    {% else %}
+        <p>Sorry, you need to be logged in to view your Charges.</p>
+    {% endif %}
+{% endblock %}

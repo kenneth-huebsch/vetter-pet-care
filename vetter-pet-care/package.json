@@ -1,0 +1,33 @@
+{
+  "name": "vetter",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@git.thetactilegroup.com:mattcieslak/vetter-pet-care.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-autoprefixer": "^5.0.0",
+    "gulp-concat": "^2.6.0",
+    "gulp-ng-annotate": "^2.1.0",
+    "gulp-postcss": "^7.0.1",
+    "gulp-sass": "^4.0.1",
+    "gulp-uglify": "^3.0.0"
+  },
+  "dependencies": {
+    "postcss": "^6.0.22",
+    "postcss-browser-reporter": "^0.5.0",
+    "postcss-cli": "^5.0.0",
+    "postcss-cssnext": "^3.1.0",
+    "postcss-import": "^11.1.0",
+    "postcss-reporter": "^5.0.0",
+    "postcss-url": "^7.3.2"
+  }
+}

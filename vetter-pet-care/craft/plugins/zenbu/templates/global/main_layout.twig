@@ -1,0 +1,41 @@
+{% extends "_layouts/cp" %}
+
+{#
+//    ----------------------------------------
+//      Tabs
+//    ----------------------------------------
+#}
+{% if craftVersion|craftVersionCompare('2.5', '<') %}
+    {% set tabs = {
+        main: { label: "Entry Listing"|t, url: url('zenbu') ~ sectionIdParam ~ entryTypeIdParam },
+        displaySettings:    { label: "Display Settings"|t, url: url('zenbu/settings') ~ sectionIdParam ~ entryTypeIdParam },
+        manageSavedSearches:    { label: "Manage Saved Searches"|t, url: url('zenbu/searches') },
+    } %}
+{% endif %}
+{% set selectedTab          = selectedZenbuSection %}
+
+{#
+//    ----------------------------------------
+//      Subnav
+//    ----------------------------------------
+#}
+{% set subnav = {
+    main: { label: "Entry Listing"|t, url: url('zenbu') },
+    displaySettings:    { label: "Display Settings"|t, url: url('zenbu/settings') },
+    manageSavedSearches:    { label: "Saved Searches"|t, url: url('zenbu/searches') },
+} %}
+{% set selectedSubnavItem   = selectedZenbuSection %}
+
+{#
+//    ----------------------------------------
+//      Breadcrumbs
+//    ----------------------------------------
+#}
+{% set crumbs = [
+    { label: navLabel|t, url: url('zenbu') },
+    { label: lastBreadcrumbLabel, url: false }
+] %}
+
+{% set content %}
+	{{ content }}
+{% endset %}

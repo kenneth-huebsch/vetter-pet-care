@@ -1,0 +1,14 @@
+{
+	"name": "N/A/appointmentrecordmanager",
+	"description": "This plugin facilitates simple tasks from the Appointment Record page.",
+	"type": "craft-plugin",
+	"authors": [
+		{
+			"name": "Kenneth Huebsch",
+			"homepage": "https://puffin.dev"
+		}
+	],
+	"require": {
+		"composer/installers": "~1.0"
+	}
+}

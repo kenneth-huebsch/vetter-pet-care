@@ -1,0 +1,7 @@
+{% if currentUser%}
+  {% if craft.twigSession.get('flow') %}
+      {% if craft.request.getParam('modnum') %}
+        {{craft.twigSession.add('num', craft.request.getParam('modnum'))}}
+      {% endif %}
+    {% endif %}
+  {% endif %}

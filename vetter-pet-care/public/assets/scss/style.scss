@@ -1,0 +1,5828 @@
+//colors
+$blue-light: #bee1f4;
+$blue-dull: #549ec7;
+$blue-medium: #4f80e1;
+$blue-dark: #17345e;
+$blue-darker: #0b2140;
+$oldaccent: #f22e04;
+$accent: #fe5e00;
+$teal-light: #18cdca;
+$teal-dark: #11a7a5;
+$grey-light: #d3f0ef;
+$grey-dark: #7186a4;
+$modal-dark: #1f2124;
+$white: #ffffff;
+
+$facebook: #3b5998;
+$google: #4285f4;
+//section colors
+$body-bg: #eeeff3;
+$input-bg: #eff0f4;
+$service-border: #979797;
+$input-border: #b2b5ba;
+$text: $blue-dark;
+$header: $blue-light;
+$page-bg: $teal-light;
+//widths and columns
+$header-width: 760px;
+$content-width: 760px;
+$total-width: 1228px;
+$cal-width: 1020px;
+$column-width: 108px;
+//$form-width: 670px;
+$form-width: 700px;
+$columns: 9;
+$gutter: 32px;
+$text-width: calc((#{$column-width} * 5) + (#{$gutter} * 4));
+
+@mixin transition {
+  -webkit-transition: all ease 0.3s;
+  -moz-transition: all ease 0.3s;
+  -ms-transition: all 0.3s ease;
+  -o-transition: all ease 0.3s;
+  transition: all ease 0.3s;
+}
+
+@import "fonts";
+@import "mq";
+
+body {
+  margin: 0;
+  background: #fff;
+  font-family: AvenirLTPro-Roman;
+  color: $text;
+  line-height: 1.5;
+}
+
+.grid {
+  display: flex;
+  flex-flow: row;
+  flex-wrap: wrap;
+  .cell {
+    flex: 1;
+    padding-left: $gutter;
+    &.half {
+      flex: 2;
+    }
+  }
+  @include MQ(Mneg) {
+    .cell {
+      flex: 0 0 100%;
+      &.half {
+        flex: 0 0 100%;
+      }
+    }
+  }
+}
+
+#container {
+  margin: 0 auto;
+  width: 100%;
+  background: $body-bg;
+  -webkit-box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.clearfix::after {
+  content: " ";
+  display: table;
+  clear: both;
+}
+
+.page {
+  background: $white;
+  max-width: $total-width;
+  margin: 0 auto;
+  padding: $gutter;
+  color: $text;
+  box-shadow: 0 3px 25px 2px rgba(0, 0, 0, 0.1);
+  &::after {
+    content: " ";
+    display: table;
+    clear: both;
+  }
+  @include MQ(Mneg) {
+    padding-top: 70px !important;
+  }
+}
+
+#footer,
+#header {
+  display: block;
+  color: $text;
+  background: $white;
+
+  a {
+    @include transition;
+    color: $text;
+    font-family: AvenirLTPro-Heavy;
+    font-size: 14px;
+  }
+}
+
+#header {
+  position: relative;
+  box-shadow: 0 3px 15px 2px rgba(0, 0, 0, 0.1);
+
+  &:after {
+    content: ".";
+    display: block;
+    height: 0;
+    clear: both;
+    visibility: hidden;
+  }
+
+  a {
+    text-decoration: none;
+  }
+
+  .logo-header {
+    float: left;
+    margin: 0;
+    font-weight: normal;
+    font-size: 30px;
+    line-height: 1;
+  }
+
+  nav {
+    display: block;
+    float: right;
+  }
+}
+
+#header {
+  min-height: 70px;
+  @include MQ(Mneg) {
+    display: none;
+  }
+  nav {
+    display: block;
+    float: right;
+  }
+
+  nav ul {
+    margin: 0;
+    list-style-type: none;
+    z-index: 9999;
+    @include transition;
+
+    li {
+      @include transition;
+      float: left;
+      position: relative;
+      padding: 19px 25px;
+      padding-left: 0;
+      min-height: 79px;
+
+      ul {
+        @include transition;
+      }
+
+      &.active,
+      &.active-parent,
+      &:hover {
+        a {
+          color: $teal-dark;
+        }
+        li {
+          a {
+            color: $text;
+          }
+          &:hover a,
+          &.active a {
+            color: $teal-dark;
+          }
+        }
+      }
+
+      &.nolink {
+        & > a {
+          cursor: default;
+        }
+      }
+
+      a {
+        @include transition;
+        display: block;
+        text-decoration: none;
+        font-size: 14px;
+        padding: 8px 20px;
+        letter-spacing: 1px;
+        font-family: AvenirLTPro-Heavy;
+      }
+
+      li {
+        padding: 0px;
+        padding-left: 0px;
+        min-height: initial;
+        a {
+          color: $white;
+          padding: 8px 20px;
+          border-radius: 0;
+          cursor: pointer;
+          background-color: transparent;
+        }
+
+        &.hover a {
+          cursor: pointer;
+        }
+      }
+
+      &.schedule,
+      &.schedule-vet {
+        a {
+          @include transition;
+          color: $white;
+          border-radius: 100px;
+          background-color: $teal-dark;
+          border: 2px solid $teal-dark;
+          &:hover {
+            color: $teal-dark;
+            background-color: $white;
+          }
+        }
+      }
+
+      &.signup {
+        a {
+          border: 1px solid $teal-dark;
+          border-radius: 100px;
+          padding: 5px 25px;
+        }
+      }
+    }
+  }
+}
+
+#header .user-menu {
+  position: absolute;
+  right: 20px;
+  top: 15px;
+  display: block;
+
+  .chk-box {
+    margin: 0;
+    opacity: 0;
+    width: 47px;
+    outline: none;
+    position: relative;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border: 0;
+    & + label {
+      position: absolute;
+      top: 0;
+      left: 0px;
+      display: block;
+      background: $text
+        url("https://s3.amazonaws.com/vetterpc-images/user-arrow-down.png
+")
+        center center no-repeat;
+      height: 47px;
+      width: 47px;
+      cursor: pointer;
+      & + .user-drop {
+        @include transition;
+        display: none;
+        position: absolute;
+        width: 160px;
+        right: 0px;
+        top: 64px;
+        z-index: 999;
+        background-color: $text;
+        &.vet-drop {
+          width: 220px;
+        }
+
+        a {
+          display: block;
+          color: $white;
+          font-size: 14px;
+          padding: 20px 20px 0 20px;
+          &:last-of-type {
+            padding-bottom: 20px;
+          }
+        }
+      }
+    }
+
+    &:checked + label {
+      background: $text
+        url("https://s3.amazonaws.com/vetterpc-images/user-arrow-up.png") center
+        center no-repeat;
+      &:after {
+        display: none;
+      }
+      & + .user-drop {
+        display: block;
+        &:after {
+          display: block;
+          width: 47px;
+          height: 17px;
+          background: $text;
+          content: "";
+          position: absolute;
+          right: 0;
+          top: -17px;
+        }
+      }
+    }
+  }
+}
+
+#header nav {
+  margin-right: 38px;
+  .user {
+    float: left;
+    font-size: 14px;
+    line-height: 26px;
+    //padding: 6px 45px;
+    padding: 25px 65px 25px 25px;
+    letter-spacing: 1px;
+    font-family: AvenirLTPro-Medium;
+    position: relative;
+    a {
+      color: $teal-dark;
+      &:hover {
+        color: $blue-dark;
+      }
+    }
+  }
+
+  ul.page-list {
+    float: left;
+
+    li {
+      &:hover ul {
+        display: block;
+      }
+    }
+  }
+
+  ul.page-list ul {
+    @include transition;
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: -11px;
+    margin: 0;
+    padding: 10px;
+    background: $white;
+
+    li {
+      float: none;
+      margin: 0;
+      width: 200px;
+    }
+  }
+}
+
+.msg {
+  background-color: rgba($input-border, 0.2);
+  display: block;
+  max-width: 80%;
+  border: 1px solid $input-border;
+  margin: 10px auto;
+  color: $text;
+  padding: 10px 20px;
+  &.success {
+    background-color: rgba($teal-light, 0.2);
+    border-color: $teal-light;
+  }
+  &.error {
+    background-color: rgba($accent, 0.2);
+    border-color: $accent;
+  }
+  &.info {
+    background-color: rgba($blue-medium, 0.2);
+    border-color: $blue-medium;
+  }
+}
+
+.page-areas-served {
+  .msg {
+    max-width: 66%;
+    margin: 0 auto;
+  }
+}
+
+#content-main {
+  display: block;
+  padding: 127px 0;
+  background: linear-gradient(
+    to bottom,
+    $page-bg 295px,
+    $body-bg 295px,
+    $body-bg 100%
+  );
+  background-size: 100%;
+  background-repeat: no-repeat;
+  min-height: 65vh;
+
+  img.hero-img {
+    width: 100%;
+    height: auto;
+  }
+
+  h1 {
+    margin: 0 auto;
+  }
+
+  // a {
+  //     //color: #E91E63;
+  //     text-decoration: none;
+  //
+  //     &:hover {
+  //      text-decoration: underline;
+  //     }
+  // }
+}
+
+#footer {
+  padding: 15px;
+  padding-bottom: 10px;
+  min-height: 221px;
+  background: $blue-dark;
+  color: $white;
+  .container {
+    max-width: $total-width;
+    margin: 10px auto 0;
+  }
+  .site-logo {
+    background: url("https://s3.amazonaws.com/vetterpc-images/vettter-icon-sq-white-transparent.png")
+      0 0 no-repeat;
+    padding: 20px;
+    width: 60px;
+    height: 60px;
+    background-size: 60px auto;
+    margin-top: 5px;
+    @include transition;
+    &:hover {
+      background: url("https://s3.amazonaws.com/vetterpc-images/vettter-icon-sq-teal-transparent.png")
+        0 0 no-repeat;
+    }
+    @include MQ(Mneg) {
+      margin: 0 auto;
+    }
+  }
+  a {
+    display: block;
+    text-decoration: none;
+    font-size: 14px;
+    padding: 8px 0px;
+    letter-spacing: 1px;
+    font-family: AvenirLTPro-Heavy;
+    color: $white;
+    &:hover {
+      color: $teal-light !important;
+    }
+  }
+
+  .copyright {
+    float: none;
+    display: block;
+    clear: both;
+    font-size: 14px;
+    padding: 10px 20px;
+    @include MQ(Mneg) {
+      text-align: center;
+    }
+  }
+
+  nav {
+    float: left;
+    ul {
+      list-style: none;
+      margin: 0;
+      padding: 10px 20px;
+      li {
+        margin: 0;
+        float: left;
+        a {
+          display: block;
+          margin-right: 50px;
+        }
+      }
+    }
+    @include MQ(Mneg) {
+      float: none;
+      ul {
+        text-align: center;
+        li {
+          float: none;
+          a {
+            margin-right: 0;
+          }
+          &.foot-careers {
+            margin: 5px 0;
+            a {
+              margin: 0 auto;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .foot-careers a {
+    @include transition;
+    height: 41px;
+    width: 151px;
+    border: 1.5px solid $teal-light;
+    border-radius: 100px;
+    text-align: center;
+    color: $teal-light;
+    background: transparent;
+    &:hover {
+      background: $teal-light;
+      color: $text !important;
+    }
+  }
+  .social-media {
+    float: right;
+    display: block;
+    padding: 20px 20px 0;
+    ul {
+      margin: 0;
+      list-style-type: none;
+      padding-left: 50px;
+
+      li {
+        float: left;
+        &:last-of-type {
+          a {
+            @include transition;
+            padding-right: 0;
+          }
+        }
+      }
+    }
+
+    &:after {
+      content: ".";
+      display: block;
+      height: 0;
+      clear: both;
+      visibility: hidden;
+    }
+
+    a {
+      display: block;
+      font-size: 21px;
+      line-height: 22px;
+      padding: 0 22px;
+      text-decoration: none;
+    }
+    @include MQ(Mneg) {
+      float: none;
+      clear: both;
+      padding: 5px 20px;
+      ul {
+        padding-left: 0px;
+        margin: 0 auto;
+        text-align: center;
+        li {
+          display: inline-block;
+          float: none;
+          padding: 0;
+          &:last-of-type {
+            a {
+              padding-right: 22px;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+.bookingform > input[type="text"],
+textarea {
+  width: 45%;
+}
+
+.content {
+  margin: 1em 0 3em 0;
+  background: $white;
+}
+
+.btn-social {
+  border: 0;
+  padding: 10px;
+  font-family: "AvenirLTPro-Roman";
+  font-size: 18px;
+  img {
+    width: 20px;
+    margin-left: 4px;
+    margin-right: 7px;
+    border-radius: 3px;
+  }
+  &:not(.btn-primary) {
+    background: rgba(0, 0, 0, 0.05);
+    text-align: left;
+    &:hover {
+      background: rgba(0, 0, 0, 0.1);
+    }
+  }
+}
+
+.img-social {
+  width: 64px;
+  padding: 7px;
+  border-radius: 10px;
+}
+
+.notifications {
+  position: relative;
+  text-align: center;
+  margin-top: -20px;
+}
+
+.notifications .notification {
+  text-align: center;
+  background: #999;
+  display: inline-block;
+  padding: 7px 14px;
+  color: #fff;
+}
+
+.notifications .notification.notice {
+  background-color: #5286d9;
+}
+
+.notifications .notification.error {
+  background-color: #da5a47;
+}
+/* profile image */
+.img-circle {
+  width: 250px;
+  height: 250px;
+  background-position: center;
+  border-radius: 0;
+}
+
+.img-square {
+  width: 20%;
+  height: 20%;
+  background-position: center;
+}
+
+#content-main {
+  img[alt*="asset"] {
+    width: 100%;
+    height: auto;
+  }
+}
+
+.inputfile {
+  display: none !important;
+}
+
+.eachPet,
+.inactivePet {
+  border: 1px dashed $text;
+  width: 100%;
+  color: $text;
+  background: $input-bg;
+  text-align: center;
+  cursor: pointer;
+  vertical-align: middle;
+  padding: 45px 25px;
+  font-size: 16px;
+  max-height: 136px;
+  width: calc((#{$column-width} * 2) + #{$gutter});
+  display: flex;
+  &:hover {
+    background-color: rgba(107, 117, 131, 0.62);
+  }
+  .icon-add_circle {
+    flex: 1;
+    font-size: 44px;
+  }
+  label {
+    flex: 2;
+    font-size: 18px;
+    align-self: center;
+    cursor: pointer;
+  }
+
+  .nextPet {
+    font-size: 29px;
+    font-family: "AvenirLTPro-Black";
+  }
+  &.inactivePet {
+    cursor: not-allowed;
+    color: darken($input-bg, 10%);
+    border-color: darken($input-bg, 10%);
+    label,
+    i {
+      cursor: not-allowed;
+    }
+  }
+}
+
+.question {
+  &:last-child {
+    //border-bottom: 2px solid $service-border;
+  }
+
+  &:first-of-type .question-title {
+    border-top: 0;
+  }
+
+  .question-title {
+    position: relative;
+    display: block;
+    border-top: 1px solid $service-border;
+    margin-bottom: 6px;
+
+    h3 {
+      font-size: 18px;
+      margin: 0;
+      line-height: 1.3;
+      cursor: pointer;
+      font-weight: 200;
+    }
+
+    &.active h3 {
+    }
+  }
+
+  .question-inner {
+    padding: 7px 65px 10px 0;
+    display: none;
+    margin: -7px 0 6px;
+
+    div {
+      max-width: 100%;
+    }
+  }
+
+  .question-title {
+    .title-name {
+      display: block;
+      padding: 15px 65px 8px 0;
+    }
+
+    a i {
+      font-size: 22px;
+      margin-right: 5px;
+    }
+
+    i {
+      position: absolute;
+      //background: url('https://s3.amazonaws.com/vetterpc-images/plus_minus.png') 0 -24px no-repeat;
+      width: 24px;
+      height: 24px;
+      -webkit-transition: all 0.3s ease;
+      -moz-transition: all 0.3s ease;
+      -o-transition: all 0.3s ease;
+      -ms-transition: all 0.3s ease;
+      transition: all 0.3s ease;
+      //margin: 20px;
+      right: 6px;
+      top: 37%;
+      &:before {
+        font-size: 16px;
+        content: "\e911";
+        font-family: "icomoon" !important;
+        color: $text;
+        font-style: normal;
+        font-weight: normal;
+      }
+    }
+
+    &.active i {
+      //background: url('https://s3.amazonaws.com/vetterpc-images/plus_minus.png') 0 0 no-repeat;
+      &:before {
+        content: "\e910";
+      }
+    }
+  }
+  &.services {
+    flex: 0 0 calc(100% - 25px);
+    width: calc(100% - 25px);
+    .fees {
+      color: $teal-dark;
+    }
+    &:nth-child(-n + 2) .question-title {
+      border-top: 0;
+    }
+    .question-title {
+      border-color: $service-border;
+      .title-name {
+        padding: 25px 0px 14px;
+      }
+    }
+    &:last-child {
+      border-color: $service-border;
+      border-width: 0px;
+    }
+    .question-inner {
+      padding: 7px 0px 4px;
+      margin: -7px 0 0px;
+      p {
+        margin-left: 15px;
+      }
+    }
+    .sub {
+      padding: 0;
+      i {
+        display: none;
+      }
+      .question {
+        width: 100%;
+      }
+
+      & + p {
+        margin-left: 0;
+        margin-top: 10px;
+      }
+
+      .sub {
+        padding: 0 15px;
+      }
+
+      .question-title {
+        border-top: 0px;
+        h3 {
+          font-size: 16px;
+        }
+        .title-name {
+          padding: 5px;
+        }
+      }
+    }
+  }
+  .catfee {
+    display: inline-block;
+    font-family: "AvenirLTPro-Medium";
+  }
+}
+
+.grey-container {
+  margin: 0 auto;
+  padding: 45px 0 45px 0;
+  background: $body-bg;
+}
+
+.service-list {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 auto;
+  max-width: $content-width;
+  justify-content: space-between;
+  &.odd {
+    & > .question:nth-of-type(even) {
+      display: none;
+    }
+  }
+  &.even {
+    & > .question:nth-of-type(odd) {
+      display: none;
+    }
+  }
+  .sub {
+    .question {
+      display: block !important;
+    }
+  }
+}
+
+.s-lists {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 auto;
+  max-width: $content-width;
+  align-items: flex-start;
+  .odd,
+  .even {
+    flex: 0 0 calc(50%);
+  }
+  @include MQ(Mneg) {
+    padding: 0 0 0 20px;
+    & > .even {
+      .question.services:nth-child(-n + 2) > .question-title {
+        border-top: 1px solid #979797;
+      }
+    }
+    .odd,
+    .even {
+      flex: 0 0 100%;
+      .sub .question-title {
+        border-top: 0 !important;
+      }
+    }
+  }
+}
+
+.site-logo {
+  //old- background: url('https://s3.amazonaws.com/vetterpc-images/vetter-logo-rgb.png') 0 0 no-repeat;
+  //second-background background: url('https://s3.amazonaws.com/vetterpc-images/vetter_updatedlogo.png') 0 0 no-repeat;
+  background: url("https://s3.amazonaws.com/vetterpc-images/vetter_updatedlogo_R.png")
+    0 0 no-repeat;
+  text-indent: -9999px;
+  font-size: 0;
+  height: 37px;
+  width: 127px;
+  background-size: 100% auto;
+  display: block;
+  margin-left: 20px;
+  margin-top: 15px;
+}
+/* form input fields */
+*,
+*:after,
+*:before {
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+input[type="text"],
+input[type="email"],
+select,
+textarea {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -webkit-border-radius: 0px;
+  appearance: none;
+  background-color: $input-bg;
+  border: 1px solid $input-border;
+  min-height: 40px;
+  height: 40px;
+  font-family: AvenirLTPro-Roman;
+  font-size: 1em;
+  width: 100%;
+  padding: 10px;
+  color: $text;
+  -webkit-transition: background-color 0.25s, border-color 0.25s;
+  transition: background-color 0.25s, border-color 0.25s;
+  &:focus {
+    background-color: white;
+    border-color: $blue-dark;
+    border-width: 1px;
+  }
+}
+
+fieldset {
+  border: 0;
+  margin: 1em 0;
+  padding: 0;
+}
+
+.g-recaptcha {
+  & > div {
+    margin: 0.5em auto 1.5em;
+  }
+}
+
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  -webkit-border-radius: 0px;
+  -moz-border-radius: 0px;
+  appearance: none;
+  background: $input-bg
+    url("https://s3.amazonaws.com/vetterpc-images/arrow-down.png") center right
+    10px no-repeat !important;
+  height: 50px;
+  color: $text;
+  font-family: AvenirLTPro-Roman;
+}
+
+input[type="radio"],
+input[type="checkbox"] {
+  display: inline-block;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  height: 24px;
+  width: 24px;
+  border: 2px solid $blue-dark;
+  margin: 10px;
+  background-color: $white;
+  text-align: left;
+  vertical-align: middle;
+  box-shadow: none;
+  -moz-box-shadow: none !important;
+  -webkit-box-shadow: none;
+  &:checked {
+    background-color: $blue-dark;
+    &:after {
+      /*Add another block-level blank space*/
+      content: "";
+      display: block;
+
+      /*Make it a small rectangle so the border will create an L-shape*/
+      width: 6px;
+      height: 12px;
+
+      margin-left: 7px;
+      margin-top: 3px;
+
+      /*Add a white border on the bottom and left, creating that 'L' */
+      border: solid $white;
+      border-width: 0 3px 3px 0;
+
+      /*Rotate the L 45 degrees to turn it into a checkmark*/
+      transform: rotate(45deg);
+    }
+  }
+}
+
+input[class="1year"] {
+  background-color: $white;
+  &[checked="checked"] {
+    background-color: $blue-dark;
+    &:after {
+      /*Add another block-level blank space*/
+      content: "";
+      display: block;
+
+      /*Make it a small rectangle so the border will create an L-shape*/
+      width: 6px;
+      height: 12px;
+
+      margin-left: 7px;
+      margin-top: 3px;
+
+      /*Add a white border on the bottom and left, creating that 'L' */
+      border: solid $white;
+      border-width: 0 3px 3px 0;
+
+      /*Rotate the L 45 degrees to turn it into a checkmark*/
+      transform: rotate(45deg);
+    }
+  }
+}
+
+.page {
+  .selector {
+    margin: 1em auto;
+    max-width: 780px;
+    form {
+      margin-bottom: 1em;
+    }
+    a {
+      padding: 0.5em 1em;
+    }
+    .input,
+    select,
+    .checkav {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      max-width: 28%;
+      margin: 0 1em;
+      @include MQ(Mneg) {
+        max-width: 100%;
+        margin: 1em;
+      }
+    }
+    .checkav {
+      min-height: 40px;
+      max-width: 240px;
+      @include MQ(Mneg) {
+        max-width: 100%;
+      }
+    }
+  }
+  .input--yoshiko,
+  select,
+  .checkav {
+    position: relative;
+    z-index: 1;
+    display: inline-block;
+    margin: 2em;
+    min-height: 40px;
+    width: calc(100% - 2em);
+    vertical-align: top;
+    font-size: 1em;
+  }
+
+  select,
+  .checkav {
+    min-height: 40px;
+    padding: 0 10px;
+    background-color: $input-bg;
+    border: 1px solid $input-border;
+  }
+
+  a.button,
+  input.button,
+  form button {
+    @include transition;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    white-space: nowrap;
+    padding: 14px 40px;
+    min-width: 195px;
+    min-height: 40px;
+    margin: 2em;
+    font-family: "AvenirLTPro-Heavy";
+    letter-spacing: 0.8px;
+    font-size: 14px;
+    border-radius: 100px;
+    background-color: $white;
+    border-width: 2px;
+    border-style: solid;
+    border-color: $blue-medium;
+    background-image: none;
+    cursor: pointer;
+    color: $blue-medium;
+    text-transform: uppercase;
+
+    &:hover {
+      background-color: $blue-medium;
+      border-color: $blue-medium;
+      color: $white;
+      text-decoration: none;
+    }
+    &.teal {
+      background-color: $teal-dark;
+      border-color: $teal-dark;
+      color: $white;
+      &:hover {
+        background-color: $white;
+        border-color: $teal-dark;
+        color: $teal-dark;
+      }
+    }
+    &.blue,
+    &.signup-save {
+      background-color: $blue-medium;
+      color: $white;
+      border-color: $blue-medium;
+      &:hover {
+        background-color: $white;
+        color: $blue-medium;
+        border-color: $blue-medium;
+      }
+    }
+    &.small {
+      min-height: 37px;
+      height: 37px;
+      min-width: 148px;
+      padding: 5px 20px;
+    }
+    &.book {
+      width: 80%;
+      max-width: 80%;
+      margin: 20px auto;
+      float: none;
+      display: block;
+    }
+    &:disabled,
+    &:disabled:hover,
+    &.unavailable,
+    &.unavailable:hover {
+      background-color: $input-bg;
+      color: $input-border;
+      border-color: $input-border;
+      cursor: not-allowed;
+    }
+    &.in-content {
+      display: block;
+      margin: 20px auto 25px;
+      max-width: 260px;
+    }
+    @include MQ(Mneg) {
+      //padding: 10px 24px !important;
+    }
+  }
+
+  .input__field {
+    position: relative;
+    display: block;
+    float: right;
+    padding: 0.5em 0.8em;
+    height: 40px;
+    border: none;
+    border-radius: 0;
+    background: $body-bg;
+    color: $blue-dark;
+    font-weight: 400;
+    -webkit-appearance: none;
+    -moz-apperance: none;
+    /* for box shadows to show on iOS */
+  }
+
+  .input__field:focus {
+    outline: none;
+  }
+
+  .input__label {
+    display: inline-block;
+    float: right;
+    padding: 0 1em;
+    width: 40%;
+    color: $blue-dark;
+    font-family: AvenirLTPro-Heavy;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
+  .input__label-content {
+    position: relative;
+    display: block;
+    padding: 1.6em 0;
+    width: 100%;
+  }
+  /* Yoshiko */
+  .input__field--yoshiko.long {
+    width: 100%;
+    max-width: 400px !important;
+    position: relative;
+    background-color: $input-bg;
+    border: 2px solid transparent;
+    -webkit-transition: background-color 0.25s, border-color 0.25s;
+    transition: background-color 0.25s, border-color 0.25s;
+  }
+
+  .input__field--yoshiko {
+    width: 100%;
+    background-color: $input-bg;
+    border: 1px solid $input-border;
+    -webkit-transition: background-color 0.25s, border-color 0.25s;
+    transition: background-color 0.25s, border-color 0.25s;
+  }
+
+  .input__label--yoshiko {
+    width: 100%;
+    text-align: left;
+    position: absolute;
+    left: 0;
+    bottom: 100%;
+    pointer-events: none;
+    overflow: hidden;
+    padding: 0.15em 0.5em 0;
+    // -webkit-transform: translate3d(0, 2.4em, 0);
+    // transform: translate3d(0, 2.4em, 0);
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+    -webkit-transition: -webkit-transform 0.25s;
+    transition: transform 0.25s;
+    -webkit-transition-timing-function: ease-in-out;
+    transition-timing-function: ease-in-out;
+  }
+
+  .input__label-content--yoshiko {
+    color: $blue-dark;
+    padding: 0.25em 0;
+    -webkit-transition: -webkit-transform 0.25s;
+    transition: transform 0.25s;
+    -webkit-transition-timing-function: ease-in-out;
+    transition-timing-function: ease-in-out;
+  }
+
+  .input__label-content--yoshiko::after {
+    content: attr(data-content);
+    position: absolute;
+    font-weight: 800;
+    bottom: 100%;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    color: $blue-dark;
+    padding: 0.25em 0;
+    letter-spacing: 1px;
+  }
+
+  textarea {
+    height: 100px;
+    &.input__field {
+      height: 100px;
+    }
+  }
+
+  // .input--filled .input__label--yoshiko,
+  // .input__field--yoshiko:focus + .input__label--yoshiko, .input__field--yoshiko:-webkit-autofill:focus + .input__label--yoshiko {
+  //     -webkit-transform: translate3d(0, 0, 0);
+  //     transform: translate3d(0, 0, 0);
+  // }
+  //
+  // .input--filled .input__label-content--yoshiko,
+  // .input__field--yoshiko:focus + .input__label--yoshiko .input__label-content--yoshiko, .input__field--yoshiko:-webkit-autofill:focus + .input__label--yoshiko .input__label-content--yoshiko {
+  //     -webkit-transform: translate3d(0, 100%, 0);
+  //     transform: translate3d(0, 100%, 0);
+  // }
+  //.input--filled .input__field--yoshiko,
+  .input__field--yoshiko:focus + .input__field--yoshiko,
+  .input__field--yoshiko:-webkit-autofill:focus + .input__field--yoshiko,
+  .input--filled textarea,
+  .input--filled select {
+    background-color: $white;
+    border-color: $blue-dark;
+    border-width: 1px;
+  }
+
+  .input--filled {
+    textarea,
+    select {
+      background: $input-bg;
+    }
+    .input__field--yoshiko:focus,
+    .input__field--yoshiko:-webkit-autofill:focus,
+    textarea:focus,
+    select:focus {
+      background: $white;
+      border-color: $blue-dark;
+      &:outline {
+        border: none;
+      }
+    }
+  }
+}
+
+.req {
+  font-size: 14px;
+  font-family: "AvenirLTPro-Roman";
+  display: block;
+}
+.input.field-error {
+  input,
+  select {
+    border-color: $accent !important;
+    border-width: 1px !important;
+    border-style: solid !important;
+    margin-bottom: 4px !important;
+  }
+  [id^="error_"] {
+    font-size: 12px !important;
+    margin: 0 10px !important;
+    display: block !important;
+    color: $accent !important;
+    font-family: "AvenirLTPro-Roman" !important;
+  }
+}
+
+.discount-error {
+  input[type="text"] {
+    border-color: $accent !important;
+    border-width: 1px !important;
+    border-style: solid !important;
+    margin-bottom: 4px !important;
+  }
+}
+.cord.result.discount-error {
+  color: $accent !important;
+}
+
+/* line */
+.line {
+  border-bottom: 1px solid #d3d3d3;
+  padding: 1em;
+  width: 100%;
+  margin: 0 auto;
+  max-width: 924px;
+  display: block;
+}
+
+.petrecord,
+.pet-emr-list {
+  //padding: 30px;
+  form {
+    padding-bottom: 0.5em !important;
+  }
+  .exist_petrecord {
+    border-top: 1px solid #979797;
+    &:first-of-type {
+      border-top: 0;
+    }
+  }
+  .addaDescription {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 20px 0 10px;
+
+    & > * {
+      flex: 1;
+      margin: 0 5px;
+    }
+    .docname {
+      flex: 2;
+      line-height: 1.8;
+    }
+    span {
+      flex: 5;
+    }
+    i {
+      font-size: 26px;
+      flex: 1;
+      max-width: 40px;
+    }
+    .addadescriptionlink {
+      text-decoration: underline !important;
+      flex: 2;
+    }
+
+    .emrDescription {
+      flex: 0 0 100%;
+      margin: 10px 0;
+      .emrSave {
+        padding: 0 !important;
+        margin: 10px !important;
+      }
+    }
+    .icon-file-text2,
+    .remove-emr {
+      flex: 0 0 30px;
+    }
+  }
+}
+
+.petRecords {
+  //padding: 30px;
+}
+
+.select-pet {
+  //padding: 10px 30px;
+  width: 100%;
+  .scheduledPet {
+    margin: 10px 0;
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    .confirm_pet {
+      float: right !important;
+      flex: 1;
+      max-width: 148px;
+    }
+  }
+  @include MQ(Mneg) {
+    .scheduledPet {
+      .confirm_pet {
+        float: none !important;
+        width: 100%;
+        margin: 10px 0 !important;
+        flex: 0 0 100%;
+        max-width: 100%;
+      }
+    }
+  }
+}
+
+.remove-emr {
+  flex: 1;
+  color: $accent;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: none;
+  }
+  .icon-cancel {
+    color: $accent;
+    font-size: 24px;
+    text-decoration: none !important;
+  }
+  &.empty {
+    text-align: right;
+    font-family: AvenirLTPro-Roman;
+    font-size: 16px;
+    display: block;
+    margin-right: 60px;
+    margin-bottom: 10px;
+    .icon-cancel {
+      font-size: 24px;
+      margin-left: 24px;
+    }
+  }
+}
+
+/* tab button */
+button.tab,
+a.tablink {
+  text-align: center;
+  position: relative;
+  background: lightgrey;
+  color: black;
+  display: inline-block;
+  font: bold 15px/1.4 Arial, Helvetica, sans-serif;
+  padding: 10px 55px;
+}
+
+/* pet button */
+button.pet,
+a.petlink {
+  text-align: center;
+  position: relative;
+  background: #18cdca;
+  color: black;
+  display: inline-block;
+  font: bold 15px/1.4 Arial, Helvetica, sans-serif;
+  padding: 10px 55px;
+}
+
+.tab-links li.active a,
+.tab-links li.active a:hover {
+  background: #fff;
+  color: #4c4c4c;
+}
+/*----- Content of Tabs -----*/
+.tab-content {
+  padding: 15px;
+  border-radius: 3px;
+  box-shadow: -1px 1px 1px rgba(0, 0, 0, 0.15);
+  background: #fff;
+}
+
+/* login left image */
+.left {
+  float: left;
+  padding: 0 20px 20px 0;
+  img {
+    width: 350px;
+    height: auto;
+  }
+}
+
+/* inline */
+.inline,
+.birthdate {
+  display: inline;
+}
+
+.billaddress {
+  padding: 30px 30px 30px 30px;
+}
+
+.showme {
+  display: inline;
+  visibility: visible;
+}
+
+.page-sign-up,
+.page-login {
+  padding: 0;
+  .grid {
+    .cell {
+      padding: 0;
+      &:nth-of-type(2) {
+        padding: $gutter;
+      }
+    }
+  }
+}
+
+#content-main {
+  &.wide {
+    padding: 0;
+    background: $body-bg;
+    .page {
+      @extend .page;
+      max-width: 100%;
+      padding: 0;
+      box-shadow: none;
+    }
+    h1 {
+      display: block;
+      max-width: $header-width;
+      margin: 0 auto;
+      padding: 1em 0 0.5em 0;
+      @include MQ(Mneg) {
+        padding: 1em 20px 0.5em;
+      }
+    }
+    .mast {
+      height: 400px;
+      width: 100%;
+      @include MQ(Mneg) {
+        height: 200px;
+      }
+    }
+    .content {
+      max-width: $content-width;
+      margin: 0 auto;
+      padding: 0 0 3em 0;
+      @include MQ(Mneg) {
+        padding: 0 20px;
+      }
+    }
+    .vacc-content{
+	    max-width: 516px;
+    }
+    .page-schedule,
+    .page-confirmation {
+      background: $body-bg;
+      .container {
+        max-width: 1020px;
+        margin: 0 auto;
+      }
+      .content {
+        padding: 1px 0 3em 0;
+        @include MQ(Mneg) {
+          padding: 1px 20px;
+        }
+      }
+      h1,
+      .content {
+        background: $white;
+        margin: 0;
+        max-width: 100%;
+        .container {
+          max-width: 950px;
+        }
+      }
+      .mast {
+        height: 200px;
+        &.confirm {
+          background: url("https://s3.amazonaws.com/vetterpc-images/confirmation_header.jpg
+")
+            center center no-repeat;
+          background-size: cover;
+        }
+      }
+      .bookingjs {
+        margin: 2em 0 95px 0;
+        @include MQ(Mneg) {
+          padding: 0 20px;
+          .fc-center {
+            h2 {
+              font-size: 32px;
+              line-height: 1.5;
+            }
+          }
+        }
+      }
+      .appt-msg {
+        display: none;
+        margin: 1.5em 0 1em 0;
+        .container {
+          max-width: $text-width;
+          margin: 0;
+          @include MQ(Mneg) {
+            padding: 0 20px;
+          }
+        }
+        h3 {
+          margin-bottom: 0;
+        }
+      }
+    }
+    .page-confirmation {
+      .container {
+        max-width: $form-width !important;
+        padding: 20px 0;
+        min-height: 440px;
+      }
+      h2 {
+        margin-top: 0;
+        padding: 15px 0;
+        text-align: center;
+        margin: 0 auto;
+        font-family: "AvenirLTPro-Black";
+      }
+      h3 + p {
+        max-width: 70%;
+        margin: 0 auto;
+        @include MQ(Mneg) {
+          max-width: 90%;
+        }
+      }
+      h3,
+      .form__label label {
+        color: $teal-dark;
+        font-size: 23px;
+        font-weight: normal;
+        font-family: AvenirLTPro-Heavy;
+        margin-bottom: 0;
+      }
+      fieldset {
+        border: 0;
+      }
+      hr {
+        margin-top: 20px;
+        //margin-left: calc(-(#{$column-width} + #{$gutter}));
+        //margin-right: calc(-(#{$column-width} + #{$gutter}));
+      }
+      .form__note {
+        display: none;
+      }
+      .form__row {
+        margin: 1em 0;
+      }
+      .form__row--plaintext {
+        margin-top: 0;
+        margin-left: 48px;
+        input {
+          width: 50% !important;
+        }
+      }
+      .form__row--radiobuttons {
+        margin-bottom: 0;
+        .form__field {
+          padding-top: 10px;
+          div + div {
+            margin: 10px 0;
+          }
+          div:last-of-type {
+            margin-bottom: 0;
+          }
+        }
+      }
+      .form__row--plaintext label {
+        display: none;
+      }
+      .buttons {
+        text-align: center;
+        button {
+          width: 250px;
+        }
+      }
+    }
+  }
+}
+
+.page-schedule {
+  .heading,
+  .subheading {
+    display: block;
+    margin: 0 auto;
+    text-align: center;
+  }
+  .heading {
+    margin: 60px 0 5px 0;
+    font-size: 29px;
+    color: $teal-dark;
+  }
+  .subheading {
+    font-family: "AvenirLTPro-Black";
+    margin-bottom: 0.5em;
+    font-size: 23px;
+    //font-weight: 600;
+  }
+  .howto {
+    margin: 0 auto;
+    margin-bottom: 20px;
+    max-width: 760px;
+    padding: 0 20px;
+  }
+}
+
+.petinfo,
+.emrDescription {
+  display: none;
+}
+
+/* hidden */
+.hidden {
+  display: none;
+}
+.hidden-important {
+  display: none !important;
+}
+
+.fileimage {
+  width: 23px;
+  height: 26px;
+}
+
+.page-signup,
+.page-sign-up {
+  padding: 0;
+  .grid {
+    .cell {
+      padding-left: 0;
+      &:first-of-type {
+        padding: 30px 55px;
+        position: relative;
+        display: block;
+        background: url("https://s3.amazonaws.com/vetterpc-images/loginsignup.jpg")
+          no-repeat center right;
+        background-size: cover;
+        .overlay {
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          top: 0;
+          left: 0;
+          z-index: 1;
+          background: rgba(0, 0, 0, 0.3);
+        }
+        .button {
+          margin: 0;
+          z-index: 2;
+          position: relative;
+          @include MQ(Mneg) {
+            width: 100%;
+          }
+        }
+        .messg {
+          z-index: 2;
+          position: relative;
+          color: $white;
+          padding: 2em 0;
+          font-size: 21px;
+          line-height: 35px;
+          font-family: "AvenirLTPro-Heavy";
+          .smaller {
+            font-size: 16px;
+            line-height: 1.2;
+            width: 75%;
+          }
+        }
+        @include MQ(Mneg) {
+          min-height: 275px;
+          background: url("https://s3.amazonaws.com/vetterpc-images/loginsignup2.jpg")
+            no-repeat center top;
+          background-size: cover;
+        }
+      }
+
+      .content {
+        padding: 20px 50px;
+        @include MQ(Mneg) {
+          padding: 20px;
+          .password-field {
+            .input__label-content--yoshiko {
+              font-size: 16px !important;
+            }
+          }
+        }
+        .tabs {
+          a {
+            flex: 1;
+            text-align: center;
+            color: $teal-dark;
+            font-family: AvenirLTPro-Heavy;
+            font-size: 26px;
+            line-height: 36px;
+            text-decoration: none;
+            padding-bottom: 10px;
+
+            &:hover {
+              text-decoration: none !important;
+            }
+            &.active {
+              position: relative;
+              &:after {
+                content: "";
+                position: absolute;
+                left: 20%;
+                bottom: 0;
+                height: 6px;
+                width: 60%; /* or 100px */
+                border-bottom: 6px solid $teal-dark;
+              }
+            }
+          }
+        }
+        .btn-social {
+          width: 100%;
+          display: block;
+          color: $white;
+          margin: 0 auto;
+          text-align: center;
+          font-weight: normal;
+          position: relative;
+          img {
+            display: none;
+          }
+          i {
+            position: absolute;
+            width: 74px;
+            left: 0;
+            border-right: 1px solid #1a2f5a;
+            top: 9px;
+            padding: 5px 20px;
+            font-size: 20px;
+            @include MQ(Mneg) {
+              width: 18%;
+            }
+          }
+          &.facebook {
+            width: 93%;
+            background: $facebook;
+            &:hover {
+              background: darken($facebook, 10%);
+            }
+          }
+          &.google {
+            width: 93%;
+            background: $google;
+            &:hover {
+              background: darken($google, 10%);
+            }
+          }
+          &:hover {
+            text-decoration: none;
+          }
+        }
+
+        h2 {
+          width: 90%;
+          margin: 1em auto;
+          font-size: 21px;
+          text-align: center;
+        }
+        h3 {
+          width: 90%;
+          height: 20px;
+          margin: 1em auto;
+          border-bottom: 1px solid #979797;
+          text-align: center;
+          span.text {
+            font-size: 20px;
+            background-color: #fff;
+            padding: 0 20px;
+            text-transform: uppercase;
+          }
+        }
+        .input--yoshiko {
+          margin: 1em;
+          margin-bottom: 1.5em;
+        }
+        .button {
+          min-width: 260px;
+          margin: 1.5em auto;
+          display: block;
+        }
+      }
+    }
+  }
+}
+
+.centered-block {
+  display: block;
+  margin: 1em auto;
+  min-width: 260px;
+  text-align: center;
+}
+
+
+.mini-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+  counter-reset: tabs;
+  //flex-wrap: wrap;
+  a {
+    @include transition;
+    font-size: 16px;
+    line-height: 22px;
+    flex: 1;
+    display: block;
+    padding: 29px 0;
+    text-align: center;
+    color: $teal-dark;
+    border-bottom: 8px solid #d8d8d8;
+    &:before {
+      counter-increment: tabs;
+      content: counter(tabs);
+      border: 2px solid $teal-dark;
+      padding: 7px 12px;
+      margin-right: 22px;
+      border-radius: 100px;
+    }
+    &:hover,
+    &.active {
+      border-bottom: 8px solid $blue-dark;
+      color: $blue-dark;
+      text-decoration: none;
+      &:before {
+        border-color: $blue-dark;
+      }
+    }
+  }
+  @include MQ(Mneg) {
+    a {
+      // flex: 0 0 100%;
+      // text-align: left;
+      // padding-left: 20px;
+      font-size: 0;
+      padding: 25px 0 10px;
+      &:before {
+        margin-right: 0;
+        font-size: 16px;
+      }
+      &:nth-of-type(1):after {
+        content: "Basic";
+        font-size: 14px;
+        display: block;
+        text-align: center;
+        margin-top: 10px;
+      }
+      &:nth-of-type(2):after {
+        content: "Pet";
+        font-size: 14px;
+        display: block;
+        text-align: center;
+        margin-top: 10px;
+      }
+      &:nth-of-type(3):after {
+        content: "Billing";
+        font-size: 14px;
+        display: block;
+        text-align: center;
+        margin-top: 10px;
+      }
+      &:nth-of-type(4):after {
+        content: "Review";
+        font-size: 14px;
+        display: block;
+        text-align: center;
+        margin-top: 10px;
+      }
+    }
+  }
+}
+
+.page-billing {
+  .content {
+    max-width: $form-width;
+    margin: 0 auto;
+    @include MQ(Mneg) {
+      padding: 0px 20px !important;
+      form {
+        padding: 0 !important;
+      }
+      .btn-container {
+        padding: 0 !important;
+        margin-top: 1.5em;
+        .button {
+          width: 100%;
+          margin: 1em 0;
+        }
+      }
+    }
+  }
+  hr {
+    margin: 1.5em 0;
+  }
+}
+
+.page-basicinfo,
+.page-petinfo,
+.page-billing,
+.page-review {
+  padding: 0 !important;
+  .input--yoshiko {
+    margin: 1em;
+    margin-bottom: 1.5em;
+  }
+  hr {
+    margin: 1.5em 0 2em;
+  }
+  h2 {
+    margin-bottom: 10px;
+  }
+  h2 + h3 {
+    margin-top: 0;
+  }
+  h3 {
+    font-family: AvenirLTPro-Roman;
+    font-weight: normal;
+  }
+  form,
+  .form-content,
+  .btn-container {
+    max-width: $form-width;
+    margin: 0 auto;
+    padding: 0.5em 0 2.5em 0;
+
+    select {
+      margin: 0em;
+      width: 100%;
+    }
+    .welcomemessage {
+      padding: 1.5em 0;
+    }
+
+    .button {
+      float: right;
+      &.small {
+        margin: 0;
+        padding: 5px 5px;
+        float: none;
+      }
+    }
+    label {
+      font-family: AvenirLTPro-Heavy;
+    }
+    .qinput {
+      display: block;
+      width: 100%;
+      margin: 1em 0;
+      &::after {
+        content: " ";
+        display: table;
+        clear: both;
+      }
+    }
+    @include MQ(Mneg) {
+      padding: 0px 20px !important;
+      .btn-container {
+        padding: 0 !important;
+        margin-top: 1.5em;
+        .button {
+          width: 100%;
+          margin: 1em 0;
+        }
+      }
+    }
+  }
+  .hidden-form,
+  input[type="hidden"] {
+    padding: 0;
+    margin: 0;
+  }
+}
+
+.btn-container {
+  padding: 0px;
+  text-align: center;
+  .button:first-of-type {
+    margin-left: 0;
+  }
+  .button:last-of-type {
+    margin-right: 0;
+  }
+  .button.back {
+    float: left;
+    min-width: auto;
+  }
+  .button.bill,
+  .button.savecontinuepet,
+  .button.signup-save {
+    float: right;
+  }
+
+  &.right {
+    .button.suser {
+      float: right;
+      // margin-right: 0 !important;
+    }
+  }
+}
+
+.page-billing,
+.page-review,
+.user-profile {
+  .alert {
+    padding: 10px 20px;
+    text-align: center;
+    margin: 0px 25px;
+    background-color: $accent;
+    color: $white;
+    background-image: none;
+  }
+  .charge-form {
+    margin-bottom: 0.5em;
+  }
+  .discount {
+    input {
+      display: inline-block;
+      &[type="text"] {
+        width: 384px;
+      }
+      &.button {
+        width: 170px;
+        margin: 0 32px;
+      }
+    }
+    @include MQ(Mneg) {
+      input {
+        display: block;
+        &[type="text"] {
+          width: 100%;
+        }
+        &.button {
+          margin: 20px 0;
+        }
+      }
+    }
+  }
+  .cord {
+    font-family: AvenirLTPro-Heavy;
+    margin: 10px 10px 3px;
+    &.wlabels {
+      width: 100%;
+      div.title {
+        display: inline-block;
+        &:first-of-type {
+          width: 50%;
+        }
+        &:nth-child(2),
+        &:nth-child(3) {
+          width: 21%;
+        }
+      }
+    }
+    @include MQ(Mneg) {
+      &.wlabels {
+        div.title {
+          &:first-of-type {
+            width: 100%;
+          }
+          &:nth-child(2),
+          &:nth-child(3) {
+            width: 49%;
+            display: none;
+          }
+        }
+      }
+    }
+  }
+  .card {
+    //margin: 0 25px 25px 25px;
+    margin: 0px auto 20px auto;
+    padding: 30px 30px 10px 30px;
+    position: relative;
+    max-width: calc(#{$form-width} - 40px);
+    //max-width: calc((#{$column-width} * 4) + (#{$gutter} * 4));
+    background: $grey-light
+      url("https://s3.amazonaws.com/vetterpc-images/powered_by_stripe.png")
+      no-repeat bottom 30px right 30px;
+    @include MQ(Mneg) {
+      padding-bottom: 40px;
+      background-position: bottom 10px right 10px;
+    }
+    h4 {
+      position: absolute;
+      top: -50px;
+      left: 0px;
+      color: $text;
+    }
+    input {
+      background: $white;
+      border-color: $input-border;
+      color: $text;
+      &:disabled {
+        background: $input-bg;
+        cursor: not-allowed;
+      }
+      &:focus {
+        background: $white;
+        border-color: $text;
+      }
+    }
+
+    .button.small {
+      margin: 15px auto;
+      display: block;
+      padding: 5px 20px;
+    }
+
+    .ccinfo {
+      border: 1px solid $input-border;
+      background: $white;
+      width: 100%;
+      position: relative;
+      &:before {
+        position: absolute;
+        top: 3px;
+        left: 15px;
+        font-size: 22px;
+        content: "\e906";
+        font-family: "icomoon";
+        color: $grey-dark;
+      }
+      input {
+        font-family: AvenirLTPro-Roman;
+        border: 0;
+        color: $text;
+        margin: 0;
+        display: inline-block;
+        &:first-of-type {
+          width: 50%;
+          padding-left: 62px;
+        }
+        &:nth-child(2),
+        &:nth-child(5) {
+          width: 21%;
+        }
+        @include MQ(Mneg) {
+          &:first-of-type {
+            width: 100%;
+            border-bottom: 1px solid $input-border;
+          }
+          &:nth-child(2) {
+            border-right: 1px solid $input-border;
+          }
+          &:nth-child(2),
+          &:nth-child(5) {
+            width: 49%;
+          }
+        }
+        &::-webkit-input-placeholder {
+          /* Chrome/Opera/Safari */
+          color: $grey-dark;
+        }
+        &::-moz-placeholder {
+          /* Firefox 19+ */
+          color: $grey-dark;
+        }
+        &:-ms-input-placeholder {
+          /* IE 10+ */
+          color: $grey-dark;
+        }
+        &:-moz-placeholder {
+          /* Firefox 18- */
+          color: $grey-dark;
+        }
+      }
+    }
+  }
+}
+
+.page-review {
+  h2 {
+    float: left;
+    margin: 0;
+  }
+}
+
+.page-review,
+.booking-detail {
+  .form-content {
+    max-width: 924px;
+  }
+
+  .review-pet-list {
+    display: flex;
+    .pet-name-box {
+      color: $text;
+      &:hover {
+        color: $white;
+        .pet-name {
+          background: $grey-dark;
+          i {
+            color: $white;
+          }
+        }
+      }
+    }
+    .pet-name {
+      flex: 1;
+      min-width: 160px;
+      max-width: 250px;
+      min-height: 60px;
+      padding: 16px 30px;
+      margin: 5px;
+      display: inline-block;
+      background: $grey-light;
+      a {
+        color: $text;
+      }
+      i {
+        color: $grey-dark;
+        font-size: 1.4em;
+        padding: 0 7px;
+        margin-right: 10px;
+      }
+    }
+  }
+
+  form {
+    padding-bottom: 0.5em;
+  }
+  span.input--yoshiko {
+    &.alternatecontactname {
+      width: calc((#{$column-width} * 3) + (#{$gutter} * 2));
+      margin-left: 0;
+      @include MQ(Mneg) {
+        width: 100%;
+      }
+    }
+    &.alternatecontactcellnumber {
+      width: calc((#{$column-width} * 2) + #{$gutter});
+      margin-right: 0;
+      margin-left: 0;
+      @include MQ(Mneg) {
+        width: 100%;
+      }
+    }
+  }
+
+  .card {
+    background-image: none;
+    margin-top: 15px;
+    padding-bottom: 30px;
+  }
+  .rev-section {
+    padding: 20px 130px 0;
+    .rfa-inst {
+      margin-bottom: 10px;
+    }
+    .section-title {
+      width: 100%;
+      margin-bottom: 15px;
+      a {
+        text-decoration: none;
+        text-transform: capitalize;
+        float: right;
+        display: block;
+        text-align: right;
+        padding: 5px;
+        text-transform: uppercase;
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+      &.alternate {
+        width: 100%;
+        input {
+          color: $text;
+        }
+        &.reason {
+          margin-bottom: 0;
+          & + .section-info form {
+            padding-top: 0;
+          }
+        }
+      }
+
+      span {
+        float: left;
+        color: $teal-dark;
+        font-size: 23px;
+        font-family: AvenirLTPro-Heavy;
+        &.opt {
+          color: $text;
+          float: none;
+          font-weight: normal;
+        }
+      }
+      .alt {
+        color: $text;
+        width: 100%;
+      }
+      &.apptwin {
+        width: 100%;
+        span {
+          color: $text;
+          display: block;
+          font-weight: normal;
+          width: 100%;
+          &.window {
+            color: $teal-dark;
+            font-size: 27px;
+          }
+          &.forpets {
+            font-size: 23px;
+            b {
+              font-family: "AvenirLTPro-Black";
+            }
+          }
+        }
+      }
+    }
+    @include MQ(Mneg) {
+      padding: 10px;
+      form {
+        padding: 0 !important;
+      }
+    }
+  }
+}
+
+#charge-form,
+.-info {
+  max-width: 670px;
+  margin: 0 auto;
+  .savecard {
+    margin: 20px auto !important;
+  }
+}
+
+.password-field {
+  margin-top: 2em !important;
+  .addt {
+    font-size: 0.8em;
+    color: $grey-dark;
+    display: block;
+    width: 100%;
+    font-family: AvenirLTPro-MediumOblique;
+  }
+}
+
+.termtext {
+  width: 100%;
+  display: block;
+  text-align: center;
+  margin: 0 auto;
+  font-size: 0.9em;
+  font-family: AvenirLTPro-Heavy;
+  a {
+    font-family: AvenirLTPro-Heavy;
+    color: $blue-medium;
+    &:hover {
+      text-decoration: underline !important;
+    }
+  }
+}
+
+.section-info {
+  .section-label {
+    float: left;
+    margin-right: 60px;
+    margin-bottom: 10px;
+    label {
+      display: block;
+    }
+  }
+}
+
+//forms
+.page-basicinfo,
+#billAddr,
+.user-basic {
+  span.input--yoshiko {
+    margin: 1.5em 0;
+    input,
+    select {
+      height: 40px;
+    }
+    &.streetaddress {
+      width: calc(100% - 4px);
+      @include MQ(Mneg) {
+        width: 100%;
+      }
+    }
+    &.address2 {
+      width: calc((#{$column-width} * 3) + (#{$gutter} * 2));
+      @include MQ(Mneg) {
+        width: 100%;
+      }
+    }
+    &.city,
+    &.states,
+    &.zip {
+      width: calc(30%);
+      @include MQ(Mneg) {
+        width: 100%;
+      }
+    }
+    &.cellphone {
+      width: calc((#{$column-width} * 2) + #{$gutter} + 30px);
+      margin-right: 0;
+      margin-left: calc(#{$gutter} - 4px);
+      @include MQ(Mneg) {
+        width: 100%;
+        margin-left: 0;
+      }
+    }
+    &.zip,
+    &.states {
+      margin-left: calc(#{$gutter} - 4px);
+      @include MQ(Mneg) {
+        width: 100%;
+        margin-left: 0;
+      }
+    }
+  }
+}
+
+#billAddr,
+#charge-form {
+  margin-bottom: 0;
+  padding-bottom: 1em;
+}
+
+span.input--yoshiko {
+  &.readonly {
+    input,
+    select,
+    textarea,
+    *:disabled {
+      border: 0 !important;
+      background: transparent !important;
+      background-color: transparent !important;
+    }
+  }
+}
+//pets coding
+.vetter-pattern{
+	background: url(https://s3.amazonaws.com/vetterpc-images/vetter-pattern.jpg) top center repeat; background-size: 25% auto;
+	.container{
+		background: #fff;
+		max-width: 760px;
+	}
+}
+.pets,
+.createPet,
+.vet {
+  display: flex;
+  flex-wrap: wrap;
+  .pet {
+    position: relative;
+    cursor: pointer;
+    flex: 0 0 260px;
+    max-width: 250px;
+    margin: 40px;
+    background: #eeeff3;
+    display: block;
+
+    .empty {
+      background: transparent
+        url("https://s3.amazonaws.com/vetterpc-images/pet_placeholderimage.jpg")
+        no-repeat center center;
+    }
+    .picture {
+      overflow: hidden;
+      max-height: 200px;
+      height: 200px;
+      background-size: cover;
+
+      img {
+        width: 100%;
+        height: auto;
+        min-height: 200px;
+      }
+    }
+    .name {
+      color: $text;
+      font-family: AvenirLTPro-Black;
+      width: 100%;
+      padding: 13px 20px;
+      min-height: 50px;
+      max-height: 50px;
+      background: $body-bg;
+    }
+    .overlay {
+      display: none;
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      text-align: center;
+      background-color: rgba(107, 117, 131, 0.62);
+      padding: 50px 20px;
+      a {
+        display: block;
+        text-decoration: none;
+        text-transform: uppercase;
+        cursor: pointer;
+        color: $white;
+        border: 1px solid $white;
+        padding: 10px 30px;
+        border-radius: 100px;
+        margin: 30px;
+        i {
+          margin-right: 10px;
+        }
+      }
+    }
+    &:hover {
+      .overlay {
+        display: block;
+        a:hover {
+          background: $white;
+          text-decoration: none !important;
+          color: $text;
+        }
+      }
+    }
+  }
+  .vacc-pet{
+	  margin: 4px;
+  }
+}
+
+.pets {
+  // counter-reset: pets;
+  .pet,
+  .newpet,
+  .petinfo,
+  .addl-pets {
+    position: relative;
+    .petnum,
+    .nextPet {
+      //, &:before {
+      // counter-increment: pets;
+      // content: counter(pets) ".";
+      position: absolute;
+      top: 0;
+      left: -40px;
+      font-size: 29px;
+      //font-weight: 900;
+      font-family: "AvenirLTPro-Black";
+    }
+  }
+  @include MQ(Mneg) {
+    .pet,
+    .newpet,
+    .petinfo {
+      margin: 40px auto;
+    }
+    .petinfo {
+      .petnum {
+        left: 0;
+      }
+    }
+  }
+}
+
+//login/signup tabs
+div[id*="tab"]:not(:target) {
+  display: none;
+}
+div[id*="tab"]:target {
+  display: block;
+}
+
+.tabs {
+  display: flex;
+  a {
+    padding: 20px;
+    border-style: solid;
+    border-width: 1px 0px 0px 1px;
+    border-color: white;
+    color: white;
+    text-decoration: none;
+    &:hover {
+      text-decoration: none;
+    }
+    &:last-of-type {
+      border-right-width: 1px;
+    }
+  }
+}
+div[id*="tab"] {
+  padding: 30px 0;
+}
+
+.mini-head {
+  min-height: 60px;
+  background: $blue-light;
+  text-align: center;
+  padding-top: 18px;
+  position: relative;
+}
+
+//timer clock div
+#clockdiv {
+  position: absolute;
+  right: 5%;
+  top: 2px;
+  max-width: 135px;
+  background: $blue-dull;
+  padding: 3px 15px;
+  color: $white;
+  text-align: center;
+
+  .smalltext {
+    font-size: 12px;
+    margin: 1px 0;
+    display: block;
+    line-height: 1;
+  }
+  .time {
+    font-size: 22px;
+    line-height: 1;
+    margin: 2px 0 0 0;
+    letter-spacing: 0.1em;
+    font-family: "AvenirLTPro-Heavy";
+  }
+  @include MQ(Mneg) {
+    position: relative;
+    display: block;
+    margin: 0 auto;
+    right: auto;
+    top: auto;
+    margin-top: 10px;
+    padding: 10px;
+    max-width: 100%;
+  }
+}
+
+.page-signup #clockdiv {
+  top: 26px;
+  background: $white;
+  color: $text;
+}
+
+.loader {
+  display: none;
+  margin: 20px auto;
+  border: 5px solid $blue-darker;
+  border-top: 5px solid $blue-medium;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin 2s linear infinite;
+}
+
+.loadermessage {
+  display: none;
+  margin: 20px auto;
+  p {
+    font-size: 15px;
+    font-style: italic;
+    text-align: center;
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.appt-table {
+  display: table;
+  width: 100%;
+  margin: 10px 0;
+
+  .table_head {
+    display: table-header-group;
+  }
+  .table_label {
+    display: table-cell;
+    font-family: "AvenirLTPro-Black";
+    text-align: center;
+    border-bottom: 2px solid #979797;
+    padding: 3px;
+  }
+  .table_body {
+    display: table-row-group;
+    background-color: $white;
+  }
+  .table_row_result,
+  .table_row {
+    display: table-row;
+    line-height: 20px;
+    &:nth-of-type(2n) {
+      background-color: $input-bg;
+    }
+  }
+  .table_cell {
+    display: table-cell;
+    padding: 15px 5px;
+    text-align: center;
+    &:last-of-type {
+      .table_link {
+        text-transform: uppercase;
+        text-decoration: underline !important;
+        color: $grey-dark;
+        &:hover {
+          color: $accent;
+        }
+      }
+    }
+  }
+  .table_cellblock {
+    padding: 10px 5px;
+  }
+  @include MQ(Mneg) {
+    display: block !important;
+    .table_cell,
+    .table_label,
+    .table_body,
+    .table_row_result,
+    .table_row {
+      display: block;
+      text-align: left;
+      padding: 5px 10px;
+    }
+    .table_head {
+      display: none;
+    }
+    .table_body {
+      .table_row {
+        border: 1px solid $grey-dark;
+        margin-bottom: 10px;
+        .table_cell:nth-of-type(1):before {
+          content: "Date: ";
+          font-family: AvenirLTPro-Black;
+        }
+        .table_cell:nth-of-type(2):before {
+          content: "Time: ";
+          font-family: AvenirLTPro-Black;
+        }
+        .table_cell:nth-of-type(3):before {
+          content: "Client: ";
+          font-family: AvenirLTPro-Black;
+        }
+        .table_cell:nth-of-type(4):before {
+          content: "Appointment ID: ";
+          font-family: AvenirLTPro-Black;
+        }
+      }
+      .table_row_result {
+        border: 1px solid $grey-dark;
+        margin-bottom: 10px;
+        .table_cell:nth-of-type(1):before {
+          content: "First Name: ";
+          font-family: AvenirLTPro-Black;
+        }
+        .table_cell:nth-of-type(2):before {
+          content: "Last Name: ";
+          font-family: AvenirLTPro-Black;
+        }
+        .table_cell:nth-of-type(3):before {
+          content: "Pets: ";
+          font-family: AvenirLTPro-Black;
+        }
+        .table_cell:nth-of-type(4):before {
+          content: "ID: ";
+          font-family: AvenirLTPro-Black;
+        }
+      }
+    }
+  }
+}
+
+#loadMore {
+  color: $blue-medium;
+  cursor: pointer;
+  display: block;
+  text-align: center;
+  margin: 2em auto !important;
+  max-width: 25%;
+  &:hover {
+    color: $blue-dark;
+  }
+}
+
+#content-main.wide {
+  .page-upcoming,
+  .page-availability {
+    h1,
+    .content {
+      max-width: $cal-width;
+    }
+    .content h1 {
+      padding-left: 0;
+    }
+  }
+}
+
+.select-pet {
+  form {
+    padding-bottom: 0;
+  }
+  input[type="submit"] {
+    margin: 0 20px !important;
+  }
+}
+
+#content-main.wide {
+  .user-profile {
+    .subcard,
+    .petEMRupload {
+      padding: 5px 20px !important;
+      margin: 15px auto 0 !important;
+    }
+    select {
+      margin: 0;
+      height: 40px;
+      width: 100%;
+    }
+    .input--yoshiko {
+      margin: 1.5em 1em;
+      @include MQ(Mneg) {
+        margin: 1.5em 0;
+        width: 100%;
+      }
+    }
+    .zipintro {
+      margin: 1.5em 1em;
+      label {
+        font-family: "AvenirLTPro-Heavy";
+        display: block;
+      }
+    }
+    .input-row {
+      display: flex;
+      flex-wrap: wrap;
+      form {
+        @include MQ(Mneg) {
+          padding: 20px;
+        }
+      }
+      .input {
+        flex: 1;
+        // &:first-of-type {
+        //  margin-left: 0;
+        // }
+        // &:last-of-type {
+        //  margin-right: 0;
+        // }
+        @include MQ(Mneg) {
+          margin: 1.5em 0;
+          flex: 0 0 100%;
+        }
+      }
+      textarea {
+        //height: 250px;
+      }
+      label {
+      }
+      .email,
+      .streetAddress2 {
+        flex: 2;
+        @include MQ(Mneg) {
+          flex: 0 0 100%;
+        }
+      }
+      .licenseNumber,
+      .certification {
+        max-width: calc((#{$column-width} * 2) - #{$gutter});
+        @include MQ(Mneg) {
+          max-width: 100%;
+        }
+      }
+      .funFact {
+        textarea {
+          height: auto;
+        }
+      }
+    }
+    .qinput {
+      margin-bottom: 10px;
+      &::after {
+        content: " ";
+        display: table;
+        clear: both;
+      }
+    }
+    .checkboxes {
+      margin: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      .chk {
+        flex: 0 0 20%;
+      }
+    }
+  }
+}
+
+.right {
+  display: block;
+  text-align: right;
+  width: 100%;
+  margin: 1em 0;
+  white-space: nowrap;
+  @include MQ(Mneg) {
+    margin: 0 auto;
+    text-align: center;
+    .button {
+      width: 100%;
+      margin-left: 0 !important;
+      margin-right: 0 !important;
+    }
+  }
+}
+
+.right-pdf {
+  display: block;
+  text-align: right;
+  width: 100%;
+  margin: 1em 0;
+  white-space: nowrap;
+  @include MQ(Mneg) {
+    margin: 0 auto;
+    text-align: center;
+    .button {
+      margin-left: 0 !important;
+      margin-right: 0 !important;
+    }
+  }
+}
+
+#content-main {
+  .content.booking-detail,
+  .user-profile {
+    padding-top: 2.5em;
+    .custname {
+      font-size: 30px;
+      //font-weight: 900;
+      font-family: "AvenirLTPro-Black";
+      margin-bottom: 15px;
+    }
+    .window {
+      font-size: 21px;
+    }
+    .times {
+      font-family: "AvenirLTPro-Black";
+      font-size: 21px;
+    }
+    .cancel-appt {
+      padding-top: 10px;
+      a {
+        color: $grey-dark;
+        text-transform: uppercase;
+        text-decoration: underline;
+        font-size: 14px;
+        &:hover {
+          text-decoration: none;
+          color: $accent;
+        }
+      }
+    }
+    .rev-section {
+      padding: 20px 0;
+      .section-row {
+        margin-bottom: 20px;
+        &.pet-emr-list {
+          margin-bottom: 1.5em;
+        }
+      }
+      .vacc-label{
+        font-family: AvenirLTPro-Heavy;
+        font-weight: bold;
+      }
+      .heading,
+      .subheading,
+      span {
+        color: $text;
+        &.docname {
+          color: $blue-medium;
+        }
+      }
+    }
+    label {
+      font-family: "AvenirLTPro-Heavy";
+    }
+
+    .button.bta {
+      position: relative;
+      padding-left: 65px !important;
+      i {
+        position: absolute;
+        left: 16px;
+        font-size: 19px;
+        top: 12px;
+      }
+    }
+
+    .pet-list {
+      counter-reset: petCount;
+      .pet {
+        position: relative;
+        margin: 15px 0;
+        .pet-line {
+          margin: 0 0 10px 0;
+          display: flex;
+          flex-wrap: wrap;
+          label {
+            flex: 0 0 25%;
+            &.wide {
+              flex: 0 0 100%;
+            }
+          }
+          .response {
+            flex: 0 0 75%;
+            text-transform: capitalize;
+            &.wide {
+              flex: 0 0 80%;
+              min-height: 108px;
+              text-transform: none;
+              width: calc((#{$column-width} * 5) + (#{$gutter} * 4));
+              background: $body-bg;
+              margin: 10px 0;
+              padding: 15px;
+            }
+          }
+        }
+        &:before {
+          counter-increment: petCount;
+          content: counter(petCount) ".";
+          position: absolute;
+          top: 0;
+          left: -50px;
+          font-size: 21px;
+          //font-weight: 900;
+          font-family: "AvenirLTPro-Black";
+        }
+        .name {
+          font-size: 21px;
+          //font-weight: 900;
+          font-family: "AvenirLTPro-Black";
+          margin-bottom: 15px;
+        }
+      }
+    }
+  }
+}
+
+.content.booking-detail {
+  .section-label {
+    min-width: 200px;
+  }
+  .btn-container.print {
+    margin-top: 2em;
+  }
+  .rev-section {
+    padding: 10px 0 10px !important;
+  }
+  .line {
+    padding: 0.5em;
+  }
+}
+
+.appt-reminder {
+  padding: 25px 65px;
+  box-shadow: 0 3px 15px 1px rgba(0, 0, 0, 0.1);
+  background: $white;
+  margin: 25px -85px;
+  // margin-left: -85px;
+  // margin-right: -85px;
+  //border: 1px solid $text;
+  .heading,
+  .subheading {
+    margin: 0;
+  }
+  .window {
+    font-family: "AvenirLTPro-Heavy";
+  }
+  .subheading {
+    font-family: "AvenirLTPro-Black";
+    font-size: 21px;
+    color: $teal-dark;
+    margin: 5px 0;
+  }
+  @include MQ(Mneg) {
+    padding: 20px;
+    margin: 25px 0;
+  }
+}
+
+.box {
+  position: relative;
+  border: 1px dashed $blue-dark;
+  margin: 20px 40px;
+  align-items: center;
+  justify-content: center;
+  padding: 124px 40px;
+  background: #eeeff3;
+  display: flex;
+  flex-wrap: wrap;
+  &#petRecords {
+    max-width: calc((#{$column-width} * 4) + (#{$gutter} * 3));
+    margin: 1em auto;
+    padding: 35px 0;
+
+    .infofile {
+      display: block;
+      width: 100%;
+      text-align: center;
+    }
+    .infobutton {
+      width: 100%;
+      display: block;
+      text-align: center;
+      .button {
+        margin: 1em 0 0;
+      }
+    }
+    i.icon-file_upload {
+      font-size: 20px;
+      color: $white;
+      padding: 7px;
+      margin: 0 20px;
+      border-radius: 50px;
+      background: $blue-medium;
+    }
+    label {
+      cursor: pointer;
+      font-family: "AvenirLTPro-Roman";
+      font-size: 18px;
+    }
+    .browse {
+      text-decoration: underline;
+      cursor: pointer;
+      font-family: "AvenirLTPro-Heavy";
+      &:hover {
+        color: $blue-medium;
+      }
+    }
+    // .petEMRupload {
+    //   display: block;
+    //   margin: 0px auto 0;
+    //  }
+  }
+  &#pets {
+    width: calc((#{$column-width} * 2) + (#{$gutter} * 2));
+    display: flex;
+    cursor: pointer;
+    .icon-photo {
+      flex: 1;
+      opacity: 0.5;
+      font-size: 44px;
+      margin-right: 10px;
+      color: $blue-medium;
+    }
+    label {
+      flex: 0 0 50%;
+      cursor: pointer;
+    }
+  }
+}
+
+form.addl-pets {
+  display: flex;
+  flex-wrap: wrap;
+  max-width: 100%;
+  margin: 0;
+  margin-top: 10px;
+  .box {
+    flex: 0 0 250px;
+    max-width: 250px;
+    // padding: 124px 40px;
+    // max-height: 250px;
+    margin: 30px 40px;
+  }
+  @include MQ(Mneg) {
+    padding-left: 0 !important;
+  }
+}
+
+.pet-inputrow,
+.form-inputrow {
+  display: flex;
+  flex-wrap: wrap;
+  .input-item {
+    flex: 1;
+    margin-bottom: calc(#{$gutter} / 2);
+    &.grow {
+      flex: 2;
+    }
+  }
+  .input-item + .input-item {
+    margin-left: $gutter;
+  }
+  select,
+  input {
+    max-height: 40px;
+  }
+  @include MQ(Mneg) {
+    .input-item {
+      flex: 0 0 100%;
+      &.grow {
+        flex: 0 0 100%;
+      }
+    }
+    .input-item + .input-item {
+      margin-left: 0;
+    }
+  }
+}
+.career-form,
+.contact-form,
+.testimonial-form {
+  max-width: 100%;
+  margin: 1em auto;
+  label {
+    font-family: "AvenirLTPro-Heavy";
+  }
+  .input,
+  select {
+    margin: 2em 0 0 !important;
+    width: 100% !important;
+  }
+  .button {
+    margin: 1em;
+  }
+  .form__label {
+    padding: 0.15em 0.5em 0 !important;
+  }
+  label + em {
+    font-size: 14px;
+  }
+}
+
+.contact-form {
+  select {
+    margin-top: 0em !important;
+  }
+}
+
+.cancelCreatePet {
+  text-transform: uppercase;
+  text-decoration: underline !important;
+  font-size: 14px;
+  padding: 0 50px;
+}
+
+.center {
+  text-align: center;
+  margin: 0 auto;
+  width: 100%;
+  display: block;
+  .icon-check-circle {
+    color: $teal-dark;
+    font-size: 64px;
+  }
+}
+
+.hidden {
+  display: none !important;
+}
+
+.zip-list {
+  padding: 10px 0;
+  display: flex;
+  flex-wrap: wrap;
+  max-width: calc((#{$column-width} * 4) + (#{$gutter} * 3));
+  a {
+    flex: 0 0 20%;
+    font-size: 21px;
+    margin: 6px 0;
+    //font-family: 'AvenirLTPro-Medium';
+    //font-weight: 900;
+    font-family: "AvenirLTPro-Black";
+  }
+  @include MQ(Mneg) {
+    a {
+      text-align: center;
+      flex: 0 0 50%;
+    }
+  }
+}
+
+.form-container {
+  background: $body-bg;
+  padding: 56px 0;
+  .container {
+    position: relative;
+    width: 842px;
+    margin: 0 auto;
+    padding: 17px 85px;
+    background: $white;
+    overflow: hidden;
+    z-index: 999;
+    @include MQ(Mneg) {
+      width: 100%;
+      padding: 17px 20px;
+    }
+    &.pawprint {
+      min-height: 195px;
+      &:before {
+        // content: "\e907";
+        // font-family: icomoon;
+        content: "";
+        position: absolute;
+        bottom: 20px;
+        left: 20px;
+        //transform: rotateZ(-30deg);
+        //color: #BEE1F4;
+        // font-size: 220px;
+        opacity: 0.1;
+        z-index: -1;
+        width: 120px;
+        height: 120px;
+        background: url("https://s3.amazonaws.com/vetterpc-images/vetter_logo_forms.png
+    ")
+          bottom left no-repeat;
+        background-size: 100% auto;
+      }
+      .btn-container {
+        text-align: right;
+        .button {
+          margin-right: 0 !important;
+        }
+      }
+    }
+  }
+  .subheading {
+    color: $teal-dark;
+    font-family: "AvenirLTPro-Black";
+    margin-bottom: 0;
+    z-index: 10;
+  }
+  h5 {
+    z-index: 10;
+  }
+  .form.ziprequest form {
+    margin: 1em 0;
+    display: flex;
+    z-index: 10;
+    flex-wrap: wrap;
+    label {
+      display: none;
+      z-index: 10;
+    }
+    em {
+      font-family: "AvenirLTPro-Heavy";
+      font-style: normal;
+      display: block;
+      margin-bottom: 10px;
+      z-index: 10;
+    }
+    .form-field {
+      //flex: 4;
+      flex: 0 0 50%;
+      max-width: calc((#{$column-width} * 3) + (#{$gutter} * 2));
+      z-index: 10;
+      .input--yoshiko {
+        margin: 2em 0 !important;
+      }
+      @include MQ(Mneg) {
+        flex: 0 0 100%;
+        max-width: 100%;
+      }
+    }
+    .g-recaptcha {
+      flex: 1;
+      @include MQ(Mneg) {
+        flex: 0 0 100%;
+        max-width: 100%;
+        & > div {
+          margin: 0.5em 0 1em;
+        }
+      }
+    }
+    .form-submit {
+      flex: 0 0 100%;
+      //margin-left: 87px;
+      padding-right: 20px;
+      text-align: right;
+      .button {
+        margin: 0 !important;
+      }
+    }
+  }
+}
+
+#content-main.wide .page-team {
+  webkit-transition: height 0.5s;
+  transition: height 0.5s;
+  .content,
+  h1 {
+    max-width: 924px;
+  }
+  .content {
+    position: relative;
+    p {
+      max-width: $text-width;
+    }
+  }
+
+  span.certi {
+    text-transform: uppercase;
+  }
+
+  a {
+    position: relative;
+    // color: $text;
+    cursor: pointer;
+    &:hover {
+      color: $blue-medium;
+    }
+  }
+  img {
+    width: 100%;
+    height: auto;
+    opacity: 1;
+    cursor: pointer !important;
+    -webkit-transition: opacity 0.5s;
+    transition: opacity 0.5s;
+  }
+  .staff-content {
+    display: none;
+    font-family: "AvenirLTPro-Medium";
+    background-color: $body-bg;
+    // margin-left: calc(-(#{$column-width} + #{$gutter}));
+    // margin-right: calc(-(#{$column-width} + #{$gutter}));
+    margin-left: -140px;
+    margin-right: -140px;
+    position: absolute;
+    padding: 35px 140px;
+    padding-bottom: 40px;
+    z-index: 1;
+    //float: left;
+    .edu-container {
+      display: block;
+      margin: 5px 0;
+    }
+    .staff-head-container {
+      h1 {
+        float: left;
+        padding: 0 !important;
+      }
+      @include MQ(Mneg) {
+        padding: 0;
+        width: 95%;
+        h1 {
+          margin-bottom: 0.5em;
+        }
+      }
+    }
+    .staff-rating {
+      .title {
+        float: left;
+        margin: 3px 25px 0px 0;
+      }
+      .ratings {
+        float: left;
+        .sr-star {
+          font-size: 18px;
+          margin: 0 5px 0 0;
+
+          &.sr-user-rating {
+            .fa-star {
+              color: $accent;
+            }
+          }
+          &.sr-avg-rating {
+            .fa-star {
+              color: $accent;
+            }
+          }
+          &.sr-unrated {
+            color: $text;
+          }
+
+          &.sr-unrated {
+            .fa-star-o {
+              color: $text;
+              &::before {
+                content: "\f005";
+              }
+            }
+          }
+        }
+      }
+    }
+    .bio-stuff {
+      display: flex;
+      flex-wrap: wrap;
+      margin: 15px 0;
+
+      .photo-wrapper {
+        flex: 1;
+        max-width: 387px;
+        img {
+          width: 100%;
+          height: auto;
+        }
+        @include MQ(Mneg) {
+          flex: 0 0 100%;
+          margin: 0 auto;
+          max-width: 100%;
+        }
+      }
+      .bio-wrapper {
+        flex: 1;
+        padding-left: 33px;
+        @include MQ(Mneg) {
+          flex: 0 0 100%;
+          padding-left: 0;
+        }
+      }
+    }
+    .title {
+      color: $teal-dark;
+      font-size: 14px;
+      text-transform: uppercase;
+      font-family: AvenirLTPro-Black;
+      display: block;
+      &.funf {
+        margin-top: 1em;
+      }
+      @include MQ(Mneg) {
+        margin-top: 1.5em;
+      }
+    }
+    .x-out {
+      width: 30px;
+      height: 30px;
+      font-size: 40px;
+      font-family: "icomoon" !important;
+      float: right;
+      cursor: pointer !important;
+      margin-right: -32px;
+
+      &:before {
+        content: "\e903";
+        color: $text;
+      }
+      &:hover:before {
+        color: $accent;
+      }
+      @include MQ(Mneg) {
+        margin-right: 0;
+        font-size: 30px;
+        height: 40px;
+      }
+    }
+    @include MQ(Mneg) {
+      margin-left: 0;
+      margin-right: 0;
+      padding: 20px;
+      left: 0;
+    }
+  }
+  .opacity-2 {
+    opacity: 0.2;
+  }
+
+  .staff-testimonials {
+    width: 100%;
+    background: $white;
+    margin-top: 20px;
+    padding: 30px 140px 20px;
+    @include MQ(Mneg) {
+      padding: 30px 50px 20px;
+    }
+    .quote {
+      display: block;
+      font-family: AvenirLTPro-Black;
+      font-size: 19px;
+      color: $teal-dark;
+      position: relative;
+      &:before {
+        content: "\201C";
+        font-family: AvenirLTPro-Roman;
+        color: $text;
+        font-size: 54px;
+        line-height: 1;
+        position: absolute;
+        top: -12px;
+        left: -36px;
+      }
+    }
+    .byline {
+      display: block;
+      font-family: AvenirLTPro-Oblique;
+      text-align: right;
+    }
+  }
+
+  #content {
+    width: 100%;
+    margin: 2em auto 0 5px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    @include MQ(Mneg) {
+      margin: 2em 0 0 0;
+    }
+
+    .boxy {
+      color: #212121;
+      margin-right: 15px;
+      margin-left: 15px;
+      position: relative;
+      //float: left;
+      //width: 30%;
+      flex: 0 0 30%;
+      margin-bottom: 30px;
+      .staff-name {
+        font-family: AvenirLTPro-Heavy;
+        color: $text;
+        span.certi {
+          text-transform: uppercase;
+        }
+      }
+      img {
+        width: 100%;
+        max-width: 250px;
+        opacity: 1;
+        cursor: pointer !important;
+        -webkit-transition: opacity 0.5s;
+        transition: opacity 0.5s;
+      }
+      .overlay {
+        display: none;
+        width: 100%;
+        height: 100%;
+        max-width: 250px;
+        max-height: 250px;
+        cursor: pointer;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background-color: rgba(107, 117, 131, 0.62);
+      }
+      &:hover {
+        .overlay {
+          display: block;
+        }
+      }
+      @include MQ(Mneg) {
+        flex: 0 0 100%;
+        margin-left: 0;
+        margin-right: 0;
+        img,
+        .overlay {
+          max-width: inherit;
+          max-height: inherit;
+        }
+        &:hover {
+          .overlay {
+            display: none;
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (pointer: fine) {
+  .boxy {
+    .overlay {
+      display: none;
+    }
+    &:hover {
+      .overlay {
+        display: block;
+      }
+    }
+  }
+}
+
+.content.calendar-pages {
+  max-width: $cal-width !important;
+  h1 {
+    max-width: $cal-width !important;
+  }
+
+  .calintro {
+    margin-bottom: 1.5em;
+    max-width: $content-width !important;
+  }
+  .calmobintro {
+    display: none;
+    margin-bottom: 1.5em;
+    max-width: $content-width !important;
+    @include MQ(Mneg) {
+      display: block;
+    }
+  }
+
+  .btn-container {
+    padding: 20px 0;
+    .button {
+      &:nth-of-type(1) {
+        float: left;
+        margin-left: 0 !important;
+      }
+      &:nth-of-type(2) {
+        float: right;
+        margin-right: 0 !important;
+      }
+    }
+  }
+
+  input[type="radio"],
+  input[type="checkbox"] {
+    width: 24px !important;
+    margin: initial !important;
+  }
+  select {
+    margin: 0 !important;
+    min-width: 150px !important;
+  }
+}
+
+.saved-card-info {
+  background: $grey-light;
+  //margin: 60px 20px 20px 20px;
+  margin: 0px auto 20px auto;
+  color: $blue-dark;
+  max-width: calc((#{$column-width} * 4) + (#{$gutter} * 4));
+  border-left: 7px solid $blue-dark;
+  padding: 15px 40px 15px;
+  padding-left: 100px;
+  display: flex;
+  position: relative;
+  h4 {
+    position: absolute;
+    top: -50px;
+    left: -8px;
+    color: $text;
+  }
+  .saved-info {
+    flex: 1;
+  }
+  .saved-card {
+    padding: 10px 0;
+    position: relative;
+    &:before {
+      position: absolute;
+      top: 3px;
+      left: -60px;
+      font-size: 22px;
+      content: "\e906";
+      font-family: "icomoon";
+      color: $grey-dark;
+    }
+  }
+}
+
+.edit-link {
+  flex: 1;
+  text-align: right;
+  a {
+    color: $blue-medium;
+    text-transform: uppercase;
+  }
+}
+
+.discount {
+  margin-bottom: 1em;
+}
+
+span.table_label.sortable {
+  position: relative;
+  cursor: pointer;
+  &.sortable:after {
+    position: absolute;
+    top: 45%;
+    content: "";
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+  }
+  &.sortable[data-order="asc"]:after {
+    border-top: 5px solid $blue-dark;
+  }
+
+  &.sortable[data-order="desc"]:after {
+    border-bottom: 5px solid $blue-dark;
+  }
+}
+
+.page-faqs {
+  .content {
+    padding: 0 !important;
+  }
+  h1 {
+    padding-top: 1.5em !important;
+    max-width: $total-width !important;
+    margin: 0 auto !important;
+    padding-left: 150px !important;
+    @include MQ(Mneg) {
+      max-width: 100% !important;
+      padding: 1.5em 20px 0 !important;
+    }
+  }
+  .container {
+    margin: 0 auto;
+    //max-width: calc((#{$column-width} * 7) + (#{$gutter} * 6)) !important;
+    max-width: $total-width;
+    padding: 50px 150px;
+    background: $white;
+    @include MQ(Mneg) {
+      max-width: 100%;
+      padding: 50px 20px;
+    }
+  }
+  .container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    h4 {
+      color: $teal-dark;
+      & + .question .question-title {
+        border-top: 0;
+      }
+    }
+    aside {
+      flex: 0 0 20%;
+      a {
+        display: block;
+        color: $text;
+        margin-bottom: 10px;
+      }
+    }
+    .question + h4 {
+      padding-top: 1em;
+    }
+    .faq-holder {
+      flex: 0 0 80%;
+      @include MQ(Mneg) {
+        flex: 0 0 100%;
+        margin-top: 1.5em;
+      }
+    }
+  }
+}
+
+.picture {
+  max-width: 250px;
+  max-height: 250px;
+  min-height: 250px;
+  overflow: hidden;
+  img {
+    // width: 100%;
+    // height: auto;
+    height: 250px;
+    width: auto;
+  }
+}
+
+.vetProfile,
+.petProfile {
+  position: relative;
+  max-width: 250px;
+  &:hover {
+    .overlay {
+      display: block;
+    }
+  }
+
+  .overlay {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 250px;
+    height: 250px;
+    border-radius: 0px;
+    padding: 85px 25px;
+    background: rgba(0, 0, 0, 0.3);
+  }
+  .button label {
+    z-index: 2;
+    color: $white;
+    text-align: center;
+    vertical-align: center;
+    display: block;
+    border-radius: 100px;
+    text-transform: uppercase;
+    font-size: 14px;
+    padding: 8px 14px;
+    border: 1.5px solid $white;
+    cursor: pointer;
+    &:hover {
+      background: $white;
+      color: $text;
+    }
+  }
+  #pets {
+    .overlay {
+      border-radius: 0;
+      height: 100%;
+      padding: 33% 20%;
+    }
+  }
+}
+
+.pet_dragandrophandler {
+  border: 0;
+  margin: 0 0 16px 0 !important;
+  padding: 0;
+  background: transparent;
+  width: 250px !important;
+  .picture {
+    width: 250px;
+    height: auto;
+    min-height: 250px;
+    overflow: hidden;
+  }
+
+  .overlay {
+    border-radius: 0;
+    padding: 43% 20%;
+    height: 100%;
+  }
+
+  @include MQ(Mneg) {
+    margin: 0 auto 16px auto !important;
+  }
+}
+
+.page-rate {
+  .staff-name {
+    font-family: AvenirLTPro-Heavy;
+    color: $text;
+  }
+
+  .ratevet {
+    margin-top: 10px;
+    margin-bottom: 10px;
+
+    .sr-ratable {
+      font-size: 40px;
+      margin: 10px 5px;
+      &.sr-user-rating {
+        color: $accent;
+      }
+      &.sr-unrated {
+        color: $text;
+      }
+    }
+
+    &.unrated {
+      .sr-ratable {
+        color: $text;
+        .fa-star,
+        i,
+        .fa-star-o {
+          color: $text;
+          &:before {
+            content: "\f006";
+          }
+        }
+
+        &.sr-user-rating,
+        &.sr-unrated {
+          color: $text;
+        }
+      }
+    }
+
+    //  .sr-star {
+    //    font-size: 40px;
+    //    margin: 10px 5px;
+    //    color: $accent;
+    //    &.sr-user-rating {
+    //     color: $accent;
+    //    .fa-star, .fa-star-o {
+    //      color: $accent;
+    //      &:before {
+    //           content: "\f005";
+    //      }
+    //    }
+    //   }
+    //    &.sr-avg-rating  {
+    //     color: $accent;
+    //     .fa-star, .fa-star-o {
+    //      color: $accent;
+    //      &:before {
+    //           content: "\f005";
+    //      }
+    //     }
+    //    }
+    //    &.sr-unrated {
+    //     color: $text;
+    //     .fa-star, .fa-star-o {
+    //      color: $text;
+    //      &:before {
+    //           content: "\f005";
+    //      }
+    //     }
+    //    }
+    //  }
+  }
+}
+
+.page-areas-served {
+  position: relative;
+  .form-container {
+    position: relative;
+    // &:after {
+    //  display: block;
+    //  content: '';
+    //  background: url('https://s3.amazonaws.com/vetterpc-images/vet_humbolt_sketch.png') right bottom 20px no-repeat;
+    //  height: 70%;
+    //  position: absolute;
+    //  right: 25%;
+    //  top: -70%;
+    //  width: 164px;
+    //  background-size: contain;
+    //  @include MQ(Mneg) {
+    //   display: none;
+    //  }
+    // }
+    &.skyline {
+      background: url("https://s3.amazonaws.com/vetterpc-images/areasserved_skyline.jpg")
+        center center no-repeat;
+      background-size: cover;
+      @include MQ(Mneg) {
+        background-image: none;
+      }
+    }
+  }
+}
+
+.page-reset-password,
+.page-setpassword {
+  padding: 0;
+  .cell {
+    min-height: 40vh;
+  }
+  h2 {
+  }
+  .content {
+    padding: 20px 50px 0;
+    p.centered-block {
+      margin-bottom: 30px;
+      line-height: 1.3;
+      text-align: left;
+    }
+  }
+  .input--yoshiko {
+    margin: 1em 0;
+  }
+  input.button {
+    margin: 1em auto;
+  }
+}
+
+/* Add Animation */
+@-webkit-keyframes animatetop {
+  from {
+    top: -300px;
+    opacity: 0;
+  }
+  to {
+    top: 0;
+    opacity: 1;
+  }
+}
+
+@keyframes animatetop {
+  from {
+    top: -300px;
+    opacity: 0;
+  }
+  to {
+    top: 0;
+    opacity: 1;
+  }
+}
+
+@-webkit-keyframes animateright {
+  from {
+    left: -300px;
+    opacity: 0;
+  }
+  to {
+    top: 0;
+    opacity: 1;
+  }
+}
+
+@keyframes animateright {
+  from {
+    left: -300px;
+    opacity: 0;
+  }
+  to {
+    top: 0;
+    opacity: 1;
+  }
+}
+
+@keyframes popup {
+  from {
+    -webkit-transform: scale(0.7);
+    -moz-transform: scale(0.7);
+    -ms-transform: scale(0.7);
+    transform: scale(0.7);
+    opacity: 0;
+    -webkit-transition: all 0.3s;
+    -moz-transition: all 0.3s;
+    transition: all 0.3s;
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1001; /* Sit on top */
+  padding-top: 130px; /* Location of the box */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  /*overflow: auto; /* Enable scroll if needed */
+  // overflow-y:hidden;
+  overflow-y: auto;
+  background-color: $modal-dark; /* Fallback color */
+  background-color: rgba($modal-dark, 0.55); /* Black w/ opacity */
+  .modal-header {
+    h2 {
+      margin-top: 0;
+    }
+    .tos-Modal-close {
+      position: absolute;
+      right: 15px;
+      top: 10px;
+      cursor: pointer;
+      i {
+        font-size: 23px;
+        color: $text;
+      }
+      &:hover {
+        i {
+          color: $accent;
+        }
+      }
+    }
+  }
+  /* Modal Content */
+  .modal-content {
+    position: relative;
+    background-color: $white;
+    margin: auto;
+    padding: 25px calc(#{$column-width});
+    width: calc((#{$column-width} * 7) + (#{$gutter} * 6));
+    max-height: 500px;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    -webkit-animation-name: popup;
+    -webkit-animation-duration: 0.4s;
+    animation-name: popup;
+    animation-duration: 0.4s;
+    .tos-modal-body {
+      overflow-y: scroll;
+      max-height: 350px;
+      padding: 0 20px 10px 0;
+    }
+  }
+  @include MQ(Mneg) {
+    width: 100%;
+    padding-top: 0;
+    .modal-content {
+      width: 100%;
+      padding: 10px;
+      margin-top: 90px;
+      height: 80%;
+      max-height: 90%;
+      overflow: hidden;
+      .tos-modal-body {
+        max-height: 90%;
+      }
+    }
+  }
+}
+
+.discount-container {
+  margin: 20px 0;
+}
+
+.cancel-summary {
+  margin-bottom: 1.5em;
+}
+
+.page.home-container,
+.testimonials-page {
+  position: relative;
+  max-width: 100%;
+  padding: 0 !important;
+  .container {
+    max-width: $total-width;
+    margin: 0 auto;
+  }
+  .hideme {
+    opacity: 0;
+  }
+  a.button {
+    position: relative;
+    span {
+      position: absolute;
+      top: 3px;
+      padding-left: 1px;
+    }
+  }
+  .home-splash {
+    position: relative;
+    min-height: 680px;
+    @include MQ(Mneg) {
+      min-height: 410px;
+      background-position: left 30% top !important;
+      background-attachment: scroll !important;
+    }
+
+    h1 {
+      padding: 0;
+    }
+    #header {
+      background: rgba($white, 0.65);
+      z-index: 4;
+      nav {
+        li ul {
+          background: rgba($white, 0.65);
+        }
+      }
+    }
+    .overlay {
+      z-index: 2;
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.3);
+    }
+    .tagline {
+      z-index: 4;
+      max-width: calc((#{$column-width} * 5) + (#{$gutter} * 4));
+      margin: 0 auto;
+      padding-top: 165px;
+      text-align: center;
+      color: $white;
+      .btn-container {
+        z-index: 5;
+        margin-top: 70px;
+      }
+      .header,
+      .subheader {
+        z-index: 5;
+      }
+      .heading {
+        font-family: "AvenirLTPro-Black";
+        font-size: 52px;
+        font-weight: normal;
+        line-height: 70px;
+        margin: 0;
+      }
+
+      .subheading {
+        font-family: "AvenirLTPro-Heavy";
+        font-size: 23px;
+        line-height: 42px;
+        //font-weight: 600;
+        margin: 0;
+      }
+      p {
+        font-family: "AvenirLTPro-Roman";
+        font-size: 19px;
+      }
+      a.button {
+        position: relative;
+        color: $white;
+        background-color: transparent;
+        border-color: $white;
+        span {
+          color: $white;
+          position: absolute;
+          top: 3px;
+          padding-left: 1px;
+        }
+        &:hover {
+          background-color: $white;
+          border-color: $white;
+          color: $text;
+          text-decoration: none;
+          span {
+            color: $text;
+          }
+        }
+      }
+      @include MQ(Mneg) {
+        padding-top: 50px;
+        padding: 20px;
+        padding-top: 140px;
+        a.button {
+          margin-left: 0;
+          margin-right: 0;
+        }
+        .heading,
+        .subheading {
+          line-height: 1.2;
+        }
+      }
+      @include MQ(Mneg) {
+        padding-bottom: 40px;
+        //padding: 100px 20px 40px 20px;
+        .btn-container {
+          margin-top: 40px;
+        }
+        .heading {
+          line-height: 1.1;
+          font-size: 30px;
+        }
+        .subheading {
+          margin-top: 0.5em;
+          font-size: 20px;
+          & + p {
+            margin-top: 1em;
+            font-size: 16px;
+          }
+        }
+      }
+    }
+  }
+  .need-a-vet,
+  .home-tests,
+  .test-page {
+    background: $body-bg;
+    padding: 52px 0;
+
+    h3,
+    h2 {
+      display: block;
+      text-align: center;
+      margin-top: 0;
+      font-size: 29px;
+    }
+    h4.subheading {
+      margin-top: 15px;
+      margin-bottom: 10px;
+      color: $teal-dark;
+      font-size: 20px;
+      line-height: 28px;
+    }
+    .cell {
+      i {
+        font-size: 40px;
+        line-height: 1;
+        color: $teal-dark;
+      }
+      &.teal {
+        padding: 30px;
+        background: $teal-dark;
+        //max-width: calc((#{$column-width} * 3) + (#{$gutter} * 2));
+        & + .teal {
+          margin-left: $gutter;
+        }
+      }
+      @include MQ(Mneg) {
+        flex: 0 0 100%;
+        margin-bottom: 1em;
+        padding: 0 20px;
+      }
+    }
+    .btn-container {
+      margin-top: 25px;
+    }
+    @include MQ(Mneg) {
+      h3 {
+        font-size: 24px;
+        line-height: 1.2;
+      }
+    }
+  }
+  .home-tests,
+  .test-page {
+    .testimage {
+      max-width: 130px;
+      max-height: 130px;
+      overflow: hidden;
+      border-radius: 500px;
+      display: block;
+      margin: 0 auto 20px;
+      img {
+        width: auto;
+        height: 130px;
+        min-height: 130px;
+        border-radius: 500px;
+      }
+    }
+    p {
+      color: $white;
+      font-size: 20px;
+      display: inherit;
+    }
+    .quocontain {
+      // quotes: '\201c' '\201d';
+      color: $white;
+      text-align: left;
+      padding: 0 5px;
+      font-size: 21px;
+      font-family: "AvenirLTPro-Medium";
+      span {
+        color: $text;
+      }
+    }
+    hr {
+      border-top: 1px solid $blue-dark;
+      width: 60px;
+      border-style: solid;
+      margin: 15px auto;
+    }
+    cite {
+      display: block;
+      text-align: center;
+      font-style: normal;
+      margin-top: 1em;
+      p {
+        font-size: 19px;
+        text-align: center;
+      }
+    }
+    .tesbtn {
+      padding-top: 20px;
+      display: block;
+      .button {
+        max-width: 145px;
+        margin: 2em auto;
+        display: block;
+      }
+    }
+    @include MQ(Mneg) {
+      padding: 52px 20px;
+      .cell.teal + .cell.teal {
+        margin-left: 0;
+      }
+    }
+  }
+  .corgi {
+    background: url("https://s3.amazonaws.com/vetterpc-images/corgi_window.jpg")
+      top center no-repeat;
+    padding: 180px 0px 125px 0;
+    min-height: 440px;
+
+    .sarea {
+      float: right;
+      color: $white;
+      width: calc((#{$column-width} * 4) + (#{$gutter} * 3));
+      margin-right: calc((#{$column-width}) + (#{$gutter}));
+      h3 {
+        font-size: 29px;
+        line-height: 36px;
+        margin-bottom: 10px;
+        margin-right: calc((#{$column-width}) + (#{$gutter}));
+      }
+      p {
+        font-size: 19px;
+        margin-right: 1em;
+      }
+      a {
+        color: $white;
+      }
+    }
+    @include MQ(Mneg) {
+      background-position: top center;
+      padding: 20px;
+      min-height: 200px;
+      background-size: cover;
+      .sarea {
+        width: 100%;
+        padding: 0px;
+        margin: 0 auto;
+        float: none;
+        h3 {
+          margin-right: 1em;
+        }
+      }
+    }
+  }
+}
+
+#content-main.wide .page-testimonials {
+  .content,
+  h1 {
+    // max-width: 924px;
+    max-width: 1200px;
+  }
+  .testimonials-page {
+    .test-page {
+      background: transparent;
+    }
+    hr {
+      margin-bottom: 10px;
+    }
+    cite {
+      font-family: "AvenirLTPro-Black";
+      font-size: 19px;
+      color: $white;
+    }
+    .infot {
+      padding: 10px 0;
+      p {
+        font-size: 16px;
+      }
+    }
+    .quocontain {
+      font-size: 16px;
+    }
+    .grid {
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      .cell {
+        width: 30%;
+        margin: 15px;
+        flex: 1 1 30%;
+        max-width: 30%;
+        & + .cell {
+          margin: 15px;
+        }
+      }
+      @include MQ(Mneg) {
+        .cell {
+          flex: 1 1 100%;
+          max-width: 100%;
+          width: 100%;
+        }
+      }
+    }
+  }
+  .btn-container {
+    margin-top: 30px;
+    &.onbot {
+      margin-bottom: 50px;
+    }
+  }
+}
+
+.emergency {
+  background: $white;
+  padding: 52px 0;
+
+  h3 {
+    font-size: 29px;
+    color: $teal-dark;
+    margin: 10px 0;
+  }
+  .grid {
+    flex-wrap: wrap;
+    .cell:not(.full) {
+      margin-top: 63px;
+      max-width: 285px;
+      @include MQ(Mneg) {
+        margin-top: 0;
+        max-width: 100%;
+      }
+    }
+    .cell {
+      &.half {
+        flex: 0 1 50%;
+        font-size: 19px;
+        max-width: initial;
+        flex-grow: 2;
+      }
+      &.full {
+        flex: 0 1 100%;
+        max-width: initial;
+        flex-grow: 2;
+        p {
+          max-width: 65%;
+          @include MQ(Mneg) {
+            max-width: 100%;
+          }
+        }
+      }
+      @include MQ(Mneg) {
+        flex: 0 0 100%;
+        margin-bottom: 1em;
+        padding: 0 20px;
+        p {
+          max-width: 100%;
+        }
+      }
+    }
+  }
+}
+
+.meds {
+  padding: 115px 0px 35px 0;
+  min-height: 400px;
+  .container {
+    max-width: $total-width;
+    margin: 0 auto;
+  }
+  .marea {
+    float: left;
+    color: $white;
+    width: calc((#{$column-width} * 4) + (#{$gutter} * 3));
+    margin-left: calc((#{$column-width}) + (#{$gutter}));
+    h3 {
+      font-size: 29px;
+      line-height: 36px;
+      margin-bottom: 10px;
+    }
+    p {
+      font-size: 19px;
+    }
+    a {
+      color: $white;
+    }
+  }
+  @include MQ(Mneg) {
+    min-height: 200px;
+    padding: 0;
+    .marea {
+      width: 100%;
+      padding: 20px;
+      margin: 0 auto;
+      float: none;
+    }
+    p {
+      font-size: 16px !important;
+    }
+  }
+}
+
+em.teal {
+  color: $teal-dark;
+  font-style: normal;
+}
+
+.humboldt {
+  background: url("https://s3.amazonaws.com/vetterpc-images/home_introbg.jpg")
+    top center no-repeat;
+  background-size: cover;
+  padding: 40px 0;
+  .container {
+    max-width: $total-width;
+    margin: 0 auto;
+    @include MQ(Mneg) {
+      padding: 0 20px;
+      max-width: 100%;
+    }
+  }
+  .plusq {
+    margin-left: 45px;
+    font-size: 26px;
+    line-height: 33px;
+    margin-bottom: 20px;
+    font-family: "AvenirLTPro-Heavy";
+    max-width: calc((#{$column-width} * 4) + (#{$gutter} * 3));
+    position: relative;
+    &:before {
+      position: absolute;
+      left: -40px;
+      font-size: 20px;
+      font-weight: bold;
+      content: "\e911";
+      font-family: "icomoon" !important;
+      color: $accent;
+    }
+    & + .plusq {
+      margin-left: calc((#{$column-width}));
+      padding-bottom: 35px;
+      &:after {
+        content: "";
+        background: $teal-dark;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        width: 100px;
+      }
+    }
+  }
+  .harea {
+    color: $text;
+    width: calc((#{$column-width} * 6) + (#{$gutter} * 5));
+    margin-left: calc((#{$column-width}) + (#{$gutter}));
+    h1 {
+      font-size: 38px;
+      line-height: 52px;
+      margin: 0;
+      padding: 0 !important;
+      position: relative;
+      &:before {
+        position: absolute;
+        left: -50px;
+        transform: rotateZ(-30deg);
+        font-size: 30px;
+        content: "\e907";
+        font-family: "icomoon" !important;
+        color: $teal-dark;
+        @include MQ(Mneg) {
+          left: -30px;
+          top: -2px;
+        }
+      }
+    }
+    h4 {
+      font-size: 21px;
+    }
+    p {
+      font-size: 19px;
+      line-height: 28px;
+      width: calc((#{$column-width} * 4) + (#{$gutter} * 3));
+      .teal {
+        font-family: "AvenirLTPro-Heavy";
+      }
+      @include MQ(Mneg) {
+        width: 100%;
+        font-size: 17px;
+        line-height: 26px;
+      }
+    }
+  }
+  @include MQ(Mneg) {
+    width: 100%;
+    .plusq {
+      font-size: 20px;
+      line-height: 26px;
+      & + .plusq {
+        margin-left: 45px;
+      }
+    }
+    .harea {
+      width: 100%;
+      padding: 20px;
+      margin: 0 auto;
+      h1 {
+        font-size: 26px;
+        line-height: 28px;
+        padding: 0 !important;
+        &:before {
+          font-size: 20px;
+        }
+      }
+      h4 {
+        font-size: 20px;
+        line-height: 1.2;
+      }
+    }
+  }
+}
+
+.jointeam {
+  background: url("https://s3.amazonaws.com/vetterpc-images/joinOurTeam_cat.jpg")
+    top center no-repeat;
+  background-size: cover;
+  padding: 185px 0 87px 0;
+  min-height: 400px;
+  .container {
+    max-width: $total-width;
+    margin: 0 auto;
+  }
+  .jarea {
+    float: left;
+    color: $white;
+    width: calc((#{$column-width} * 4) + (#{$gutter} * 4));
+    margin-left: calc((#{$column-width}) + (#{$gutter}));
+    h3 {
+      font-size: 29px;
+      line-height: 36px;
+      margin-bottom: 10px;
+      position: relative;
+    }
+    .jointext {
+      font-size: 19px;
+    }
+    a {
+      color: $white;
+      font-weight: normal;
+      i {
+        position: absolute;
+        // visibility: hidden;
+        cursor: pointer;
+        margin-left: 15px;
+        max-width: 37px;
+        max-height: 37px;
+        top: -3px;
+        // border: 1.5px solid $white;
+        // border-radius: 100px;
+        &:before {
+          font-size: 29px;
+          padding: 0px 4px;
+          line-height: 1.4;
+        }
+      }
+      &:visited,
+      &:hover {
+        color: $white !important;
+      }
+    }
+  }
+  @include MQ(Mneg) {
+    padding: 0px;
+    min-height: 200px;
+    .jarea {
+      width: 100%;
+      padding: 20px;
+      margin: 0 auto;
+      float: none;
+      .jointext {
+        font-size: 16px;
+      }
+    }
+  }
+}
+
+.page-new-kitten {
+  .content {
+    position: relative;
+    &:before {
+      display: block;
+      content: "";
+      background: url("https://s3.amazonaws.com/vetterpc-images/catvet_sketch.png")
+        center top 20px no-repeat;
+      position: absolute;
+      top: 0;
+      left: 100%;
+      width: 164px;
+      height: 300px;
+      z-index: 9999;
+      background-size: contain;
+    }
+  }
+  @include MQ(Mneg) {
+    .content {
+      &:before {
+        display: none;
+      }
+    }
+  }
+}
+
+.dayHead {
+  span {
+    display: block;
+    &.day {
+      font-size: 15px;
+      font-family: AvenirLTPro-Roman;
+    }
+    &.date {
+      font-size: 21px;
+      font-family: AvenirLTPro-Black;
+    }
+  }
+}
+
+.receipt-list {
+  display: block;
+  width: 100%;
+
+  .receipts {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 15px 0 10px;
+    &:nth-child(n + 3) {
+      border-bottom: 1px solid #979797;
+    }
+    &:last-child {
+      border-bottom: 0px;
+    }
+    & > * {
+      flex: 1;
+      margin: 0 5px;
+    }
+    a {
+      line-height: 1.9;
+    }
+    i {
+      font-size: 26px;
+      max-width: 40px;
+    }
+    & > .hbook {
+      flex: 1 1 100%;
+      a {
+        margin-left: 10px;
+      }
+    }
+  }
+}
+
+.payment-container {
+  margin: 1.5em 0;
+  // border-bottom: 1px solid #d3d3d3;
+  // border-top: 1px solid #d3d3d3;
+}
+
+#content-main.wide {
+  .content.special {
+    li {
+      margin: 0.5em 0;
+    }
+    h2.spec-header {
+      position: relative;
+      margin-bottom: 15px;
+      i {
+        position: absolute;
+        left: -50px;
+        top: 3px;
+        font-size: 34px;
+        color: $teal-dark;
+      }
+
+      @include MQ(Mneg) {
+        padding: 0 50px;
+        i {
+          left: 0px;
+        }
+      }
+    }
+    @include MQ(Mneg) {
+      padding: 20px;
+    }
+  }
+}
+
+.ac-container {
+  margin-left: $gutter;
+  ul {
+    margin: 0 0 15px 0;
+  }
+
+  .ac-title {
+    cursor: pointer;
+    position: relative;
+    h3 {
+      margin: 10px 0;
+    }
+
+    &:before {
+      font-size: 16px;
+      content: "\e911";
+      font-family: "icomoon" !important;
+      color: $text;
+      font-style: normal;
+      font-weight: normal;
+      position: absolute;
+      left: -30px;
+      top: 6px;
+    }
+    &.minus:before {
+      content: "\e910";
+    }
+  }
+  .ac-body {
+    display: none;
+  }
+  @include MQ(Mneg) {
+    padding: 0 20px;
+  }
+}
+
+select::-ms-expand {
+  display: none;
+}
+
+.mobile-header {
+  background: $white;
+  min-height: 70px;
+  padding: 1px;
+  position: fixed;
+  z-index: 9999;
+  width: 100%;
+  box-shadow: 0 3px 15px 2px rgba(0, 0, 0, 0.1);
+  @include MQ(Mplus) {
+    display: none;
+  }
+  nav {
+    z-index: 9999;
+    display: none;
+    height: 0;
+    @include transition;
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      margin-top: 20px;
+      display: flex;
+      flex-wrap: wrap;
+
+      li {
+        flex: 0 0 100%;
+        border-top: 1px solid $teal-dark;
+        &:last-of-type {
+          //border-bottom: 1px solid $teal-dark;
+        }
+        ul {
+          margin: 0;
+          padding: 0px 0;
+          background: $grey-light;
+          li {
+            flex: 0 0 100%;
+            border: 0;
+            padding-left: 10px;
+            border-top: 1px solid $white;
+            &:first-of-type {
+              //border-top: 1px solid $grey-light;
+              border: 0;
+            }
+            &:last-of-type {
+              border-bottom: 0;
+            }
+            a {
+              padding: 10px 10px;
+              color: $text;
+            }
+          }
+        }
+        a {
+          display: block;
+          color: $text;
+          width: 100%;
+          padding: 20px;
+          &:hover {
+            text-decoration: none !important;
+          }
+        }
+      }
+      .nolink {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        a {
+          flex: 0 0 90%;
+        }
+        i {
+          flex: 0 0 10%;
+          padding: 20px 3px 20px;
+          cursor: pointer;
+          font-size: 22px;
+          &.minus:before {
+            content: "\e910";
+          }
+        }
+        ul {
+          flex: 0 0 100%;
+        }
+      }
+
+      .user {
+        &.logged-in {
+          background: $teal-dark;
+          a.user-name {
+            color: $white;
+            display: block;
+          }
+          i {
+            color: $white;
+          }
+        }
+        &.not-logged-in {
+          background: $white;
+          a {
+            color: $blue-dark;
+            display: block;
+            text-align: center;
+          }
+        }
+
+      }
+      .special, .schedule {
+        background: $teal-dark;
+        border-bottom: 1px solid $teal-dark;
+        a {
+          color: $white;
+          display: block;
+          text-align: left;
+        }
+      }
+      .user-menu {
+        flex: 0 0 100%;
+      }
+      .user-menu {
+        background: $text;
+        padding: 0px 0;
+        input,
+        label {
+          display: none;
+        }
+      }
+      .user-drop {
+        display: block;
+        flex-wrap: wrap;
+        justify-content: space-around;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        a {
+          display: block;
+          color: $white;
+          padding: 10px 20px;
+          border-top: 1px solid $white;
+          &:first-of-type {
+            border-top: 0;
+          }
+        }
+      }
+    }
+  }
+  #menuicon {
+    border-top: 2px solid $text;
+    height: 20px;
+    width: 20px;
+    box-sizing: border-box;
+    position: absolute;
+    z-index: 30;
+    right: 27px;
+    top: 27px;
+    cursor: pointer;
+    @include transition;
+    &:before {
+      content: "";
+      display: block;
+      position: absolute;
+      height: 2px;
+      width: 20px;
+      left: 0;
+      background: $text;
+      top: 5px;
+      @include transition;
+    }
+    &:after {
+      content: "";
+      display: block;
+      position: absolute;
+      height: 2px;
+      width: 20px;
+      left: 0;
+      top: 12px;
+      background: $text;
+      bottom: 0;
+      @include transition;
+    }
+    &.active {
+      border: none;
+      top: 15px;
+      padding-bottom: 50px;
+      &:before {
+        transform: rotate(45deg);
+        top: 22px;
+      }
+      &:after {
+        transform: rotate(-45deg);
+        top: 22px;
+      }
+    }
+  }
+  &.active {
+    nav {
+      @include transition;
+      display: block;
+      height: 100%;
+    }
+  }
+}
+
+.refForm {
+  p {
+    color: $teal-dark;
+    font-size: 23px;
+    font-weight: normal;
+    font-family: "AvenirLTPro-Heavy";
+    margin-bottom: 0;
+    text-align: center;
+  }
+}
+
+//IE Fixes
+@media screen and (-ms-high-contrast: active),
+  screen and (-ms-high-contrast: none) {
+  _:-ms-fullscreen,
+  :root .staff-content {
+    margin-left: 0 !important;
+    width: calc(100% + 140px);
+    left: -70px;
+  }
+}
+
+.input-row {
+  &.checkboxes {
+    display: flex;
+    input[type="checkbox"] {
+    }
+    .checkbox-label {
+      flex: 1;
+      margin: 10px;
+    }
+  }
+}
+
+.specinst {
+  margin: 10px 0;
+}
+
+.selpet-container {
+  display: flex;
+  flex-wrap: wrap;
+  .selpet {
+  }
+  .selpet-name {
+    margin: 10px 0;
+    margin-right: 20px;
+  }
+  @include MQ(Mneg) {
+    .selpet {
+      flex: 0 0 100%;
+    }
+  }
+}
+
+.after-voting {
+  display: none;
+}
+
+.kpi-result {
+  strong {
+    color: $teal-dark;
+  }
+}
+
+//ipad fix? maybe?
+@media all and (device-width: 768px) and (device-height: 1024px) and (orientation: landscape) {
+  .home-splash {
+    background-attachment: scroll !important;
+  }
+}
+
+@media only screen and (min-device-width: 768px) and (max-device-width: 1024px) and (-webkit-min-device-pixel-ratio: 1) {
+  #header nav ul.page-list {
+    padding: 0;
+    li {
+      padding: 19px 4px;
+    }
+  }
+}
+
+//samsung tab 4.0 7inch fix for pets
+@media only screen and (max-device-width: 666px) and (orientation: portrait) {
+  .pets {
+    .pet {
+      flex: 0 0 80%;
+      max-width: 80%;
+      .overlay {
+        padding: 120px 20px;
+      }
+      .picture {
+        max-width: 100%;
+        max-height: 100%;
+        height: auto;
+        min-height: 375px;
+      }
+    }
+  }
+}
+
+@media only screen and (max-device-width: 415px) and (orientation: portrait) {
+  .pets {
+    .pet {
+      .picture {
+	min-height: 275px;
+      }
+    }
+  }
+}
+
+.percs {
+  strong {
+    &:after {
+      content: ("%");
+    }
+  }
+}
+
+#content-main.zips {
+  h1,
+  .content {
+    max-width: $cal-width;
+  }
+}
+
+#content-main .page-signup {
+  @include MQ(Mneg) {
+    padding-top: 0 !important;
+  }
+}
+
+@media screen and (min-device-width: 0px) and (max-device-width: 767px) {
+  .page-signup,
+  .page-sign-up {
+    .grid {
+      .cell {
+        &:first-of-type {
+          min-height: 325px;
+        }
+      }
+    }
+  }
+}
+
+@media screen and (min-device-width: 768px) and (max-device-width: 1145px) {
+  .page-signup,
+  .page-sign-up {
+    .grid {
+      .cell {
+        &:first-of-type {
+          min-height: 425px;
+        }
+      }
+    }
+  }
+}
+
+//MAY 2018 update for home page video
+.home-vid {
+  background: url("https://s3.amazonaws.com/vetterpc-images/vetter-pattern.jpg")
+    top center repeat;
+  // background-size: 15% auto;
+  padding: 60px 0;
+  background-size: 13% auto;
+  .container {
+    //max-width: $total-width;
+    max-width: calc((#{$column-width} * 6) + (#{$gutter} * 4)) !important;
+    margin: 0 auto;
+    @include MQ(Mneg) {
+      padding: 20px;
+      max-width: 100%;
+    }
+  }
+  @include MQ(Mneg) {
+    padding: 20px;
+    //  background-size: 210px auto;
+    background-size: 30% auto;
+  }
+}
+
+//responsive video container code
+.contain-vid {
+  position: relative;
+  padding-bottom: 56.25%;
+  height: 0;
+  overflow: hidden;
+  iframe,
+  object,
+  embed {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    vertical-align: middle;
+    cursor: pointer;
+  }
+}
+
+.bop {
+  text-align: center;
+  padding-top: 25px;
+  img {
+    max-width: 100px;
+    margin: 0 auto;
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  &:text {
+    display: block;
+    font-family: "AvenirLTPro-Roman";
+    font-weight: normal;
+    font-size: 14px;
+  }
+}
+
+.flex-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  .foot-full {
+    flex: 1 1 100%;
+  }
+  nav {
+    padding-top: 30px;
+  }
+  .site-logo {
+    margin-top: 0 !important;
+    padding: 0 !important;
+  }
+  @include MQ(Mneg) {
+    .foot-left,
+    .foot-middle,
+    .foot-right {
+      flex: 0 1 100%;
+      margin-bottom: 20px;
+    }
+  }
+}
+
+.page-user {
+  .line {
+    @include MQ(Mneg) {
+      margin-bottom: 50px;
+    }
+  }
+}
+
+
+//Blog related coding
+.page-blog {
+  .content,
+  h1 {
+    max-width: 1110px !important;
+
+  }
+  .content {
+    padding-bottom: 3em !important;
+  }
+
+}
+
+div[class*="page page-blog page-"] {
+  .content,
+  h1, .subheading {
+    max-width: 760px !important;
+    margin:0 auto;
+    @include MQ(Mneg) {
+      padding: 0 20px;
+    }
+  }
+  .btn-container {
+    margin: 2em auto;
+  }
+}
+
+.card {
+
+  border: 10px solid $teal-dark;
+  margin: 15px;
+  transition: 500ms;
+  display: block;
+  flex: 1 0 30%;
+  max-width: 30%;
+  &:hover {
+    transform: scale(1.05);
+    transition: 250ms;
+    text-decoration: none;
+  }
+
+  @include MQ(Mneg) {
+    flex: 1 0 45%;
+    max-width:45%;
+  }
+
+  @include MQ(SMneg) {
+    flex: 1 0 100%;
+    max-width:94%;
+  }
+
+  &-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    align-content: flex-start;
+  }
+
+  &-img {
+    height: 168.5px;
+  }
+  &-blurb {
+    font-weight: normal;
+    p {
+      line-height: 20px;
+      padding: 10px;
+      font-weight: normal;
+      font-family: AvenirLTPro-Roman;
+      color: $blue-dark;
+    }
+  }
+
+  .title-date {
+    background-color: $teal-dark;
+    padding: 10px;
+    color: white;
+    .card-title {
+      font-weight: bold;
+      line-height: 1.4;
+      min-height: 44px;
+    }
+    .card-date {
+      font-weight: 400;
+      padding-top: 10px;
+      font-size: 14px;
+      text-transform: uppercase;
+    }
+  }
+}
+
+.pagination {
+  text-transform: uppercase;
+  margin: 30px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  list-style: none;
+  padding: 0;
+  li {
+    font-size: 16px;
+    padding-bottom: initial;
+    a,
+    span {
+      padding: 10px 20px;
+      display: block;
+    }
+    &.current {
+      border: 2px solid $teal-dark;
+      color: $teal-dark;
+    }
+    &.prev-link {
+      padding-left: 0;
+      padding-right: 30px;
+    }
+    &.next-link {
+      padding-right: 0;
+      padding-left: 30px;
+    }
+  }
+}
+
+
+.special-notes {
+  margin: 20px 0;
+  .section-row + .section-row {
+    margin-top: 10px;
+  }
+  label {
+    font-size: 16px;
+    font-weight: bold;
+  }
+}
+
+.left-no-margin {
+  display: block;
+  text-align: left;
+  width: 100%;
+  white-space: nowrap;
+  @media only screen and (max-width : 992px) {
+    margin: 0 auto;
+    text-align: center;
+  }
+}
+
+.right-no-margin {
+  display: block;
+  text-align: right;
+  width: 100%;
+  white-space: nowrap;
+  @media only screen and (max-width : 992px) {
+    margin: 0 auto;
+    text-align: center;
+  }
+}
+
+
+/* iphone zoom input fix*/
+
+
+@supports (-webkit-touch-callout: none) {
+  /* CSS specific to iOS devices */
+  input:matches([type="password"]) {
+    font-size: 16px !important;
+  }
+}
+
+
+/* ipad weirdness fix */
+
+/*iPad Pro 9.7"*/
+/* Portrait */
+@media only screen
+and (min-device-width: 768px)
+and (max-device-width: 1024px)
+and (orientation: portrait)
+and (-webkit-min-device-pixel-ratio: 2) {
+  .home-splash {
+    background-attachment: scroll !important;
+  }
+}
+
+/* Landscape */
+@media only screen
+and (min-device-width: 768px)
+and (max-device-width: 1024px)
+and (orientation: landscape)
+and (-webkit-min-device-pixel-ratio: 2) {
+  .home-splash {
+    background-attachment: scroll !important;
+  }
+}
+/*iPad Pro 10.5"*/
+/* Portrait */
+/* Declare the same value for min- and max-width to avoid colliding with desktops */
+/* Source: https://medium.com/connect-the-dots/css-media-queries-for-ipad-pro-8cad10e17106*/
+@media only screen
+and (min-device-width: 834px)
+and (max-device-width: 834px)
+and (orientation: portrait)
+and (-webkit-min-device-pixel-ratio: 2) {
+  .home-splash {
+    background-attachment: scroll !important;
+  }
+}
+
+/* Landscape */
+/* Declare the same value for min- and max-width to avoid colliding with desktops */
+/* Source: https://medium.com/connect-the-dots/css-media-queries-for-ipad-pro-8cad10e17106*/
+@media only screen
+and (min-device-width: 1112px)
+and (max-device-width: 1112px)
+and (orientation: landscape)
+and (-webkit-min-device-pixel-ratio: 2) {
+  .home-splash {
+    background-attachment: scroll !important;
+  }
+}
+/*ipad PRo 12.9"*/
+/* Portrait */
+/* Declare the same value for min- and max-width to avoid colliding with desktops */
+/* Source: https://medium.com/connect-the-dots/css-media-queries-for-ipad-pro-8cad10e17106*/
+@media only screen
+and (min-device-width: 1024px)
+and (max-device-width: 1024px)
+and (orientation: portrait)
+and (-webkit-min-device-pixel-ratio: 2) {
+  .home-splash {
+    background-attachment: scroll !important;
+  }
+}
+
+/* Landscape */
+/* Declare the same value for min- and max-width to avoid colliding with desktops */
+/* Source: https://medium.com/connect-the-dots/css-media-queries-for-ipad-pro-8cad10e17106*/
+@media only screen
+and (min-device-width: 1366px)
+and (max-device-width: 1366px)
+and (orientation: landscape)
+and (-webkit-min-device-pixel-ratio: 2) {
+  .home-splash {
+    background-attachment: scroll !important;
+  }
+}

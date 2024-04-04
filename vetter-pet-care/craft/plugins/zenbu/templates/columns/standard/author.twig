@@ -1,0 +1,34 @@
+{#
+//    ----------------------------------------
+//      Author
+//    ----------------------------------------
+#}
+{% set showStatus = settings.settings[col.handle].showStatus is defined and settings.settings[col.handle].showStatus ? TRUE : FALSE %}
+{% set showThumb = settings.settings[col.handle].showThumb is defined and settings.settings[col.handle].showThumb ? TRUE : FALSE %}
+{% set showLinkToAccount = settings.settings[col.handle].showLinkToAccount is defined and settings.settings[col.handle].showLinkToAccount ? TRUE : FALSE %}
+{% set author = entry.author %}
+
+<div class="element small{% if showStatus %} hasstatus{% endif %}{% if showThumb %} hasthumb{% endif %}">
+
+	{% if author and showStatus %}
+	<span class="status {{author.status}}"></span>
+	{% endif %}
+
+	{% if author and showThumb %}
+	<div class="elementthumb">
+		<img width="30" height="30" sizes="30px" src="{{author.getThumbUrl()}}" alt="" />
+	</div>
+	{% endif %}
+
+	<div class="label">
+		<span class="title">
+			{% if author and showLinkToAccount %}
+			<a href="{{author.cpEditUrl}}">
+				{{author.name | default('-') | capitalize }}
+			</a>
+			{% else %}
+				{{author.name | default('-') | capitalize }}
+			{% endif %}
+		</span>
+	</div>
+</div>

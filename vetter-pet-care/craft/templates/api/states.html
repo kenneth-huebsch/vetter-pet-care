@@ -1,0 +1,13 @@
+{% header "Content-Type: application/json" %}
+{% if currentUser %}
+
+{% set results = [] %}
+{% for option in user.states.options %}
+{%
+  set results = results | merge([{
+    "state" : option,
+  }])
+%}
+{% endfor %}
+{{ results | json_encode() | raw }}
+{% endif %}

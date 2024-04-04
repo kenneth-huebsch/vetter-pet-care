@@ -1,0 +1,24 @@
+{#
+//    ----------------------------------------
+//      Relationships
+//    ----------------------------------------
+#}
+{% set showStatus = (settings.settings[col.id].showStatus is defined and settings.settings[col.id].showStatus is not empty) ? true : false %}
+{% set locale = craft.request.getParam('locale') %}
+{% set relEntries = craft.entries({
+    relatedTo: 	{ sourceElement: entry, field: col.handle },
+    order:     	'title asc',
+    status:     null,
+    limit:     	null,
+    locale: 	locale
+}) %}
+<ul>
+{% for relEntry in relEntries %}
+    <li>
+    	{% if showStatus %}
+    		<span class="status {{relEntry.getStatus('name')}}"></span>
+    	{% endif %}
+    	<a href="{{relEntry.getCpEditUrl()}}">{{relEntry.getTitle()}}</a>
+    </li>
+{% endfor %}
+</ul>

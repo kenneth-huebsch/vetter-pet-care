@@ -1,0 +1,11 @@
+{% if currentUser %}
+  {% if craft.request.getParam('tab')|length > 0 %}
+  {% if craft.twigSession.get('tab')|length > 0 %}
+    {% if craft.request.getParam('tab') > craft.twigSession.get('tab') %}
+      {{ craft.twigSession.add('tab', craft.request.getParam('tab')) }}
+    {% endif %}
+    {% else %}
+      {{ craft.twigSession.add('tab', craft.request.getParam('tab')) }}
+    {% endif %}
+  {% endif %}
+{% endif %}

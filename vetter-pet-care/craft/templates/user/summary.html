@@ -1,0 +1,144 @@
+{% extends "_layout-wide" %}
+{% requireLogin %}
+
+{% if not currentUser.isInGroup('veterinarian') and not currentUser.admin and not currentUser.isInGroup('employee')%}
+    {% redirect "/" %}
+{% endif %}
+
+
+{% set customer = craft.users.id( craft.request.segment(2) ).first() %}
+{% set query = craft.request.getParam('q') %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ siteUrl }}assets/css/bootstrap.css">
+
+ <div class="content booking-detail">
+  <span class="right"><a href="{{siteUrl}}search?q={{query}}" class="bta button blue"><i class="icon-arrow-left"></i> Back To Results</a></span>
+    <br/>
+  <div class="custname">{{customer.firstName}} {{customer.lastName}}</div>
+  <div class="line"></div>
+  <section class="rev-section">
+   <h3 class="section-title clearfix">Basic Information</h3>
+   <div class="section-info clearfix">
+   <div class="section-row clearfix">
+   <div class="section-label">
+      <label for="name">Customer Name:</label> {{customer.firstName}} {{customer.lastName}}
+    </div>
+    <div class="section-label">
+      <label for="apptid">Customer Email</label> {{ customer.email }}
+    </div>
+   </div>
+    <div class="section-row clearfix">
+     <div class="section-label">
+      <label for="streetaddress">Address</label>
+      {{customer.streetAddress}}<br>
+      {% if customer.streetAddress2|length %}{{customer.streetAddress2}}<br>{%endif%}
+     {{customer.city}} {{customer.states}} {{customer.customerZip.first()}}
+     </div>
+     <div class="section-label">
+      <label for="cellphone">Cell Phone</label>
+          {{customer.cellPhone}}
+     </div>
+    </div>
+
+     {% if customer.alternateContactName|length %}
+    <div class="section-row clearfix">
+     <div class="section-label">
+      <label for="streetaddress">Alternate Contact</label>
+      {{ customer.alternateContactName }}
+     </div>
+
+     {% if customer.alternateContactCellNumber|length %}
+     <div class="section-label">
+      <label for="cellphone">Cell Phone</label>
+          {{ customer.alternateContactCellNumber }}
+     </div>
+     {% endif %}
+    </div>
+	{% endif %}
+
+	<div class="section-row clearfix">
+		<label for="special"> Vet Notes</label>
+		<div class=“notes-vet”>{{customer.vetNotes}}</div>
+	</div>
+
+   </div>
+  </section>
+
+  <div class="line"></div>
+  <section class="rev-section">
+   <h3 class="section-title clearfix">Pet Information</h3>
+   <div class="section-info clearfix">
+    <div class="section-row clearfix pet-list">
+     {% for pet in customer.pets %}
+     <div class="pet">
+      <div class="name">{{pet.petFirstName}}</div>
+      <div class="pet-line"><label>Birthdate:</label><span class="response"> {{pet.birthdate|date("m/d/Y") }}</span></div>
+      <div class="pet-line"><label>Species:</label><span class="response"> {{pet.species }}</span></div>
+      <div class="pet-line"><label>Breed:</label><span class="response">{{pet.breed }}</span></div>
+      <div class="pet-line"><label>Gender:</label><span class="response">{{pet.gender }}</span></div>
+      <div class="pet-line"><label>Weight (kgs):</label><span class="response">{% if pet.weight == '0' %}{% else %}{{pet.weight}}{% endif %}</span></div>
+      <div class="pet-line"><label>Color:</label><span class="response">{{pet.color}}</span></div>
+      <div class="pet-line"><label>Spayed or Neutured?</label><span class="response">{{pet.spayedOrNeutered}}</span></div>
+      <div class="pet-line"><label>Aggression:</label><span class="response">{{pet.aggressiveBehavior}}</span></div>
+      {% if pet.aggressiveBehavior|trim == 'yes' %}
+       <div class="pet-line"><label class="wide">Details About Aggressive Behavior:</label><span class="response wide">{{pet.detailAboutAggressiveBehavior}}</span></div>
+      {% endif %}
+
+      <div class="pet-line"><label>C Rabies:</label><span class="response">{% if pet.canineRabiesDateGiven|length %}{{pet.canineRabiesDateGiven|date("m/d/Y")}}{% else %}---------------{% endif %} &nbsp;|&nbsp; {% if pet.canineRabiesNextDue|length %}<b>{{pet.canineRabiesNextDue|date("m/d/Y")}}</b>{% else %}--------------{% endif %}</span></div>
+      <div class="pet-line"><label>DA2PP:</label><span class="response">{% if pet.da2ppDateGiven|length %}{{pet.da2ppDateGiven|date("m/d/Y")}}{% else %}---------------{% endif %} &nbsp;|&nbsp; {% if pet.da2ppNextDue|length %}<b>{{pet.da2ppNextDue|date("m/d/Y")}}</b>{% else %}--------------{% endif %}</span></div>
+      <div class="pet-line"><label>Lepto:</label><span class="response">{% if pet.leptospirosisDateGiven|length %}{{pet.leptospirosisDateGiven|date("m/d/Y")}}{% else %}---------------{% endif %} &nbsp;|&nbsp; {% if pet.leptospirosisNextDue|length %}<b>{{pet.leptospirosisNextDue|date("m/d/Y")}}</b>{% else %}--------------{% endif %}</span></div>
+      <div class="pet-line"><label>Bord:</label><span class="response">{% if pet.bordetellaDateGiven|length %}{{pet.bordetellaDateGiven|date("m/d/Y")}}{% else %}---------------{% endif %} &nbsp;|&nbsp; {% if pet.bordetellaNextDue|length %}<b>{{pet.bordetellaNextDue|date("m/d/Y")}}</b>{% else %}--------------{% endif %}</span></div>
+      <div class="pet-line"><label>Flu:</label><span class="response">{% if pet.influenzaDateGiven|length %}{{pet.influenzaDateGiven|date("m/d/Y")}}{% else %}---------------{% endif %} &nbsp;|&nbsp; {% if pet.influenzaNextDue|length %}<b>{{pet.influenzaNextDue|date("m/d/Y")}}</b>{% else %}--------------{% endif %}</span></div>
+      <div class="pet-line"><label>Lyme:</label><span class="response">{% if pet.lymeDateGiven|length %}{{pet.lymeDateGiven|date("m/d/Y")}}{% else %}---------------{% endif %} &nbsp;|&nbsp; {% if pet.lymeNextDue|length %}<b>{{pet.lymeNextDue|date("m/d/Y")}}</b>{% else %}--------------{% endif %}</span></div>
+      <div class="pet-line"><label>Neg HWT:</label><span class="response">{% if pet.negativeHwtDateGiven|length %}{{pet.negativeHwtDateGiven|date("m/d/Y")}}{% else %}---------------{% endif %} &nbsp;|&nbsp; {% if pet.negativeHwtNextDue|length %}<b>{{pet.negativeHwtNextDue|date("m/d/Y")}}</b>{% else %}--------------{% endif %}</span></div>
+      <div class="pet-line"><label>F Rabies:</label><span class="response">{% if pet.felineRabiesDateGiven|length %}{{pet.felineRabiesDateGiven|date("m/d/Y")}}{% else %}---------------{% endif %} &nbsp;|&nbsp; {% if pet.felineRabiesNextDue|length %}<b>{{pet.felineRabiesNextDue|date("m/d/Y")}}</b>{% else %}--------------{% endif %}</span></div>
+      <div class="pet-line"><label>FVRCP:</label><span class="response">{% if pet.fvrcpDateGiven|length %}{{pet.fvrcpDateGiven|date("m/d/Y")}}{% else %}---------------{% endif %} &nbsp;|&nbsp; {% if pet.fvrcpNextDue|length %}<b>{{pet.fvrcpNextDue|date("m/d/Y")}}</b>{% else %}--------------{% endif %}</span></div>
+      <div class="pet-line"><label>FeLV:</label><span class="response">{% if pet.felvDateGiven|length %}{{pet.felvDateGiven|date("m/d/Y")}}{% else %}---------------{% endif %} &nbsp;|&nbsp; {% if pet.felvNextDue|length %}<b>{{pet.felvNextDue|date("m/d/Y")}}</b>{% else %}--------------{% endif %}</span></div>
+
+	
+      <div class="pet-line"><label class="wide">General Information:</label><span class="response wide">{{pet.generalInformation}}</span></div>
+     </div>
+     {% endfor %}
+    </div>
+   </div>
+  </section>
+<div class="line"></div>
+   <section class="rev-section">
+    <h3 class="section-title clearfix">Pet Electronic Medical Records</h3>
+    <div class="section-info clearfix">
+     <div class="section-row clearfix pet-emr-list">
+      {% for petEMRblock in customer.petRecords %}
+      {% if petEMRblock.type=='records' %}
+      {% if customer.petRecords|length > 0 %}
+      {% set emr = petEMRblock.documentUpload.first() %}
+      {% if not petEMRblock.documentUpload is empty %}
+      {{ getCsrfInput() }}
+      <div class='exist_petrecord' >
+          <div class="addaDescription">
+              <i class="icon-file-picture"></i><a href="{{ getSignedUrl(petEMRblock.documentUpload.first().id) }}"><span class="docname">{{petEMRblock.documentUpload.first()}}.{{petEMRblock.documentUpload.first().extension}}</span></a>
+          </div>
+      </div>
+      {% endif %}
+      {% endif %}
+      {% endif %}
+      {% endfor %}
+     </div>
+    </div>
+   </section>
+
+    <div class="receipt-list">
+    {% for receipt in customer.receiptsOfService %}
+        {% if loop.first %}
+        <div class="line"></div>
+        <h3>Receipts of Service</h3>
+        {% endif %}
+        <!--  Receipts of Service -->
+            <div class="receipts">
+            <i class="icon-file-text2"></i><a href="{{ getSignedUrl(receipt.documentUpload.first().id) }}">{{receipt.dateOfService}} - {{receipt.documentUpload.first()}}.{{receipt.documentUpload.first().extension}}</a>
+            </div>
+    {% endfor %}
+    </div>
+
+ </div>
+{% endblock %}

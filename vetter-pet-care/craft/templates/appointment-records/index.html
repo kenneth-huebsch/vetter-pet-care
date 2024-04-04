@@ -1,0 +1,22 @@
+{#
+ # News index template
+ # -------------------
+ #
+ # This template is loaded whenever http://example.com/news is
+ # requested, because it is located at news/index.html in your
+ # craft/templates/ folder.
+ #
+ # See this page for more details on how Craft routes requests:
+ # http://craftcms.com/docs/routing
+ #}
+
+{% extends "_layout-wide" %}
+{% set title = "Appointments" %}
+
+{% if not user or not user.isInGroup('Admin') %}
+    {% redirect "/" %}
+{% endif %}
+
+{% block content %}
+	<h1>Appointment Records</h1>
+{% endblock %}

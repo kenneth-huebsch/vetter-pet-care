@@ -1,0 +1,129 @@
+<div class="pane">
+    <h2 id="payments">Payments</h2>
+
+    <table class="data fullwidth">
+        <thead>
+            <tr>
+                <th scope="col">Date</th>
+                <th scope="col">Mode</th>
+                <th scope="col">Amount</th>
+                <th scope="col">Card</th>
+                <th scope="col">Stripe</th>
+                <th scope="col">Status</th>
+                <th scope="col"></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for payment in payments %}
+            <tr class="payment-status-{{ payment.status }}">
+                <td>{{ payment.dateCreated }}</td>
+                <td><span class="modeLabel {{ payment.mode }}">{{ payment.mode }}</span></td>
+                <td>{{ payment.formatAmount }}</td>
+
+                <td><span class="cardType type{{ payment.cardType }}"></span>
+                    <strong>{{ payment.formatCard }}</strong>{% if payment.cardExpMonth != '' %} <strong>({{ payment.cardExpMonth }}/{{ payment.cardExpYear }}
+                        )</strong>{% endif %}
+                </td>
+                <td><a href="{{ payment.stripeLink }}" target="_blank"><span
+                                class="go nowrap">{{ payment.stripeId }}</span></a></td>
+                <td><code>{{ payment.status }}</code></td>
+                <td>
+                    {% if payment.status == 'succeeded' %}
+                    <form class="charge-refund-action" method="post" accept-charset="UTF-8">
+                        <input type="hidden" name="action" value="">
+                        <input type="hidden" name="redirect" value=""> {{ getCsrfInput() }}
+                        <div class="btngroup">
+                            <input type="button" class="btn small formsubmit" value="{{ 'Refund Payment'|t }}" data-action="charge/charges/refundPayment" data-confirm="{{ 'Are you sure you want to refund this payment?'|t }}" data-redirect="charge/detail/{{ payment.chargeId }}" data-param="paymentId"
+                                data-value="{{ payment.id }}">
+                        </div>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+
+        </tbody>
+    </table>
+    <div class="additionalCharges">
+    </div>
+    <input type="submit" id="addServiceCharge" value="Add Service Charge" />
+
+</div>
+<!-- <input type="submit" id="addServiceCharge" value="Add Service Charge" /> -->
+<form id="test" action="" class="form" method="post" accept-charset="UTF-8">
+    <input type="hidden" name="action" value="charge/chargeCustomer">
+    <input type="hidden" name="customer_id" value="{{customer.stripeId}}" />
+    <input type="text" name="amnt" placeholder="amount" />
+    <input class="button" type="submit" value="Test!">
+</form>
+</div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+<script src="{{ resourceUrl('https://js.stripe.com/v2/stripe.js')}}"></script>
+<script src="https://js.stripe.com/v2/stripe.js"></script>
+<script>
+    $(function() {
+        $("#addServiceCharge").click(function(e) {
+            e.preventDefault();
+            var formid = uniqId();
+            $(".additionalCharges").append(`<tr>
+        <td><form class="add-charge" method="post" data-id="` + formid + `" accept-charset="UTF-8">
+            &#8627
+            <input type="text" name="desc" id="desc" placeholder="Service Description" />
+            <input type="text" name="amnt" id="amount" placeholder="$50" />
+            <input type="submit" value="add" id="add" data-id="` + formid + `" />
+            <input type="hidden" name="action" value="charge/chargeCustomer">
+            <input type="hidden" name="customer_id" value="{{customer.stripeId}}" />
+        </form></td><td><div id='result'></div></td></tr>`);
+        });
+        $("body").on("click", "#add", function(evnt) {
+            evnt.preventDefault();
+            var formid = $(this).data('id');
+            var data = $('form[data-id="' + $(this).data('id') + '"]').serialize();
+            $('input[data-id="' + formid + '"]').prop("disabled", true);
+            $("#result").html("<b> Adding Charge...</b>");
+            $.ajax({
+                    method: 'POST',
+                    url: '{{siteUrl}}',
+                    data: data,
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    }
+                })
+                .success(function(data) {
+                    console.log('success', data);
+
+                    $("#result").html("<b> Succesfully charged</b>");
+                })
+                .error(function(data) {
+                    console.log('error', data);
+
+                    $("#result").html("<b> Error </b>")
+                });
+
+        });
+
+        function uniqId() {
+            return Math.round(new Date().getTime() + (Math.random() * 100));
+        }
+        /*
+          $("#test").submit( function(e) {
+          e.preventDefault();
+          var data = $(this).serialize();
+          console.log(data);
+              $.ajax({
+                  method: 'POST',
+                  url: '{{siteUrl}}',
+                  data: data,
+                  headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+                  })
+                  .success(function(data) {
+                      console.log('success', data);
+                  })
+                  .error(function(data) {
+                      console.log('error', data);
+                  });
+
+                 });
+            */
+    });
+</script>

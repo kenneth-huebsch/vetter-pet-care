@@ -1,0 +1,75 @@
+{% extends "charge/_layout" %}
+
+{% block content %}
+    <h2>Stripe Connect</h2>
+    <p>Stripe Connect lets you make payments to other connected sub-accounts. The accounts are connected to the master Stripe account from the backend via a special Charge Connect fieldtype, configured from in the Craft control panel.</p>
+    <hr/>
+
+    {% if not craft.charge.isConnectEnabled %}
+        <p>Connect has not been enabled on this install. It can be configred from the <strong>Craft CP > Charge > Settings > Connect</strong>.</p>
+        <hr/>
+    {% else %}
+        <p>Connect has been enabled on this install.<p>
+        {#
+            This is an example of how you can get the connected account.
+            In our example site, this entry has a field called 'connect' on, which is our Charge_Connect fieldtype
+        #}
+
+        {% set entry = craft.entries({
+            section : 'news',
+            id: 4
+        }).first %}
+
+        <hr/>
+
+    <div class="row">
+        <div class="col-md-6 col-md-offset-3">
+            <form class="form-horizontal"
+                id="charge-form"
+                method="post"
+                action=""
+                accept-charset="UTF-8"
+                data-publicKey="{{ craft.charge.getPublicKey }}">
+
+                {{ forms.hidden({ name : 'action', value: 'charge/charge' }) }}
+
+                {{ getCsrfInput() }}
+
+                {% set options = {
+                    'planAmount' : 99,
+                    'planCurrency': 'gbp',
+                    'accountId': entry.connect.id,
+                    'applicationFee': 10
+                } %}
+
+                {{ craft.charge.setPaymentOptions(options) }}
+
+
+                {% if allErrors is defined %}
+                    {{ forms.errorBlock(allErrors) }}
+                {% endif %}
+
+                <div id="payment-errors" class="alert alert-error"></div>
+
+                <h4>Customer Details</h4>
+                {% include 'charge/_includes/inputs/customerDetails' %}
+
+                <h4>Plan Details</h4>
+                {{ stripe.amountField({
+                    label: 'Amount',
+                    value: options.planAmount,
+                    readonly: true
+                }) }}
+
+                <h4>Card Details</h4>
+                {% include 'charge/_includes/inputs/cardDetails' %}
+
+                {% include 'charge/_includes/inputs/paymentButton' %}
+
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+
+{% endblock %}

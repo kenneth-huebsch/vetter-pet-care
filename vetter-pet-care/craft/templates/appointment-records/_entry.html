@@ -1,0 +1,426 @@
+{% extends "_layout-wide" %}
+
+{% if not user or not user.isInGroup('veterinarian') or entry.assignedVeterinarianIdNumber|slice(3) != currentUser.id  %}
+    {% redirect "/" %}
+{% endif %}
+
+
+{% set customer = craft.users.id( entry.customerRealId ).first() %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ siteUrl }}assets/css/bootstrap.css">
+
+{% if entry.headerImage | length %}
+<div class="mast" style="background: url('{{entry.headerImage[0].url}}') center center no-repeat; background-size: cover;"></div>
+{% endif %}
+
+ <div class="content booking-detail">
+  <span class="right"><a href="{{siteUrl}}user/{{currentUser.id}}/upcoming" class="bta button blue"><i class="icon-arrow-left"></i> Back To Appointments</a></span>
+
+  <div class="custname">{{customer.firstName}} {{customer.lastName}}</div>
+<div class="window">Appointment Window</div>
+  {% set petnum = entry.pets|length %}
+  <span class="times">
+  {% if petnum < 2 %}
+  {{ entry.appointmentStartTime|date("m/d/Y") }} from {{entry.appointmentStartTime|date("h:i a")}} - {{entry.appointmentStartTime|date_modify("+90 minutes")|date("h:i a")}}
+  {% else %}
+  {{ entry.appointmentStartTime|date("m/d/Y") }} from {{entry.appointmentStartTime|date("h:i a")}} - {{entry.appointmentStartTime|date_modify("+90 minutes")|date("h:i a")}}
+  {% endif %}
+  for {{ petnum }} pet{% if petnum > 1 %}s{% endif %}</span>
+  {% if entry.appointmentStartTime > now %}
+  {% if entry.cancel_status != "cancelled" and entry.cancel_status != "unavailable"%}
+  <div class="cancel-appt"><a href="#" data-start="{{entry.appointmentStartTime}}" data-displaystart="{{appt.appointmentStartTime | date('l F d, Y')}} at {{appt.appointmentStartTime | date('h:i a')}}" data-zip="{{entry.customerZipCode}}" data-vetname="{{entry.assignedVeterinarianName}}" data-id="{{entry.id}}" class="table_link vet_cancel_init">Cancel Appointment</a></div>
+  {% endif %}
+  {% endif %}
+  <div class="line"></div>
+  <section class="rev-section">
+   <h3 class="section-title clearfix">Basic Information</h3>
+   <div class="section-info clearfix">
+   <div class="section-row clearfix">
+   <div class="section-label">
+      <label for="name">Customer Name:</label> {{customer.firstName}} {{customer.lastName}}
+    </div>
+    <div class="section-label">
+      <label for="apptid">Customer Email</label> {{ customer.email }}
+    </div>
+   </div>
+   <div class="section-row clearfix">
+    <div class="section-label">
+       <label for="name">Customer ID:</label> {{ entry.customerIdNumber }}
+     </div>
+     <div class="section-label">
+       <label for="apptid">Appointment ID:</label> {{ entry.appointmentIdNumber }}
+     </div>
+    </div>
+    <div class="section-row clearfix">
+     <div class="section-label">
+      <label for="streetaddress">Address</label>
+      {{customer.streetAddress}}<br>
+      {% if customer.streetAddress2|length %}{{customer.streetAddress2}}<br>{%endif%}
+     {{customer.city}} {{customer.states}} {{customer.customerZip.first()}}
+     </div>
+     <div class="section-label">
+      <label for="cellphone">Cell Phone</label>
+          {{customer.cellPhone}}
+     </div>
+    </div>
+
+     {% if customer.alternateContactName|length %}
+    <div class="section-row clearfix">
+     <div class="section-label">
+      <label for="streetaddress">Alternate Contact</label>
+      {{ customer.alternateContactName }}
+     </div>
+
+     {% if customer.alternateContactCellNumber|length %}
+     <div class="section-label">
+      <label for="cellphone">Cell Phone</label>
+          {{ customer.alternateContactCellNumber }}
+     </div>
+     {% endif %}
+    </div>
+    {% endif %}
+
+    {% if entry.specialInstructionsForVet|length %}
+    <div class="section-row clearfix">
+     <label for="special">Special Instructions for the Vet</label>
+     <div class="specialinfo">{{ entry.specialInstructionsForVet }}</div>
+    </div>
+    {% endif %}
+
+    <div class="section-row clearfix">
+     <label for="special">Reason for Appointment</label>
+     <div class="reasons">
+     {% for reason in entry.reasonForAppointment %}
+      {{ reason.label }}<br>
+     {% endfor %}
+    </div>
+    </div>
+
+	   <div class="section-row clearfix">
+		   <label for="special"> Vet Notes</label>
+		   <div class=“notes-vet”>{{customer.vetNotes}}</div>
+	   </div>
+
+   </div>
+  </section>
+  <div class="line"></div>
+  <section class="rev-section">
+   <h3 class="section-title clearfix">Pet Information</h3>
+   <div class="section-info clearfix">
+    <div class="section-row clearfix pet-list">
+     {% for pet in entry.pets %}
+     <div class="pet">
+      <div class="name">{{pet.petFirstName}}</div>
+      <div class="pet-line"><label>Birthdate:</label><span class="response"> {{pet.birthdate|date("m/d/Y") }}</span></div>
+      <div class="pet-line"><label>Species:</label><span class="response"> {{pet.species }}</span></div>
+      <div class="pet-line"><label>Breed:</label><span class="response">{{pet.breed }}</span></div>
+      <div class="pet-line"><label>Gender:</label><span class="response">{{pet.gender }}</span></div>
+      <div class="pet-line"><label>Weight (kgs):</label><span class="response">{% if pet.weight == '0' %}{% else %}{{pet.weight}}{% endif %}</span></div>
+      <div class="pet-line"><label>Color:</label><span class="response">{{pet.color}}</span></div>
+      <div class="pet-line"><label>Spayed or Neutured?</label><span class="response">{{pet.spayedOrNeutered}}</span></div>
+      <div class="pet-line"><label>Aggression:</label><span class="response">{{pet.aggressiveBehavior}}</span></div>
+      {% if pet.aggressiveBehavior|trim == 'yes' %}
+       <div class="pet-line"><label class="wide">Details About Aggressive Behavior:</label><span class="response wide">{{pet.detailAboutAggressiveBehavior}}</span></div>
+      {% endif %}
+
+      <div class="pet-line"><label>C Rabies:</label><span class="response">{% if pet.canineRabiesDateGiven|length %}{{pet.canineRabiesDateGiven|date("m/d/Y")}}{% else %}---------------{% endif %} &nbsp;|&nbsp; {% if pet.canineRabiesNextDue|length %}<b>{{pet.canineRabiesNextDue|date("m/d/Y")}}</b>{% else %}--------------{% endif %}</span></div>
+      <div class="pet-line"><label>DA2PP:</label><span class="response">{% if pet.da2ppDateGiven|length %}{{pet.da2ppDateGiven|date("m/d/Y")}}{% else %}---------------{% endif %} &nbsp;|&nbsp; {% if pet.da2ppNextDue|length %}<b>{{pet.da2ppNextDue|date("m/d/Y")}}</b>{% else %}--------------{% endif %}</span></div>
+      <div class="pet-line"><label>Lepto:</label><span class="response">{% if pet.leptospirosisDateGiven|length %}{{pet.leptospirosisDateGiven|date("m/d/Y")}}{% else %}---------------{% endif %} &nbsp;|&nbsp; {% if pet.leptospirosisNextDue|length %}<b>{{pet.leptospirosisNextDue|date("m/d/Y")}}</b>{% else %}--------------{% endif %}</span></div>
+      <div class="pet-line"><label>Bord:</label><span class="response">{% if pet.bordetellaDateGiven|length %}{{pet.bordetellaDateGiven|date("m/d/Y")}}{% else %}---------------{% endif %} &nbsp;|&nbsp; {% if pet.bordetellaNextDue|length %}<b>{{pet.bordetellaNextDue|date("m/d/Y")}}</b>{% else %}--------------{% endif %}</span></div>
+      <div class="pet-line"><label>Flu:</label><span class="response">{% if pet.influenzaDateGiven|length %}{{pet.influenzaDateGiven|date("m/d/Y")}}{% else %}---------------{% endif %} &nbsp;|&nbsp; {% if pet.influenzaNextDue|length %}<b>{{pet.influenzaNextDue|date("m/d/Y")}}</b>{% else %}--------------{% endif %}</span></div>
+      <div class="pet-line"><label>Lyme:</label><span class="response">{% if pet.lymeDateGiven|length %}{{pet.lymeDateGiven|date("m/d/Y")}}{% else %}---------------{% endif %} &nbsp;|&nbsp; {% if pet.lymeNextDue|length %}<b>{{pet.lymeNextDue|date("m/d/Y")}}</b>{% else %}--------------{% endif %}</span></div>
+      <div class="pet-line"><label>Neg HWT:</label><span class="response">{% if pet.negativeHwtDateGiven|length %}{{pet.negativeHwtDateGiven|date("m/d/Y")}}{% else %}---------------{% endif %} &nbsp;|&nbsp; {% if pet.negativeHwtNextDue|length %}<b>{{pet.negativeHwtNextDue|date("m/d/Y")}}</b>{% else %}--------------{% endif %}</span></div>
+      <div class="pet-line"><label>F Rabies:</label><span class="response">{% if pet.felineRabiesDateGiven|length %}{{pet.felineRabiesDateGiven|date("m/d/Y")}}{% else %}---------------{% endif %} &nbsp;|&nbsp; {% if pet.felineRabiesNextDue|length %}<b>{{pet.felineRabiesNextDue|date("m/d/Y")}}</b>{% else %}--------------{% endif %}</span></div>
+      <div class="pet-line"><label>FVRCP:</label><span class="response">{% if pet.fvrcpDateGiven|length %}{{pet.fvrcpDateGiven|date("m/d/Y")}}{% else %}---------------{% endif %} &nbsp;|&nbsp; {% if pet.fvrcpNextDue|length %}<b>{{pet.fvrcpNextDue|date("m/d/Y")}}</b>{% else %}--------------{% endif %}</span></div>
+      <div class="pet-line"><label>FeLV:</label><span class="response">{% if pet.felvDateGiven|length %}{{pet.felvDateGiven|date("m/d/Y")}}{% else %}---------------{% endif %} &nbsp;|&nbsp; {% if pet.felvNextDue|length %}<b>{{pet.felvNextDue|date("m/d/Y")}}</b>{% else %}--------------{% endif %}</span></div>
+
+	
+      <div class="pet-line"><label class="wide">General Information:</label><span class="response wide">{{pet.generalInformation}}</span></div>
+     </div>
+     {% endfor %}
+    </div>
+   </div>
+  </section>
+<div class="line"></div>
+{% set user = craft.users.id( customer.id ).first() %}
+   <section class="rev-section">
+    <h3 class="section-title clearfix">Pet Electronic Medical Records</h3>
+    <div class="section-info clearfix">
+     <div class="section-row clearfix pet-emr-list">
+      {% for petEMRblock in user.petRecords %}
+      {% if petEMRblock.type=='records' %}
+      {% if user.petRecords|length > 0 %}
+      {% set emr = petEMRblock.documentUpload.first() %}
+      {% if not petEMRblock.documentUpload is empty %}
+      {{ getCsrfInput() }}
+      <div class='exist_petrecord' >
+          <div class="addaDescription">
+              <i class="icon-file-picture"></i><a href="{{ getSignedUrl(petEMRblock.documentUpload.first().id) }}"><span class="docname">{{petEMRblock.documentUpload.first()}}.{{petEMRblock.documentUpload.first().extension}}</span></a>
+          </div>
+      </div>
+      {% endif %}
+      {% endif %}
+      {% endif %}
+      {% endfor %}
+     </div>
+    </div>
+   </section>
+
+    <div class="receipt-list">
+    {% for receipt in user.receiptsOfService %}
+        {% if loop.first %}
+        <div class="line"></div>
+        <h3>Receipts of Service</h3>
+        {% endif %}
+        <!--  Receipts of Service -->
+            <div class="receipts">
+            <i class="icon-file-text2"></i><a href="{{ getSignedUrl(receipt.documentUpload.first().id) }}">{{receipt.dateOfService}} - {{receipt.documentUpload.first()}}.{{receipt.documentUpload.first().extension}}</a>
+            </div>
+    {% endfor %}
+    </div>
+
+	<!-- Vaccination Dates  -->
+	<br />
+	<div class="line"></div>
+        <h3 class="section-title clearfix">Vaccination Records & Misc</h3>
+
+	{% for pet in customer.pets %}
+			<h5 data-toggle="collapse" data-target="#{{pet.id}}" aria-expanded="false" area-controls="collapsible-content">{{pet.petFirstName}}</h5>
+			<div id="{{pet.id}}" class="collapse">
+				<div class="content user-profile">
+					<form method="post" class="basic" accept-charset="UTF-8" enctype="multipart/form-data">
+					    {{ getCsrfInput() }}
+						<input type="hidden" name="action" value="/appointmentRecordManager/vaccineUpdater/updateVaccDates">
+						<input type="hidden" name="customerRealId" value="{{entry.customerRealId}}">
+						<input type="hidden" name="selectedPet" value="{{pet.petFirstName}}">
+						<input type="hidden" name="postDate[timezone]" value="UTC">
+							    <div class="input-row">
+								    <span class="input input--yoshiko">
+								      <input class="input__field input__field--yoshiko" type="number" step="0.1" id="weight" name="weight" value="{{pet.weight}}"/>
+								       <label class="input__label input__label--yoshiko" for="weight">
+									 <span class="input__label-content input__label-content--yoshiko" data-content="Weight (kgs)">Weight (kgs)</span>
+								       </label>
+								     </span>
+								     <span class="input input--yoshiko">
+								      <input class="input__field input__field--yoshiko" type="text" id="color" name="color" value="{{pet.color}}"/>
+								       <label class="input__label input__label--yoshiko" for="color">
+									 <span class="input__label-content input__label-content--yoshiko" data-content="Color">Color</span>
+								       </label>
+								     </span>
+							     </div>
+							    <div class="input-row">
+								    <span class="input input--yoshiko">
+								      <input class="input__field input__field--yoshiko" type="date" id="canineRabiesDateGiven" name="canineRabiesDateGiven" value="{{pet.canineRabiesDateGiven}}"/>
+								       <label class="input__label input__label--yoshiko" for="canineRabiesDateGiven">
+									 <span class="input__label-content input__label-content--yoshiko" data-content="Canine Rabies - Date Given">Canine Rabies - Date Given</span>
+								       </label>
+								     </span>
+								     <span class="input input--yoshiko">
+								      <input class="input__field input__field--yoshiko" type="date" id="canineRabiesNextDue" name="canineRabiesNextDue" value="{{pet.canineRabiesNextDue}}"/>
+								       <label class="input__label input__label--yoshiko" for="canineRabiesNextDue">
+									 <span class="input__label-content input__label-content--yoshiko" data-content="Canine Rabies - Next Due">Canine Rabies - Next Due</span>
+								       </label>
+								     </span>
+							     </div>
+							    <div class="input-row">
+								    <span class="input input--yoshiko">
+								      <input class="input__field input__field--yoshiko" type="date" id="da2ppDateGiven" name="da2ppDateGiven" value="{{pet.da2ppDateGiven}}"/>
+								       <label class="input__label input__label--yoshiko" for="da2ppDateGiven">
+									 <span class="input__label-content input__label-content--yoshiko" data-content="DA2PP - Date Given">DA2PP - Date Given</span>
+								       </label>
+								     </span>
+								     <span class="input input--yoshiko">
+								      <input class="input__field input__field--yoshiko" type="date" id="da2ppNextDue" name="da2ppNextDue" value="{{pet.da2ppNextDue}}"/>
+								       <label class="input__label input__label--yoshiko" for="da2ppNextDue">
+									 <span class="input__label-content input__label-content--yoshiko" data-content="DA2PP - Next Due">DA2PP - Next Due</span>
+								       </label>
+								     </span>
+							     </div>
+							    <div class="input-row">
+								    <span class="input input--yoshiko">
+								      <input class="input__field input__field--yoshiko" type="date" id="leptospirosisDateGiven" name="leptospirosisDateGiven" value="{{pet.leptospirosisDateGiven}}"/>
+								       <label class="input__label input__label--yoshiko" for="leptospirosisDateGiven">
+									 <span class="input__label-content input__label-content--yoshiko" data-content="Leptospirosis - Date Given">Leptospirosis - Date Given</span>
+								       </label>
+								     </span>
+								     <span class="input input--yoshiko">
+								      <input class="input__field input__field--yoshiko" type="date" id="leptospirosisNextDue" name="leptospirosisNextDue" value="{{pet.leptospirosisNextDue}}"/>
+								       <label class="input__label input__label--yoshiko" for="leptospirosisNextDue">
+									 <span class="input__label-content input__label-content--yoshiko" data-content="Leptospirosis - Next Due">Leptospirosis - Next Due</span>
+								       </label>
+								     </span>
+							     </div>
+							    <div class="input-row">
+								    <span class="input input--yoshiko">
+								      <input class="input__field input__field--yoshiko" type="date" id="bordetellaDateGiven" name="bordetellaDateGiven" value="{{pet.bordetellaDateGiven}}"/>
+								       <label class="input__label input__label--yoshiko" for="bordetellaDateGiven">
+									 <span class="input__label-content input__label-content--yoshiko" data-content="Bordetella - Date Given">Bordetella - Date Given</span>
+								       </label>
+								     </span>
+								     <span class="input input--yoshiko">
+								      <input class="input__field input__field--yoshiko" type="date" id="bordetellaNextDue" name="bordetellaNextDue" value="{{pet.bordetellaNextDue}}"/>
+								       <label class="input__label input__label--yoshiko" for="bordetellaNextDue">
+									 <span class="input__label-content input__label-content--yoshiko" data-content="Bordetella - Next Due">Bordetella - Next Due</span>
+								       </label>
+								     </span>
+							     </div>
+							    <div class="input-row">
+								    <span class="input input--yoshiko">
+								      <input class="input__field input__field--yoshiko" type="date" id="influenzaDateGiven" name="influenzaDateGiven" value="{{pet.influenzaDateGiven}}"/>
+								       <label class="input__label input__label--yoshiko" for="influenzaDateGiven">
+									 <span class="input__label-content input__label-content--yoshiko" data-content="Influenza - Date Given">Influenza - Date Given</span>
+								       </label>
+								     </span>
+								     <span class="input input--yoshiko">
+								      <input class="input__field input__field--yoshiko" type="date" id="influenzaNextDue" name="influenzaNextDue" value="{{pet.influenzaNextDue}}"/>
+								       <label class="input__label input__label--yoshiko" for="influenzaNextDue">
+									 <span class="input__label-content input__label-content--yoshiko" data-content="Influenza - Next Due">Influenza - Next Due</span>
+								       </label>
+								     </span>
+							     </div>
+							    <div class="input-row">
+								    <span class="input input--yoshiko">
+								      <input class="input__field input__field--yoshiko" type="date" id="lymeDateGiven" name="lymeDateGiven" value="{{pet.lymeDateGiven}}"/>
+								       <label class="input__label input__label--yoshiko" for="lymeDateGiven">
+									 <span class="input__label-content input__label-content--yoshiko" data-content="Lyme - Date Given">Lyme - Date Given</span>
+								       </label>
+								     </span>
+								     <span class="input input--yoshiko">
+								      <input class="input__field input__field--yoshiko" type="date" id="lymeNextDue" name="lymeNextDue" value="{{pet.lymeNextDue}}"/>
+								       <label class="input__label input__label--yoshiko" for="lymeNextDue">
+									 <span class="input__label-content input__label-content--yoshiko" data-content="Lyme - Next Due">Lyme - Next Due</span>
+								       </label>
+								     </span>
+							     </div>
+							    <div class="input-row">
+								    <span class="input input--yoshiko">
+								      <input class="input__field input__field--yoshiko" type="date" id="negativeHwtDateGiven" name="negativeHwtDateGiven" value="{{pet.negativeHwtDateGiven}}"/>
+								       <label class="input__label input__label--yoshiko" for="negativeHwtDateGiven">
+									 <span class="input__label-content input__label-content--yoshiko" data-content="Negative HWT - Date Given">Negative HWT - Date Given</span>
+								       </label>
+								     </span>
+								     <span class="input input--yoshiko">
+								      <input class="input__field input__field--yoshiko" type="date" id="negativeHwtNextDue" name="negativeHwtNextDue" value="{{pet.negativeHwtNextDue}}"/>
+								       <label class="input__label input__label--yoshiko" for="negativeHwtNextDue">
+									 <span class="input__label-content input__label-content--yoshiko" data-content="Negative HWT - Next Due">Negative HWT - Next Due</span>
+								       </label>
+								     </span>
+							     </div>
+							    <div class="input-row">
+								    <span class="input input--yoshiko">
+								      <input class="input__field input__field--yoshiko" type="date" id="felineRabiesDateGiven" name="felineRabiesDateGiven" value="{{pet.felineRabiesDateGiven}}"/>
+								       <label class="input__label input__label--yoshiko" for="felineRabiesDateGiven">
+									 <span class="input__label-content input__label-content--yoshiko" data-content="Feline Rabies - Date Given">Feline Rabies - Date Given</span>
+								       </label>
+								     </span>
+								     <span class="input input--yoshiko">
+								      <input class="input__field input__field--yoshiko" type="date" id="felineRabiesNextDue" name="felineRabiesNextDue" value="{{pet.felineRabiesNextDue}}"/>
+								       <label class="input__label input__label--yoshiko" for="felineRabiesNextDue">
+									 <span class="input__label-content input__label-content--yoshiko" data-content="Feline Rabies - Next Due">Feline Rabies - Next Due</span>
+								       </label>
+								     </span>
+							     </div>
+							    <div class="input-row">
+								    <span class="input input--yoshiko">
+								      <input class="input__field input__field--yoshiko" type="date" id="fvrcpDateGiven" name="fvrcpDateGiven" value="{{pet.fvrcpDateGiven}}"/>
+								       <label class="input__label input__label--yoshiko" for="fvrcpDateGiven">
+									 <span class="input__label-content input__label-content--yoshiko" data-content="FVRCP - Date Given">FVRCP - Date Given</span>
+								       </label>
+								     </span>
+								     <span class="input input--yoshiko">
+								      <input class="input__field input__field--yoshiko" type="date" id="fvrcpNextDue" name="fvrcpNextDue" value="{{pet.fvrcpNextDue}}"/>
+								       <label class="input__label input__label--yoshiko" for="fvrcpNextDue">
+									 <span class="input__label-content input__label-content--yoshiko" data-content="FVRCP - Next Due">FVRCP - Next Due</span>
+								       </label>
+								     </span>
+							     </div>
+							    <div class="input-row">
+								    <span class="input input--yoshiko">
+								      <input class="input__field input__field--yoshiko" type="date" id="felvDateGiven" name="felvDateGiven" value="{{pet.felvDateGiven}}"/>
+								       <label class="input__label input__label--yoshiko" for="felvDateGiven">
+									 <span class="input__label-content input__label-content--yoshiko" data-content="FeLV - Date Given">FeLV - Date Given</span>
+								       </label>
+								     </span>
+								     <span class="input input--yoshiko">
+								      <input class="input__field input__field--yoshiko" type="date" id="felvNextDue" name="felvNextDue" value="{{pet.felvNextDue}}"/>
+								       <label class="input__label input__label--yoshiko" for="felvNextDue">
+									 <span class="input__label-content input__label-content--yoshiko" data-content="FeLV - Next Due">FeLV - Next Due</span>
+								       </label>
+								     </span>
+							     </div>
+
+
+						<!-- Save Changes -->
+						<div class="btn-container right clearfix">
+						    <input class="button blue small" id="updateVaccinations" type="submit" value="Update {{pet.petFirstName}}">
+						</div>
+					</form>
+				</div><!-- content -->
+			</div><!-- collapse -->
+	{% endfor %}
+	<!-- Vaccination Dates  -->
+
+
+	<!-- Patient Eval download form  -->
+	<br />
+	<div class="line"></div>
+        <h3 class="section-title clearfix">Patient Evaluation Form</h3>
+	<div class="rev-section">
+		<div class="form">
+			<form method="post" class="pdf-form" accept-charset="UTF-8">
+				<input type="hidden" name="action" value="/appointmentRecordManager/pdfFiller/generatePatientEval">
+				<div class="select">
+					<select name="selectedPet">
+					{% for pet in entry.pets %}
+						<option value="{{pet.petFirstName}}">{{pet.petFirstName}}</option>
+					{% endfor %}
+					</select>
+				</div>
+				<input type="hidden" name="appointmentIdNumber" value="{{entry.appointmentIdNumber}}">
+
+				<div class="btn-container right-pdf">
+				    <input class="button blue" id="" type="submit" value="PDF">
+				</div>
+			</form>
+		</div>
+	</div>
+	<!-- END Patient Eval download form  -->
+
+	<!-- Vaccination Record download form  -->
+	<br />
+	<div class="line"></div>
+        <h3 class="section-title clearfix">Vaccination Record</h3>
+	<div class="rev-section">
+		<div class="form">
+			<form method="post" class="pdf-form" accept-charset="UTF-8">
+				<input type="hidden" name="action" value="/appointmentRecordManager/pdfFiller/generateVaccinationRecord">
+				<div class="select">
+					<select name="selectedPet">
+					{% for pet in entry.pets %}
+						<option value="{{pet.petFirstName}}">{{pet.petFirstName}}</option>
+					{% endfor %}
+					</select>
+				</div>
+				<input type="hidden" name="appointmentIdNumber" value="{{entry.appointmentIdNumber}}">
+
+				<div class="btn-container right-pdf">
+				    <input class="button blue" id="" type="submit" value="PDF">
+				</div>
+			</form>
+		</div>
+	</div>
+	<!-- END Vaccination Record download form  -->
+
+ </div>
+{% endblock %}
+
+{% block footerJs %}
+<script>
+	$(document).on('click','.collapsible-content.in',function(e) {
+	    if( $(e.target).is('a:not(".dropdown-toggle")') ) {
+		$(this).collapse('hide');
+	    }
+	});
+</script>
+{% endblock %}

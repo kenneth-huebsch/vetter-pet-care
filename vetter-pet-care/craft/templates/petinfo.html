@@ -1,0 +1,850 @@
+{% extends "_layout" %}
+
+{% block content %}
+
+<!-- This code to ensure this page only for login user -->
+{% requireLogin %}
+
+<!-- If user is vet, redirect to vet profile page -->
+{% if currentUser.isInGroup('veterinarian') %}
+{% redirect "/user/"~currentUser.id %}
+{% endif %}
+{% if currentUser.streetAddress and not (craft.twigSession.get('flow') == "schedule" or craft.twigSession.get('flow') == "signup") %}
+  {% redirect "/" %}
+{% endif %}
+{% if not currentUser.streetAddress and craft.twigSession.get('flow') == "signup" %}
+{% redirect "/basicinfo" %}
+{% endif %}
+
+<!-- get which flow user is in  -->
+{% if  craft.request.getParam('flow') is not null %}
+{% set flow = craft.request.getParam('flow') %}
+{{ craft.twigSession.add('flow', craft.request.getParam('flow')) }}
+{% else %}
+{% set flow = craft.twigSession.get('flow') %}
+{% endif %}
+
+{% if not craft.twigSession.get('tab')|length > 0 and flow == 'schedule' %}
+{% redirect "/" %}
+{% elseif craft.twigSession.get('tab') < 1 and flow == 'schedule' %}
+{% redirect "basicinfo" %}
+{% endif %}
+{% if craft.request.getParam('petName') %}
+{{ craft.twigSession.add('petSchedule[]', craft.request.getParam('petName')) }}
+{% endif %}
+{% if  craft.twigSession.get('petSchedule[]') is not null %}
+{% set petsSchedule = craft.twigSession.get('petSchedule[]') %}
+{% endif %}
+
+<!-- parser error message -->
+{% macro errorList(errors) %}
+{% if errors %}
+<ul class="errors">
+    {% for error in errors %}
+    <li>{{ error }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+{% endmacro %}
+
+{% from _self import errorList %}
+<!-- end of parser error message -->
+
+<!-- get flash message -->
+{% if craft.session.getFlash('DeleteCompleted') is defined %}
+{% set message = craft.session.getFlash('DeleteCompleted') %}
+{% endif %}
+
+{% include "_includes/_tab_bar" %}
+
+{% if flow == 'schedule' %}
+<div class="mini-head">
+    {% set petnum = craft.twigSession.get('num') %}
+    Appointment Window: <b>{{ craft.twigSession.get('start')|date("F d, Y") }} from
+    {{craft.twigSession.get('start')|date("g:i a")}} - {{craft.twigSession.get('end')|date_modify("+60 minutes")|date("g:i a")}}</b>
+    <div id="clockdiv">
+        <span class="smalltext">Time left to complete booking</span>
+        <div class="time">
+            <span class="minutes"></span><span>:</span><span class="seconds"></span>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% set numOfPets = craft.twigSession.get('num') %}
+{% set totalpets = user.pets|length %}
+{% set petCount = 1 %}
+{% set maxPetNum = 4 %}
+<div class="content">
+    {% if currentUser.isInGroup('customer') %}
+    {{ currentUser.customerBodyText }}<br/>
+    {% endif %}
+
+    <form method="post" accept-charset="UTF-8" enctype="multipart/form-data">
+        {{ getCsrfInput() }}
+        <input type="hidden" name="action" value="users/saveUser">
+        <input type="hidden" name="redirect" value="{{siteUrl}}petinfo">
+        <input type="hidden" name="userId" value="{{ user.id }}">
+
+        <h2>Add Pets</h2>
+        {% if flow == 'schedule' %}
+        {% if craft.twigSession.get('num') %}
+        <h3>You've selected a vet appointment for <strong>{{numOfPets}}</strong> pet{% if numOfPets > 1 %}s{% endif %}.</h3>
+        {% endif %}
+        {% else %}
+        <span>{{customerAccountSetUp.addPetMessageNonBooking}}</span>
+        {% endif %}
+
+                    <div class="pets">
+                        {% for petblock in user.pets %}
+                        {% if petblock.type == 'pet' %}
+                        {% set image = petblock.petPhoto.first() %}
+                        <div class='pet' data-petid="{{petblock.id}}">
+                            <div class = 'existpet' data-petid="{{petblock.id}}">
+                                <input type="hidden" name="fields[pets][{{petblock.id}}][type]" value="pet">
+                                <input type="hidden" name="petblock.id" value="{{petblock.id}}">
+                                <input type="hidden" name="fields[pets][{{petblock.id}}][enabled]" value="1">
+                                <div class="petnum">{{petCount}}.</div>
+                                {% set petCount = petCount + 1 %}
+                                {% if not image is empty %}
+                                <div class="picture" style="background: transparent url('{{image.url }}') no-repeat center center; background-size: cover;"></div>
+                                {% else %}
+                                <div class="picture" style="background: transparent url('https://s3.amazonaws.com/vetterpc-images/pet_placeholderimage.jpg') no-repeat center center; background-size: cover;"></div>
+                                {% endif %}
+                                <div class="name">{{petblock.petFirstName}}</div>
+                                <div class="overlay">
+                                    <a href="#" class="edit-pet" data-field="{{petblock.id}}" data-image="{{image.url}}" data-petid="{{petblock.id}}"
+                                       tabindex="0"><i class="icon-pencil"></i>Edit</a>
+                                    {% if not petblock.petFirstName is empty %}
+                                    {% if not image is empty %}
+                                    <a href="#" class="remove-pet" data-field="{{petblock.id}}" data-petid="{{petblock.id}}"
+                                       data-asset="{{image.id}}" tabindex="0"><i class="icon-trash-o"></i>Delete</a>
+                                    {% else %}
+                                    <a href="#" class="remove-pet" data-field="{{petblock.id}}" data-petid="{{petblock.id}}"
+                                       data-asset="0" tabindex="0"><i class="icon-trash-o"></i>Delete</a>
+                                    {% endif %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                            <div class="petinfo" data-petid="{{petblock.id}}">
+                              <div class="petnum" data-petid="{{petblock.id}}">{{petCount - 1}}.</div>
+                                <br/>
+                                <div class='box pet_dragandrophandler' id="pets" data-name='pets' data-petid="{{petblock.id}}">
+                                <div class="vetProfile">
+                                    <div class="picture"><img class="addpetpreview" data-petid="{{petblock.id}}" src="{% if not image is empty %}{{image.url }}{% else %}https://s3.amazonaws.com/vetterpc-images/pet_placeholderimage.jpg{% endif %}"></div>
+                                    <div class="overlay">
+                                        <div class="button"><label for="createPetPhoto{{petblock.id}}">Change Photo</label>
+                                        <input class="inputfile" type="file" id="createPetPhoto{{petblock.id}}"
+                                           name="fields[pets][{{petblock.id}}][fields][petPhoto]" data-petid="{{petblock.id}}"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                </div>
+                                <input type="hidden" name="fields[pets][{{petblock.id}}][type]" value="pet">
+                                <input type="hidden" name="fields[pets][{{petblock.id}}][enabled]" value="1">
+
+                            <div class="qinput clearfix">
+                                <label>Pet First Name*</label>
+                                <input class="input__field input__field--yoshiko petFirstName" type="text"
+                                       name="fields[pets][{{ petblock.id }}][fields][petFirstName]" data-petid="{{ petblock.id }}"
+                                       {%- if petblock is defined %} value="{{ petblock.petFirstName }}" {% endif -%} multiple/>
+                            </div>
+
+                            <div class="qinput">
+                                <label>Is Pet less than 1 year old?*</label>
+                                <br/>
+                                <input type="radio" class="1year" name="1year" value="yes" data-petid="{{ petblock.id }}" {% if floor(date( petblock.birthdate|date ).diff( now ).days/365.24) < 1 %} checked="checked" {% endif %}>Yes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                <input type="radio" class="1year" name="1year" value="no"  data-petid="{{ petblock.id }}" {% if floor(date( petblock.birthdate|date ).diff( now ).days/365.24) >= 1 %} checked="checked" {% endif %}>No
+                            </div>
+
+                            <div class="pet-inputrow">
+                                <div class="calculatebirthdate {% if floor(date( petblock.birthdate|date ).diff( now ).days/365.24) < 1 %}hidden{% endif %} input-item" data-petid="{{ petblock.id }}">
+                                    <label>Age*</label>
+                                    <input class="input__field input__field--yoshiko age" type="text" name="age"
+                                           data-petid="{{ petblock.id }}"
+                                           {%- if petblock is defined %} value="{{ floor(date( petblock.birthdate|date ).diff( now ).days/365.24) }}" {% endif -%}/>
+                                </div>
+                            </div>
+
+                            <div class="inputbirthdate pet-inputrow bday" data-petid="{{ petblock.id }}">
+                            <label>Birthdate</label>
+                            <input class="birthdate hidden" type="date" id="birthdate" data-petid="{{ petblock.id }}"
+                                       name="fields[pets][{{ petblock.id }}][fields][birthdate]"
+                                       {%- if petblock is defined %} value="{{ petblock.birthdate }}" {% endif -%}/>
+                            </div>
+                            <div class="inputbirthdate  pet-inputrow" data-petid="{{ petblock.id }}">
+                            <div class="input-item">
+                                <label>Month*</label>
+                                <select name="month" class="birth_month" data-petid="{{ petblock.id }}">
+                                    {% for month in 1..12 %}
+                                    {% if month < 10 %}
+                                    {% set set_month = '0'~month %}
+                                    {% else %}
+                                    {% set set_month = month %}
+                                    {% endif %}
+                                    <option value="{{ set_month }}" {% if (petblock.birthdate|date(
+                                        'm') == set_month) %} selected{% endif %}> {{ set_month }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="input-item">
+                                <label>Day*</label>
+                                <div><select name='day' class="birth_day" data-petid="{{ petblock.id }}">
+                                    {% for day in 1..31 %}
+                                    {% if day < 10 %}
+                                    {% set set_day = '0'~day %}
+                                    {% else %}
+                                    {% set set_day = day %}
+                                    {% endif %}
+                                    <option value="{{ set_day }}" {% if (petblock.birthdate|date(
+                                        'd') == set_day) %} selected{% endif %}> {{ set_day }}</option>
+                                    {% endfor %}
+                                </select></div>
+                            </div>
+                            <div class="input-item">
+                                <label>Year*</label>
+                                <input class="input__field input__field--yoshiko birth_year" type="text" name="year"
+                                       data-petid="{{ petblock.id }}"
+                                       value="{{ petblock.birthdate|date('Y')}}"/>
+                            </div>
+                            </div>
+                            <div class="this-used-to-be-pet-inputrow">
+                            <div class="qinput input-item">
+                                <label>Species*</label><br/>
+
+                                <input type="radio" class="species" name="fields[pets][{{petblock.id}}][fields][species]" id="species"
+                                           data-petid="{{petblock.id}}" value="canine" {% if petblock.species|trim== "canine" %}
+                                    checked="checked" {% endif %}>
+                                    Canine
+                                <input type="radio" class="species" name="fields[pets][{{petblock.id}}][fields][species]" id="species"
+                                           data-petid="{{petblock.id}}" value="feline" {% if petblock.species|trim== "feline" %}
+                                    checked="checked" {% endif %}>
+                                    Feline
+                                {% if petblock is defined %}
+                                {{ errorList(petblock.getErrors('species')) }}
+                                {% endif %}
+                            </div>
+                            <div class="qinput input-item grow">
+                                 <label>Breed*</label>
+                                 <input class="input__field input__field--yoshiko breed" type="text" id="breed"
+                                           name="fields[pets][{{petblock.id}}][fields][breed]" data-petid="{{petblock.id}}"
+                                           {%- if petblock is defined %} value="{{ petblock.breed }}" {% endif -%}/>
+                                {% if petblock is defined %}
+                                {{ errorList(petblock.getErrors('species')) }}
+                                {% endif %}
+                            </div>
+                            </div>
+                            <div class="qinput">
+                                   <label>Gender*</label><br>
+                                    <input type="radio" name="fields[pets][{{petblock.id}}][fields][gender]" class="gender" id="gender" data-petid="{{petblock.id}}" value="female" {% if petblock.gender|trim == "female" %} checked="checked" {% endif %}>Female
+                                    <input type="radio" name="fields[pets][{{petblock.id}}][fields][gender]" class="gender" id="gender" data-petid="{{petblock.id}}" value="male" {% if petblock.gender|trim == "male" %} checked="checked" {% endif %}>Male
+                            {% if petblock is defined %}
+                            {{ errorList(petblock.getErrors('gender')) }}
+                            {% endif %}
+                            </div>
+                            <div class="qinput">
+                                <label>Is this pet spayed or neutered?*</label><br/>
+                                <input type="radio" name="fields[pets][{{petblock.id}}][fields][spayedOrNeutered]" class="spayedOrNeutered" id="spayedOrNeutered" data-petid="{{petblock.id}}" value="yes" {% if petblock.spayedOrNeutered|trim == "yes" %} checked="checked" {% endif %}>Yes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                    <input type="radio" name="fields[pets][{{petblock.id}}][fields][spayedOrNeutered]" class="spayedOrNeutered" id="spayedOrNeutered" data-petid="{{petblock.id}}" value="no" {% if petblock.spayedOrNeutered|trim == "no" %} checked="checked" {% endif %}>No
+                                    {% if petblock is defined %}
+                                    {{ errorList(petblock.getErrors('spayedOrNeutered')) }}
+                                    {% endif %}
+                            </div>
+                            <div class="qinput">
+                               <label>General Information</label>
+                                    <textarea class="input__field input__field--yoshiko" type="text" id="generalInformation"
+                                              data-petid="{{petblock.id}}"
+                                              name="fields[pets][{{petblock.id}}][fields][generalInformation]"> {%- if petblock is defined %}{{ petblock.generalInformation }} {% endif
+                              -%}</textarea>
+                                    {% if petblock is defined %}
+                                    {{ errorList(petblock.getErrors('generalInformation')) }}
+                                    {% endif %}
+                            </div>
+                            <div class="qinput">
+                               <label>Is your pet ever aggressive to strangers? Has s/he ever bitten someone? Let us know so that
+                                        we
+                                        can make sure Vetter is the right service for your pet.*</label>
+                                    <br>
+                                    <input type="radio" name="fields[pets][{{petblock.id}}][fields][aggressiveBehavior]"
+                                           data-petid="{{petblock.id}}"
+                                           class="aggressiveBehavior" value="yes" {% if petblock.aggressiveBehavior|trim== "yes" %}
+                                    checked="checked" {% endif %}>Yes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                    <input type="radio" name="fields[pets][{{petblock.id}}][fields][aggressiveBehavior]"
+                                           data-petid="{{petblock.id}}"
+                                           class="aggressiveBehavior" value="no" {% if petblock.aggressiveBehavior|trim== "no" %}
+                                    checked="checked" {% endif %}>No
+                            </div>
+                            <div class="qinput">
+                                    <div class="detailAboutAggressiveBehavior {% if petblock.aggressiveBehavior|trim == 'no' %} hidden {% endif %}" data-petid="{{petblock.id}}" >
+                                    <label>If Yes, please explain*</label>
+                                    <textarea name="fields[pets][{{petblock.id}}][fields][detailAboutAggressiveBehavior]" class='detailAboutAggressiveBehaviortext' data-petid="{{petblock.id}}">{%- if petblock is defined %}{{ petblock.detailAboutAggressiveBehavior }}{% endif -%}</textarea>
+                                </div>
+                            </div>
+
+                            <input class="button small blue petSave" type="submit" value="Save" data-petid="{{petblock.id}}" disabled>
+                            <a class="cancelCreatePet" href="#" onclick="$('div.petinfo[data-petid={{petblock.id}}]').slideUp();return false;">cancel</a>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+    </form>
+    <form method="post" accept-charset="UTF-8" class="addl-pets" enctype="multipart/form-data">
+        <!-- Create new pet-->
+        {{ getCsrfInput() }}
+        <input type="hidden" name="action" value="users/saveUser">
+        <input type="hidden" name="redirect" value="{{siteUrl}}petinfo">
+        <input type="hidden" name="userId" value="{{ user.id }}">
+
+        <!--- put all existing pets in hidden, so that record won't overwrite when user upload new pet -->
+        {% for petblock in user.pets %}
+        {% if petblock.type == 'pet' %}
+        <input type="hidden" name="fields[pets][{{petblock.id}}][type]" value="pet">
+        <input type="hidden" name="fields[pets][{{petblock.id}}][enabled]" value="1">
+        {% endif %}
+        {% endfor %}
+        <!--  end of existing pets-->
+
+
+                        {% set total_pet = user.pets|length %}
+                        {% set remainPet = 4 - total_pet %}
+
+                        {% for number in 1..remainPet %}
+                        {% set next = total_pet + number %}
+
+                        {% if number == 1 and total_pet != 4 %}
+                        <div class="box eachPet" data-petid="new{{ next }}">
+                            <label class="nextPet">{{next}}.</label>
+                            <i class="icon-add_circle"></i><label>Add Pet</label>
+                        </div>
+                        <div class="newpet hidden" data-petid="new{{ next }}"> <!-- add pet -->
+                            <div class="nextPet">{{next}}.</div>
+                            <input type="hidden" name="fields[pets][new{{ next }}][type]" value="pet">
+                            <input type="hidden" name="fields[pets][new{{ next }}][enabled]" value="1">
+
+                            <div class='box pet_dragandrophandler' id="pets" data-name='pets' data-petid="new{{ next }}">
+                            <div class="vetProfile">
+                                <div class="picture"><img class="addpetpreview" data-petid="new{{ next }}" src="https://s3.amazonaws.com/vetterpc-images/pet_placeholderimage.jpg"></div>
+                                <div class="overlay">
+                                    <div class="button"><label for="createPetPhoto">Change Photo</label>
+                                    <input class="inputfile" type="file" id="createPetPhoto"
+                                       name="fields[pets][new{{ next }}][fields][petPhoto]" data-petid="new{{ next }}"/>
+                                    </div>
+                                </div>
+                            </div>
+                            </div>
+
+                            <div class="qinput clearfix">
+                                <label>Pet First Name*</label>
+                                <input class="input__field input__field--yoshiko petFirstName" type="text"
+                                       name="fields[pets][new{{ next }}][fields][petFirstName]" data-petid="new{{ next }}"
+                                       {%- if petblock is defined %} value="{{ petblock.petFirstName }}" {% endif -%} multiple/>
+
+                            </div>
+
+                            <div class="qinput">
+                                <label>Is Pet less than 1 year old?*</label>
+                                <br/>
+                                <input type="radio" class="1year" name="1year" value="yes" data-petid="new{{ next }}">Yes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                <input type="radio" class="1year" name="1year" value="no" data-petid="new{{ next }}">No
+                            </div>
+                            <div class="pet-inputrow">
+                                <div class="calculatebirthdate hidden input-item" data-petid="new{{ next }}">
+                                    <label>Age*</label>
+                                    <input class="input__field input__field--yoshiko age" type="text" name="age"
+                                           data-petid="new{{ next }}"
+                                           {%- if petblock is defined %} value="{{ petblock.petFirstName }}" {% endif -%}/>
+                                </div>
+                            </div>
+                            <div class="inputbirthdate hidden pet-inputrow bday" data-petid="new{{ next }}">
+                                <label>Birthdate</label>
+                                <input class="birthdate hidden" type="date" id="birthdate" data-petid="new{{ next }}"
+                                       name="fields[pets][new{{ next }}][fields][birthdate]"
+                                       {%- if petblock is defined %} value="{{ petblock.birthdate }}" {% endif -%}/>
+                            </div>
+                            <div class="inputbirthdate hidden pet-inputrow" data-petid="new{{ next }}">
+                            <div class="input-item">
+                                <label>Month*</label>
+                                <select name="month" class="birth_month" data-petid="new{{ next }}">
+                                    {% for month in 1..12 %}
+                                    {% if month < 10 %}
+                                    {% set set_month = '0'~month %}
+                                    {% else %}
+                                    {% set set_month = month %}
+                                    {% endif %}
+                                    <option value="{{ set_month }}" {% if (
+                                    "now"|date('m') == set_month) %} selected{% endif %}> {{ set_month }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="input-item">
+                                <label>Day*</label>
+                                <div><select name='day' class="birth_day" data-petid="new{{ next }}">
+                                    {% for day in 1..31 %}
+                                    {% if day < 10 %}
+                                    {% set set_day = '0'~day %}
+                                    {% else %}
+                                    {% set set_day = day %}
+                                    {% endif %}
+                                    <option value="{{ set_day }}" {% if (
+                                    "now"|date('d') == set_day) %} selected{% endif %}> {{ set_day }}</option>
+                                    {% endfor %}
+                                </select></div>
+                            </div>
+                            <div class="input-item">
+                                <label>Year*</label>
+                                <input class="input__field input__field--yoshiko birth_year" type="text" name="year"
+                                       data-petid="new{{ next }}"
+                                       value="{{ " now"|date('Y')}}"/>
+                            </div>
+                            </div>
+                            <div class="this-used-to-be-pet-inputrow">
+                            <div class="qinput input-item">
+                                <label>Species*</label><br/>
+
+                                <input type="radio" class="species" name="fields[pets][new{{ next }}][fields][species]" id="species" value="canine"
+                                       data-petid="new{{ next }}"> Canine
+
+                                <input type="radio" class="species" name="fields[pets][new{{ next }}][fields][species]" id="species" value="feline"
+                                       data-petid="new{{ next }}">
+                                Feline
+
+
+                                {% if petblock is defined %}
+                                {{ errorList(petblock.getErrors('species')) }}
+                                {% endif %}
+                            </div>
+                            <div class="qinput input-item grow">
+                                <label>Breed*</label>
+                                <input class="input__field input__field--yoshiko breed" type="text" id="breed"
+                                       name="fields[pets][new{{ next }}][fields][breed]" data-petid="new{{ next }}"
+                                       {%- if petblock is defined %} value="{{ petblock.breed }}" {% endif -%}/>
+                                {% if petblock is defined %}
+                                {{ errorList(petblock.getErrors('species')) }}
+                                {% endif %}
+                            </div>
+                            </div>
+                            <div class="qinput">
+                                <label>Gender*</label><br/>
+
+                                <input type="radio" name="fields[pets][new{{ next }}][fields][gender]" class="gender" id="gender" value="female"
+                                       data-petid="new{{ next }}">Female
+
+                                <input type="radio" name="fields[pets][new{{ next }}][fields][gender]" class="gender" id="gender" value="male"
+                                       data-petid="new{{ next }}">Male
+
+                                {% if petblock is defined %}
+                                {{ errorList(petblock.getErrors('gender')) }}
+                                {% endif %}
+
+                            </div>
+                            <div class="qinput">
+                                <label>Is this pet spayed or neutered?*</label><br/>
+                                <input type="radio" name="fields[pets][new{{ next }}][fields][spayedOrNeutered]" class="spayedOrNeutered" id="spayedOrNeutered"
+                                       value="yes" data-petid="new{{ next }}">Yes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                <input type="radio" name="fields[pets][new{{ next }}][fields][spayedOrNeutered]" class="spayedOrNeutered" id="spayedOrNeutered"
+                                       value="no" data-petid="new{{ next }}">No
+                                {% if petblock is defined %}
+                                {{ errorList(petblock.getErrors('spayedOrNeutered')) }}
+                                {% endif %}
+                            </div>
+                            <div class="qinput">
+                                <label>General Information</label>
+                                <textarea class="input__field input__field--yoshiko" type="text" id="generalInformation"
+                                          name="fields[pets][new{{ next }}][fields][generalInformation]" data-petid="new{{ next }}"
+                                          {%- if petblock is defined %} value="{{ petblock.generalInformation }}" {% endif
+                                          -%}></textarea>
+                                {% if petblock is defined %}
+                                {{ errorList(petblock.getErrors('generalInformation')) }}
+                                {% endif %}
+                            </div>
+                            <div class="qinput">
+                                <label> Is your pet ever aggressive to strangers? Has s/he ever bitten someone? Let us know so that we
+                                    can
+                                    make sure Vetter is the right service for your pet.* </label>
+                                <br>
+                                <input type="radio" name="fields[pets][new{{ next }}][fields][aggressiveBehavior]"
+                                       class="aggressiveBehavior" value="yes" data-petid="new{{ next }}">Yes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                <input type="radio" name="fields[pets][new{{ next }}][fields][aggressiveBehavior]"
+                                       class="aggressiveBehavior" value="no" data-petid="new{{ next }}">No
+                                {% if petblock is defined %}
+                                {{ errorList(petblock.getErrors('aggressiveBehavior')) }}
+                                {% endif %}
+                            </div>
+                            <div class="qinput">
+                                <div class="detailAboutAggressiveBehavior hidden" data-petid="new{{ next }}">
+                                    <label>If yes, please explain*</label>
+                                    <textarea name="fields[pets][new{{ next }}][fields][detailAboutAggressiveBehavior]"
+                                              class='detailAboutAggressiveBehaviortext' data-petid="new{{ next }}"></textarea>
+                                    {% if petblock is defined %}
+                                    {{ errorList(petblock.getErrors('detailAboutAggressiveBehavior')) }}
+                                    {% endif %}
+                                </div>
+                            </div>
+
+
+                            <input class="button small blue petSave" type="submit" data-petid="new{{ next }}" value="Save" disabled>
+                            <a href="#" class="cancelCreatePet" data-petid="new{{ next }}">cancel</a>
+                              {% if number != 1 and total_pet < 4 %}
+                        <div class="box inactivePet" data-petid="new{{next}}">
+                            <i class="icon-add_circle"></i><label>Add Pet</label>
+                        </div>
+                        {% endif %}
+                        </div> <!-- end add pet  -->
+
+                        {% endif %}
+                        {% endfor %}
+    </form>
+</div>
+    {% if flow =='schedule' %}
+    <!-- For Schedule flow, checkbox each pet for scheduling -->
+    <div class="line"></div>
+    <div class="select-pet">
+
+        <form method="post" accept-charset="UTF-8" enctype="multipart/form-data" >
+            <h2 id="jumptoemr" >Select Pet{% if numOfPets > 1 %}s{% endif %}{% if flow == 'schedule' %}*{% endif %}</h2>
+            <span>Select the <b>{{numOfPets}}</b> pet{% if numOfPets > 1 %}s{% endif %} below you'd like for our vet to see and select Confirm.
+        {{ getCsrfInput() }}
+        {% set Countpet = 0 %}
+        {% for petblock in user.pets %}
+        {% set Countpet = Countpet + 1 %}
+        {% endfor %}
+        {% set confirmedpets = 0 %}
+        <div class="scheduledPet" id="scheduledPet">
+        <div class="selpet-container">
+            {% for petblock in user.pets %}
+            {% if petblock.type == 'pet' %}
+            <div class="selpet">
+                <input type="checkbox" name="petName[]" class="petSelected" value="{{petblock.petFirstName}}"
+                       data-num="{{numOfPets}}" data-petid="{{petblock.id}}"
+                       {%if petsSchedule is defined %}
+                       {% for eachschedulepet in petsSchedule %}
+                       {%if eachschedulepet== petblock.petFirstName %}
+                       {% set confirmedpets = confirmedpets + 1 %}
+                       checked='checked'
+                       {% endif %}
+                       {% endfor %}
+                       {% else %}
+                       {#
+                       {%if numOfPets== Countpet %}
+                       checked='checked'
+                       {% endif %}
+                       #}
+                       {% endif %}
+                ><span class="selpet-name">{{petblock.petFirstName}}</span>
+                </div>
+            {% endif %}
+            {% endfor %}
+            </div>
+                        {% if total_pet > 0 %}
+                 <input type="submit" disabled data-num="{{numOfPets}}" class="confirm_pet small button blue {%if confirmedpets != 0 %}{%if confirmedpets == numOfPets %}confirmed{% endif %}{% endif %}" value="Confirm">
+                        {% endif %}
+        </div>
+        </form>
+        <div class="pet-error">{%if confirmedpets != 0 %}{%if confirmedpets == numOfPets %}Number of pets confirmed.{% endif %}{% endif %}</div>
+        <form>
+            <a href="" id="modnum">{{booking.modifyNumberOfPets}}</a>
+
+            <select name="numpets" class="numpets">
+                <option></option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+            </select>
+            <input type="hidden" id="numSelected" value="{{craft.twigSession.get('num')}}"/>
+        </form>
+    </div>
+    {% endif %}
+
+
+    <div class="line"></div>
+    <!--  pet EMR -->
+    <div class="petrecord" id="petrecord">
+        <form method="post" accept-charset="UTF-8" enctype="multipart/form-data">
+            {{ getCsrfInput() }}
+            <input type="hidden" name="action" value="users/saveUser">
+            <input type="hidden" name="redirect" value="{{siteUrl}}petinfo#petrecord">
+            <input type="hidden" name="userId" value="{{ user.id }}">
+            <!--- put all existing petEMR in hidden, so that record won't overwrite when user upload new EMR -->
+            {% for petEMRblock in user.petRecords %}
+            {% if petEMRblock.type=='records' %}
+            {% if user.petRecords|length > 0 %}
+            {% set emr = petEMRblock.documentUpload.first() %}
+            <input type="hidden" name="fields[petRecords][{{petEMRblock.id}}][type]" value="records">
+            <input type="hidden" name="fields[petRecords][{{petEMRblock.id}}][enabled]" value="1">
+            <input type="hidden" name="fields[petRecords][{{petEMRblock.id}}][description]"
+                   value="{{petEMRblock.description}}">
+            {% endif %}
+            {% endif %}
+            {% endfor %}
+            <!--  end of existing petEMR-->
+            <h2>{% set field = craft.fields.getFieldbyHandle('petRecords') %}{{ field.name }}</h2>
+            {{ customerAccountSetUp.petEmrsIntro }}
+
+            {% set total_petEMR = user.petRecords|length %}
+            {% set next = total_petEMR + 1 %}
+
+            <input type="hidden" name="fields[petRecords][new{{ next }}][type]" value="records">
+            <input type="hidden" name="fields[petRecords][new{{ next }}][enabled]" value="1">
+            <div class='box petemr_dragandrophandler' id="petRecords" data-name='petRecords'>
+            <div class="infofile">
+                <i class="icon-file_upload"></i>
+                <label for="petrecordfile"><span id="notchrome">Drag files here or </span><span class="browse">browse</span></label>
+                <span for="petrecordfile"> </span>
+                <input class="inputfile" type="file" id="petrecordfile"
+                       name="fields[petRecords][new{{ next }}][fields][documentUpload]"/>
+                <input class="input__field" type="hidden" id="description"
+                       name="fields[petRecords][new{{ next }}][fields][description]" value="">
+            </div>
+            <div class="infobutton">
+                <input class="button small blue petEMRupload" type="submit" value="upload" disabled>
+            </div>
+            </div>
+
+        </form>
+        {% if petblock is defined %}
+        {{ errorList(petblock.getErrors('description')) }}
+        {% endif %}
+
+        {% for petEMRblock in user.petRecords %}
+        {% if petEMRblock.type=='records' %}
+        {% if user.petRecords|length > 0 %}
+        {% set emr = petEMRblock.documentUpload.first() %}
+            {% if not petEMRblock.documentUpload is empty %}
+            <form method="post" accept-charset="UTF-8" enctype="multipart/form-data">
+            {{ getCsrfInput() }}
+            <input type="hidden" name="action" value="users/saveUser">
+            <input type="hidden" name="redirect" value="{{siteUrl}}petinfo#petrecord">
+            <input type="hidden" name="userId" value="{{ user.id }}">
+
+            <div class='exist_petrecord' data-recordid="{{petEMRblock.id}}">
+                <input type="hidden" name="fields[petRecords][{{petEMRblock.id}}][type]" value="records">
+                <input type="hidden" name="fields[petRecords][{{petEMRblock.id}}][enabled]" value="1">
+                <div class="addaDescription" data-recordid="{{petEMRblock.id}}">
+                    <i class="icon-file-text2"></i><a href="{{ getSignedUrl(petEMRblock.documentUpload.first().id) }}" class="docname">{{petEMRblock.documentUpload.first()}}.{{petEMRblock.documentUpload.first().extension}}</a>
+                   <!-- <a href="#" class="addadescriptionlink" data-recordid="{{petEMRblock.id}}">Add a description</a> -->
+                    <!--<a href="#" class="remove-emr" data-recordid="{{petEMRblock.id}}" data-field="{{petEMRblock.id}}"
+                       data-asset="{{emr.id}}"
+                       tabindex="0"><i class="icon-cancel"></i></a>-->
+                    {%if not petEMRblock.uploadedBy | length %}
+                    <a href="#" class="remove-emr" data-recordid="{{petEMRblock.id}}" data-field="{{petEMRblock.id}}"  data-asset="{{emr.id}}" tabindex="0"><i class="icon-cancel"></i></a>
+                    {% endif %}
+                    <!--
+                    <div class="emrDescription" data-recordid="{{petEMRblock.id}}">
+                        <textarea type="text" class="addDescriptionText"
+                                  name="fields[petRecords][{{petEMRblock.id}}][fields][description]"
+                                  data-recordid="{{petEMRblock.id}}"
+                                  placeholder="Description of Electronic Medical Record">
+                            {%-if petEMRblock.description is defined -%}{{petEMRblock.description}} {% endif %}</textarea>
+                        <input class="button small blue emrSave" type="submit" value="Save" disabled>
+                        <a class="cancelCreatePet" href="#"
+                           onclick="$('div.emrDescription[data-recordid={{petEMRblock.id}}]').slideUp();return false;">Cancel</a>
+
+                    </div>
+                    -->
+                </div>
+            </div>
+            {% else %}
+           <!-- <a href="#" class="remove-emr empty" data-field="{{petEMRblock.id}}" data-recordid="{{petEMRblock.id}}"
+               data-asset="0" tabindex="0">Remove Empty Record <i class="icon-cancel"></i></a> -->
+            {% endif %}
+
+            {% endif %}
+            {% endif %}
+            {% endfor %}
+
+            <div class="receipt-list">
+            {% for receipt in user.receiptsOfService %}
+                {% if loop.first %}
+                <div class="line"></div>
+                <h2>Receipts of Service</h2>
+                {% endif %}
+                <!--  Receipts of Service -->
+                    <div class="receipts">
+                    <i class="icon-file-text2"></i><a href="{{ getSignedUrl(receipt.documentUpload.first().id) }}">{{receipt.dateOfService}} - {{receipt.documentUpload.first()}}.{{receipt.documentUpload.first().extension}}</a>
+                    </div>
+            {% endfor %}
+            </div>
+
+            <div class="clearfix btn-container">
+                <a href="basicinfo" class="button back" value="back">back</a>
+                <input class="button savecontinuepet blue" data-flow="{{flow}}" {% if flow== 'schedule' %}{% if numOfPets > totalpets %} disabled
+                {% endif %}{% endif %} id="next" data-num="{{numOfPets}}" type="submit" value="Continue">
+            </div>
+            {% if flow == 'schedule' %}
+            {% if numOfPets > totalpets %} Upload all of your pets before continuing {% endif %}
+            {% endif %}
+    </div>
+    </form>
+
+</div>
+
+<!-- hidden clone page -->
+<div class="create_pet_clone hidden">
+
+    {% set total_pet = user.pets|length %}
+    {% set next = total_pet + 1 %}
+    {% if total_pet < 4 %}
+    <br/>
+    <input type="hidden" name="fields[pets][new{{ next }}][type]" value="pet">
+    <input type="hidden" name="fields[pets][new{{ next }}][enabled]" value="1">
+
+    <div class='box pet_dragandrophandler' id="pets" data-name='pets'><label for="createPetPhoto">Upload a photo of your
+        pet</label>
+        <input class="inputfile" type="file" id="createPetPhoto" name="fields[pets][new{{ next }}][fields][petPhoto] "
+               data-petid="new{{ next }}"/>
+    </div>
+    <div class="qinput">
+        <label>Pet First Name</label>
+        <input class="input__field input__field--yoshiko petFirstName" type="text"
+               name="fields[pets][new{{ next }}][fields][petFirstName]" data-petid="new{{ next }}"
+               {%- if petblock is defined %} value="{{ petblock.petFirstName }}" {% endif -%} multiple/>
+    </div>
+    <div class="qinput">
+        <label>Is Pet less than 1 year old?</label>
+        <br/>
+        <input type="radio" class="1year" name="1year" value="yes">Yes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <input type="radio" class="1year" name="1year" value="no">No
+    </div>
+    <div class="pet-inputrow">
+    <div class="calculatebirthdate hidden input-item" data-petid="new{{ next }}">
+        <label>Age</label>
+        <input class="input__field input__field--yoshiko age" type="text" name="age" data-petid="new{{ next }}"
+               {%- if petblock is defined %} value="{{ petblock.petFirstName }}" {% endif -%}/>
+    </div>
+    </div>
+    <div class="inputbirthdate pet-inputrow bday" data-petid="new{{ next }}">
+        <label>Birthdate</label>
+        <input class="birthdate hidden" type="date" data-petid="new{{ next }}"
+                 name="fields[pets][new{{ next }}][fields][birthdate]" data-petid="new{{ next }}"
+                 {%- if petblock is defined %} value="{{ petblock.birthdate }}" {% endif -%}/>
+    </div>
+    <div class="inputbirthdate hidden pet-inputrow" data-petid="new{{ next }}">
+        <div class="input-item">
+        <label>Month</label>
+        <select name="month" class="birth_month" data-petid="new{{ next }}">
+            {% for month in 1..12 %}
+            {% if month < 10 %}
+            {% set set_month = '0'~month %}
+            {% else %}
+            {% set set_month = month %}
+            {% endif %}
+            <option value="{{ set_month }}" {% if (
+            "now"|date('m') == set_month) %} selected{% endif %}> {{ set_month }}</option>
+            {% endfor %}
+        </select>
+        </div>
+        <div class="input-item">
+        <label>Day</label>
+        <div><select name='day' class="birth_day" data-petid="new{{ next }}">
+            {% for day in 1..31 %}
+            {% if day < 10 %}
+            {% set set_day = '0'~day %}
+            {% else %}
+            {% set set_day = day %}
+            {% endif %}
+            <option value="{{ set_day }}" {% if (
+            "now"|date('d') == set_day) %} selected{% endif %}> {{ set_day }}</option>
+            {% endfor %}
+        </select></div>
+        </div>
+        <div class="input-item">
+        <label>Year</label>
+        <input class="input__field input__field--yoshiko birth_year" type="text" name="year" data-petid="new{{ next }}"
+               value="{{ " now"|date('Y')}}"/>
+        </div>
+
+    </div>
+    <div class="qinput">
+        <label>Species</label>
+        <input type="radio" class="species" name="fields[pets][new{{ next }}][fields][species]" id="species" value="canine"
+               data-petid="new{{ next }}"> Canine
+        <input type="radio" class="species" name="fields[pets][new{{ next }}][fields][species]" id="species" value="feline"
+               data-petid="new{{ next }}"> Feline
+        {% if petblock is defined %}
+        {{ errorList(petblock.getErrors('species')) }}
+        {% endif %}
+    </div>
+
+    <div class="qinput">
+        <label>Breed</label>
+        <input class="input__field input__field--yoshiko breed" type="text" id="breed"
+               name="fields[pets][new{{ next }}][fields][breed]" data-petid="new{{ next }}"
+               {%- if petblock is defined %} value="{{ petblock.breed }}" {% endif -%}/>
+        {% if petblock is defined %}
+        {{ errorList(petblock.getErrors('species')) }}
+        {% endif %}
+    </div>
+
+    <div class="qinput">
+        <label>Gender</label><br/>
+        <input type="radio" name="fields[pets][new{{ next }}][fields][gender]" class="gender" id="gender" value="female"
+               data-petid="new{{ next }}">Female
+        <input type="radio" name="fields[pets][new{{ next }}][fields][gender]" class="gender" id="gender" value="male"
+               data-petid="new{{ next }}">Male
+        {% if petblock is defined %}
+        {{ errorList(petblock.getErrors('gender')) }}
+        {% endif %}
+    </div>
+
+    <div class="qinput">
+        <label>Is this pet spayed or neutered?</label>
+        <input type="radio" name="fields[pets][new{{ next }}][fields][spayedOrNeutered]" class="spayedOrNeutered" id="spayedOrNeutered"
+               value="yes" data-petid="new{{ next }}">Yes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <input type="radio" name="fields[pets][new{{ next }}][fields][spayedOrNeutered]" class="spayedOrNeutered" id="spayedOrNeutered"
+               value="no" data-petid="new{{ next }}">No
+        {% if petblock is defined %}
+        {{ errorList(petblock.getErrors('spayedOrNeutered')) }}
+        {% endif %}
+    </div>
+
+    <div class="qinput">
+        <label>General Information</label>
+        <textarea class="input__field input__field--yoshiko" type="text" id="generalInformation"
+                  name="fields[pets][new{{ next }}][fields][generalInformation]" data-petid="new{{ next }}"
+                  {%- if petblock is defined %} value="{{ petblock.generalInformation }}" {% endif -%}></textarea>
+        {% if petblock is defined %}
+        {{ errorList(petblock.getErrors('generalInformation')) }}
+        {% endif %}
+    </div>
+
+    <div class="qinput">
+        <label>{{customerAccountSetUp.aggressiontext}}</label>
+        <br>
+        <input type="radio" name="fields[pets][new{{ next }}][fields][aggressiveBehavior]" class="aggressiveBehavior"
+               value="yes" data-petid="new{{ next }}">Yes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <input type="radio" name="fields[pets][new{{ next }}][fields][aggressiveBehavior]" class="aggressiveBehavior"
+               value="no" data-petid="new{{ next }}">No
+        {% if petblock is defined %}
+        {{ errorList(petblock.getErrors('aggressiveBehavior')) }}
+        {% endif %}
+    </div>
+    <div class="qinput">
+        <div class="detailAboutAggressiveBehavior hidden" data-petid="new{{ next }}">
+            <label>If yes, please explain</label>
+            <textarea name="fields[pets][new{{ next }}][fields][detailAboutAggressiveBehavior]" type="text"
+                      class='detailAboutAggressiveBehaviortext' data-petid="new{{ next }}"></textarea>
+            {% if petblock is defined %}
+            {{ errorList(petblock.getErrors('detailAboutAggressiveBehavior')) }}
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    <input class="button small blue petSave" type="submit" data-petid="new{{ next }}" value="Save" disabled>
+
+</div>
+<script>
+  //check for empty fields and submit button disabling
+$('.petSelected').on('keyup input change', function() {
+  if ((!$('.petSelected').is(':checked'))) {
+    $('.confirm_pet').prop('disabled', true);
+  } else {
+    $('.confirm_pet').prop('disabled', false);
+  }
+});
+var isChrome = !!window.chrome;
+var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+if(isChrome){}else if(isSafari){}else{
+  $('#notchrome').hide();
+}
+  </script>
+{% endblock %}

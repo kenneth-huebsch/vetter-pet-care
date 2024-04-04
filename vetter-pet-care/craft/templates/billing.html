@@ -1,0 +1,715 @@
+{% extends "_layout" %}
+
+{% block content %}
+<!-- This code to ensure this page only for login user -->
+{% requireLogin %}
+
+<!-- If user is vet, redirect to vet profile page -->
+{% if currentUser.isInGroup('veterinarian') %}
+{% redirect "/user/"~currentUser.id %}
+{% endif %}
+{% if currentUser.streetAddress and not (craft.twigSession.get('flow') == "schedule" or craft.twigSession.get('flow') == "signup")  %}
+  {% redirect "/" %}
+{% endif %}
+{% if not currentUser.streetAddress and craft.twigSession.get('flow') == "signup" %}
+{% redirect "/basicinfo" %}
+{% endif %}
+
+<!-- get which flow user is in  -->
+{% if  craft.request.getParam('flow') is not null %}
+{% set flow = craft.request.getParam('flow') %}
+{{ craft.twigSession.add('flow', craft.request.getParam('flow')) }}
+{% else %}
+{% set flow = craft.twigSession.get('flow') %}
+{% endif %}
+{% if not craft.twigSession.get('tab')|length > 0 and flow == 'schedule' %}
+  {% redirect "/" %}
+{% endif %}
+  {% if flow == 'schedule' and craft.twigSession.get('tab')|length > 0 %}
+  {% switch craft.twigSession.get('tab') %}
+   {% case "0" %}
+     {% redirect "basicinfo" %}
+    {% case "1" %}
+      {% redirect "petinfo" %}
+  {% endswitch %}
+  {% endif %}
+
+<!-- get credit any error -->
+{% set credit_error = craft.twigSession.get('credit_error') %}
+
+{% include "_includes/_tab_bar" %}
+
+{% if flow == 'schedule' %}
+<div class="mini-head">
+  {% set petnum = craft.twigSession.get('num') %}
+  Appointment Window: <b>{{ craft.twigSession.get('start')|date("F d, Y") }} from {{craft.twigSession.get('start')|date("g:i a")}} - {{craft.twigSession.get('end')|date_modify("+60 minutes")|date("g:i a")}}</b>
+ <div id="clockdiv">
+     <span class="smalltext">Time left to complete booking</span>
+     <div class="time">
+     <span class="minutes"></span><span>:</span><span class="seconds"></span>
+     </div>
+ </div>
+</div>
+{% endif %}
+<div class="content">
+ <div><h2>Billing Information</h2>
+
+ {% if craft.twigSession.get('flow') == "schedule" %}
+{{booking.baseFee}} <br>
+<p><b>You will be billed after your appointment.</b></p></div>
+{% else %}
+ {{customerAccountSetUp.billingIntroNonBooking}}
+{% endif %}
+
+<form method="post" accept-charset="UTF-8" id="billAddr">
+  <input type="hidden" name="action" value="users/saveUser">
+    <input type="hidden" name="userId" value="{{ currentUser.id }}">
+
+<h4> Billing Address{% if flow == 'schedule' %}*{% endif %}</h4>
+ <div id="billingSavedMsg"></div>
+
+    <div class="qinput">
+        <input type="checkbox" id="sameBillingAddr" class="sameashome" name="fields[sameashome]" {% if currentUser.sameashome %} checked="checked" {% endif %}> Same as home address?<br>
+        <input type="hidden" class="js-sameashome" name="fields[sameashome]" value="{% if currentUser.sameashome %}1{% endif %}">
+    </div>
+        <span class="input input--yoshiko streetaddress">
+     <input class="input__field input__field--yoshiko" type="text" id="streetaddress" name = "fields[billingAddress]" value="{% if currentUser.savebillinginfo %}{{currentUser.billingAddress}}{% endif %}"/>
+     <label class="input__label input__label--yoshiko" for="streetaddress">
+       <span class="input__label-content input__label-content--yoshiko" data-content="Street Address">Street Address*</span>
+     </label>
+       <div class="errmsg" id="error_streetaddress"></div>
+   </span>
+
+
+   <span class="input input--yoshiko address2">
+<input class="input__field input__field--yoshiko" type="text" id="address2" name = "fields[billingAddress2]" value="{% if currentUser.savebillinginfo %}{{currentUser.billingAddress2}}{% endif %}"/>
+<label class="input__label input__label--yoshiko" for="address2">
+  <span class="input__label-content input__label-content--yoshiko" data-content="Address 2">Address 2</span>
+</label>
+</span>
+
+<span class="input input--yoshiko cellphone">
+<input class="input__field input__field--yoshiko" type="text" id="cellphone" name = "fields[billingCellphone]" value="{% if currentUser.savebillinginfo %}{{currentUser.billingCellphone}}{% endif %}"/>
+<label class="input__label input__label--yoshiko" for="cellphone">
+<span class="input__label-content input__label-content--yoshiko" data-content="Cell Phone">Cell Phone*</span>
+</label>
+  <div class="errmsg" id="error_cellphone"></div>
+</span>
+
+
+<span class="input input--yoshiko city">
+<input class="input__field input__field--yoshiko" type="text" id="city" name = "fields[billingCity]" value="{% if currentUser.savebillinginfo %}{{currentUser.billingCity}}{% endif %}"/>
+<label class="input__label input__label--yoshiko" for="city">
+<span class="input__label-content input__label-content--yoshiko" data-content="City">City*</span>
+</label>
+  <div class="errmsg" id="error_city"></div>
+</span>
+
+<span class="input input--yoshiko states">
+        <select id="states" name="fields[billingState]">
+  {% if currentUser.billingState %}<option selected>{{currentUser.billingState}}</option>{% else %}<option></option>{% endif %}
+    {% for option in user.states.options %}
+          <option>{{option}}</option>
+    {% endfor %}
+    </select>
+    <label class="input__label input__label--yoshiko" for="states">
+    <span class="input__label-content input__label-content--yoshiko" data-content="State">State*</span>
+    </label>
+      <div class="errmsg" id="error_states"></div>
+</span>
+
+<span class="input input--yoshiko zip">
+<input class="input__field input__field--yoshiko" type="text" id="zip" name = "fields[billingZip]" value="{% if currentUser.savebillinginfo %}{{currentUser.billingZip}}{% endif %}"/>
+<label class="input__label input__label--yoshiko" for="zip">
+<span class="input__label-content input__label-content--yoshiko" data-content="Zip">Zip*</span>
+</label>
+  <div class="errmsg" id="error_zip"></div>
+</span>
+ <input type="hidden" name="fields[savebillinginfo]" value="1">
+<div class="clearfix btn-container right">
+ <input class="button bill small blue" data-flow="{{flow}}" data-uid="{{currentUser.id}}" id="createAppt" type="submit" value="Save">
+</div>
+    </form>
+    {% if flow == 'schedule' %}<hr>{% endif %}
+
+<div class="payment-container" id="payment-container">
+    {% if craft.charge.customer %}
+      {% set customer = craft.charge.customer %}
+        {% set cards = customer.getSavedCards %}
+         {% if cards %}
+           {% for card in cards %}
+    <div class="saved-card-info-container">
+     <h4>Payment Information{% if flow == 'schedule' %}*{% endif %}</h4>
+    <div class="saved-card-info">
+      <div class="saved-info">
+        <div class="saved-name"></div>
+        <div class="saved-card"><strong>{{ card.brand }}</strong> ending in <strong>{{card.last4}}</strong></div>
+        <div class="saved-exp">Expires <strong>{{ card.exp_month }}/{{ card.exp_year|slice(2) }}</strong></div>
+      </div>
+      <div class="edit-link"><a href="" id="editCard">Edit</a></div>
+    </div>
+   </div>
+       {% endfor %}
+      {% endif %}
+    {% endif %}
+    <div id="charge-form-container" >
+     <h4>Add Payment Information</h4>
+      <form id="charge-form" method="post" data-stripeKey="{{craft.charge.publicKey}}" {% if currentUser.savebillinginfo == 1 %} style="display:none;" {% endif %}accept-charset="UTF-8">
+        <input type="hidden" name="action" value="charge/charge" />
+         <input type="hidden" name="redirect" value="{{siteUrl}}billing#payment-container" />
+     <div class="card-success"></div>
+        {% set options = {'planAmount' : 1} %}
+        {{craft.charge.setPaymentOptions(options)}}
+    <div id="payment-errors"  ></div>
+    <div class="card clearfix">
+    {% if craft.charge.customer %}
+    <div class="edit-link"><a href="" class="cancel">Cancel</a></div>
+    {% endif %}
+    {#
+    {% if craft.charge.customer and (currentUser.savebillinginfo == 1) %}
+      {% set customer = craft.charge.customer %}
+        {% set cards = customer.getSavedCards %}
+         {% if cards %}
+           {% for card in cards %}
+                <input type="hidden" name="cardToken" value="{{charge.cardToken}}" data-stripe="token" />
+                <input type="hidden" name="cardLast4" value="{{charge.cardLast4}}" />
+                <input type="hidden" name="cardType" value="{{charge.cardType}}" />
+                <input type="hidden" name="cardName" value="{{charge.cardName}}" />
+                <input type="hidden" name="cardExpMonth" value="{{charge.cardExpMonth}}" />
+                <input type="hidden" name="cardExpMonth" value="{{cardExpMonth}}" />
+                <input type="hidden" name="cardExpYear" value="{{cardExpYear}}" />
+      {% endfor %}
+        {% endif %}
+    {% endif %}
+    #}
+    <input type="hidden" name="customerEmail" value="{{ currentUser ? currentUser.email }}" id="customerEmail" placeholder="email"/>
+           <div class="cord">Name on Card*</div>
+           <input type="text" name="nameOnCard" id="nameOnCard" value=""/>
+            <div class="cord wlabels"><div class="title">Credit or Debit Card*</div><div class="title">Exp. Date*</div><div class="title">Security Code*</div></div>
+            <div class="ccinfo">
+            <input type="text" data-stripe="number" placeholder="Enter Card Number" id="cardNumber" value="{% if craft.charge.customer %}{% set customer = craft.charge.customer %}{% set cards = customer.getSavedCards %}{% if cards %}{% for card in cards %}{{card.formattedCard}}{% endfor %}{% endif %}{% endif %}" />
+            <input type="text" data-stripe="exp" placeholder="MM / YY" id="cardExpiry" class="cc-expiry" value="{% if craft.charge.customer %}{% set customer = craft.charge.customer %}{% set cards = customer.getSavedCards %}{% if cards %}{% for card in cards %}{{ card.exp_month }}/{{ card.exp_year|slice(2) }}{% endfor %}{% endif %}{% endif %}" autocomplete="off" />
+            <input type="hidden" class="cardExpMonth" name="cardExpMonth" value="" data-stripe="exp_month">
+            <input type="hidden" class="cardExpYear" name="cardExpYear" value="" data-stripe="exp_year">
+            <input type="text" data-stripe="cvc" placeholder="{% if craft.charge.customer and (currentUser.savebillinginfo == 1) %} *** {% endif %}" id="cardCvc" />
+          </div>
+      <br>
+    {% if charge is defined %}{% for error in charge.getErrors('cardNumber') %}{{ error }}{% endfor %}{% endif %}
+    {% if charge is defined %}{% for error in charge.getErrors('cardExpiry') %}{{ error }}{% endfor %}{% endif %}
+    {% if charge is defined %}{% for error in charge.getErrors('cardCvc') %}{{ error }}{% endfor %}{% endif %}
+
+    <input type="submit" class="button small blue submitCard" value="Submit Card Information" />
+
+    </div>
+    </form>
+   </div>
+   {% if flow == "schedule" %}<hr>{% endif %}
+</div>
+{% if flow == "schedule" %}
+     <input type="hidden" class="js-checkbox" checked="checked">
+      <!--  <input type="checkbox" class="js-checkbox" {% if currentUser.savebillinginfo %} checked="checked"{% endif %}><div id="checkboxtext" style="display:inline-block;"> Save billing information for future appointments? </div> -->
+   <input type="hidden" class="js-saveBilling" name="fields[savebillinginfo]" value="{% if currentUser.savebillinginfo %}1{% endif %}">
+   {% else %}
+   <input type="hidden" name="fields[savebillinginfo]" value="1">
+{% endif %}
+    {% if flow == 'schedule' %}
+    <div class="discount-container">
+     <!-- <div class="result"></div> -->
+      <div class="cord result">Do you have a discount code? Enter below.</div>
+      <div class="discount"><input type="text" id="coupon" class="discount-code" data-userid="{{currentUser.id}}" value=""/><input type="submit" disabled value="Apply Code" class="button small blue check-code"/></div>
+    </div>
+   {% endif %}
+     {% if flow == 'schedule' %}
+         <p class="cancel-summary">{{booking.customerCancellationSummary}}</p>
+     {% endif %}
+
+    <div class="clearfix btn-container">
+    <a href="petinfo" class="button back"  value="back">back</a>
+        {% if flow == 'schedule' %}
+    <input class="button bill blue" data-flow="{{flow}}" data-uid="{{currentUser.id}}" id="continue" type="submit" {% if not craft.charge.customer %} disabled {% endif %} value="Continue">
+        {% else %}
+        <input class="button signup-save" type="submit" value="Submit">
+        {% endif %}
+   </div>
+
+  </div>
+<!-- <div class="result"></div> -->
+   <script>
+  $(function(){
+      Stripe.setPublishableKey('{{craft.charge.getPublicKey()}}');
+      $(this).charge();
+      $("#continue").hide();
+      
+      
+        var raw_save_credit_error="{% if charge is defined %}{% for error in charge.getErrors('general') %}{{error}}{% endfor %}{% endif %}";
+        var save_credit_error = raw_save_credit_error.replace("&#039;","'");
+          console.log("save_credit: "+save_credit_error);
+          
+        var nameOnCard;
+         if (!save_credit_error){
+              if (localStorage.getItem('nameOnCard')){
+                  nameOnCard = localStorage.getItem('nameOnCard');
+              }else{
+                  nameOnCard = "{{currentUser.nameOnCard}}"; 
+              }
+          }else{
+            nameOnCard = "{{currentUser.nameOnCard}}";  
+          }
+          
+          if (!save_credit_error){
+            /* save NameOnCard */
+            if ( (localStorage.getItem("nameOnCard")) || (localStorage.getItem("name"))){
+                var nameform = '<form method="post" accept-charset="UTF-8">'+
+                  '<input type="hidden" name="action" value="users/saveUser">'+
+                  '<input type="hidden" name="userId" value="{{ currentUser.id }}">';
+                  
+                  if (localStorage.getItem("nameOnCard")){
+	                 nameform = nameform + '<input type="hidden" name="fields[nameOnCard]" value="'+localStorage.getItem("nameOnCard")+'">'; 
+                  }
+                  else if (localStorage.getItem("name")){
+	                 nameform = nameform + '<input type="hidden" name="fields[nameOnCard]" value="'+localStorage.getItem("name")+'">'; 
+                  }
+                  
+                  
+                  nameform = nameform +'</form>';
+                  nameform = $(nameform);
+                
+                    $.ajax({
+                     type: 'POST',
+                     url: "{{siteUrl}}",
+                     data: nameform.serialize(),
+                    });    
+              } 
+          }    
+ 
+
+    
+      
+      $("#sameBillingAddr").change(function(event){
+
+        if($("#sameBillingAddr").is(":checked")){
+          $("#streetaddress").val("{{currentUser.streetAddress}}");
+          $("#address2").val("{{currentUser.streetAddress2}}");
+          $("#cellphone").val("{{currentUser.cellPhone}}");
+          $("#city").val("{{currentUser.city}}");
+          $("#states").val("{{currentUser.states}}");
+          $("#zip").val("{{currentUser.customerZip.first()}}");
+          $("#createAppt").prop("disabled", false);
+          $(".js-checkbox").prop('checked', true);
+    $(".js-checkbox").show();
+    $("#checkboxtext").show();
+        } else {
+          $("#streetaddress").val("");
+          $("#address2").val("");
+          $("#cellphone").val("");
+          $("#city").val("");
+          $("#states").val("");
+          $("#zip").val("");
+          $("#createAppt").prop("disabled", true);
+          $(".js-checkbox").prop('checked', true);
+    $(".js-checkbox").show();
+    $("#checkboxtext").show();
+  }
+      });
+      $(".signup-save").click(function(e){
+        var uid = "{{currentUser.id}}";
+        window.location.href = "/user/"+uid;
+      });
+    $("#cellphone").inputmask({
+        mask: "###-###-####",
+        greedy: false,
+        definitions: { '#': { validator: "[0-9]", cardinality: 1}},
+        placeholder: "",
+    });
+
+var billingSaved = "{{currentUser.savebillinginfo}}";
+var showName = true;
+var isStripeCustomer = "{% if craft.charge.customer %}{{craft.charge.customer.getSavedCards()|length}} {% else %}0{% endif %}";
+// if newStripeCustomer = -1, customer doesn't have any save card in stripe //
+var newStripeCustomer = "{% if craft.charge.customer %}{{craft.charge.customer.getSavedCards()|length}} {% else %}-1{% endif %}";
+// valid credit card error //
+//      {% if (credit_error !="") %}
+//      isStripeCustomer = -10;  // credit card on the previous booking
+//      {% else %}
+//      isStripeCustomer = 10;  // No credit card error
+//      {% endif %}
+
+      var credit_error = "{{credit_error}}";
+      // valid credit card error //
+//      if (credit_error != "") {isStripeCustomer = -10;
+//      } else {isStripeCustomer = 10;}
+
+console.log(isStripeCustomer + " if 10 mean no credit card error, if -10 means credit card has error on previous charge");
+
+ if($("#streetaddress").val().trim().length > 0
+            && $("#cellphone").val().trim().length > 0
+            && $("#city").val().trim().length > 0
+            && $("#states").val()
+            && $("#zip").val().trim().length > 0)
+              {
+                  console.log ('check credit error ' + credit_error.length);
+                if(credit_error.length > 0){
+                  $("#nameOnCard").val('');
+      showName = false;
+                  $("#charge-form-container").show();
+                    $(".saved-card-info-container").hide();
+                   $("#charge-form").show();
+                     $("#cardNumber").val('');
+                     $("#cardExpiry").val('');
+                     $("#cardCvc").val('');
+                     if (credit_error.length > 0){
+                         $("#payment-errors").show();
+                         $("#payment-errors").addClass("alert");
+                         $("#payment-errors").addClass("alert-warning");
+                         $("#payment-errors").text('{{credit_error}}');
+                     }
+                } else {
+                      $("#charge-form-container").hide();
+                    $(".saved-card-info-container").show();
+                    $("#continue").show();
+                    $(".js-checkbox").hide();
+                    $("#checkboxtext").hide();
+                }
+              } else {
+                  console.log("here");
+                  $(".payment-container").hide();
+                  $("#charge-form-container").hide();
+                  $("#charge-form").hide();
+                }
+var editing = false;
+var card;
+var exp;
+var cvc;
+var displayed = false;
+$("#createAppt").prop("disabled", true);
+$("#createAppt").click(function(e){
+            e.preventDefault();
+         $("#billingSavedMsg").fadeOut();
+        var flow = $(this).data('flow');
+        var id = $(this).data('uid');
+
+          var error_flag = 0;
+          if($("#streetaddress").val().trim().length < 1){
+          $("#streetaddress").parent().addClass('field-error');
+                $("#error_streetaddress").html("Street Address is required.");
+                error_flag = 1;
+              } else {
+                   $("#streetaddress").parent().removeClass('field-error');
+                   $("#error_streetaddress").html('');
+              }
+           if($("#cellphone").val().trim().length < 1){
+          $("#cellphone").parent().addClass('field-error');
+                $("#error_cellphone").html("Cell Phone is required.");
+                error_flag = 1;
+              }  else {
+                   $("#cellphone").parent().removeClass('field-error');
+                   $("#error_cellphone").html('');
+              }
+           if($("#city").val().trim().length < 1){
+          $("#city").parent().addClass('field-error');
+                $("#error_city").html("City is required.");
+                error_flag = 1;
+              }  else {
+                   $("#city").parent().removeClass('field-error');
+                   $("#error_city").html('');
+              }
+           if($("#states").val() == null){
+          $("#states").parent().addClass('field-error');
+                $("#error_states").html("State is required.");
+                error_flag = 1;
+              }  else {
+                   $("#states").parent().removeClass('field-error');
+                   $("#error_states").html('');
+              }
+            if($("#zip").val().trim().length < 1){
+          $("#zip").parent().addClass('field-error');
+                $("#error_zip").html("Zipcode is required.");
+                error_flag = 1;
+              }  else {
+                   $("#zip").parent().removeClass('field-error');
+                   $("#error_zip").html('');
+              }
+            if(error_flag < 1){
+            //  $("span").removeClass('field-error');
+            //  $(".errmsg").html('');
+              var billAddr = $("#billAddr").serialize();
+                $.ajax({
+                 type: 'POST',
+                 url: "{{siteUrl}}",
+                 data: billAddr,
+                 success: function(){
+           $("#createAppt").prop("disabled", true);
+           $("#billingSavedMsg").html("<em>Billing Address saved successfully</em>");
+           $("#billingSavedMsg").fadeIn();
+
+                  if(isStripeCustomer < 1){
+                      $("#charge-form-container").show();
+                      $("#charge-form").show();
+                      $(".payment-container").show();
+                   }else {
+                      console.log('line 402' + isStripeCustomer);
+                    $("#charge-form").hide();
+                    $(".saved-card-info-container").show();
+                    $(".payment-container").show();
+                   }
+                     $('html, body').animate({
+                          scrollTop: $(".payment-container").offset().top - 100
+                        }, 1200);
+                  }
+              });
+                } else {
+                    return false;
+                }
+            });
+//console.log($(".card-saved").text().length);
+
+$("form#billAddr input").keyup(function(e){
+   $(".sameashome").prop('checked', false);
+   $('.js-sameashome').val(0);
+
+          if($("#streetaddress").val().trim().length < 1
+            && $("#cellphone").val().trim().length < 1
+            && $("#city").val().trim().length < 1
+            && !$("#states").val()
+            && $("#zip").val().trim().length < 1)
+              {
+                $("#createAppt").prop("disabled", true);
+              } else {
+                $("#createAppt").prop("disabled", false);
+               }
+   $(".js-checkbox").prop('checked', true);
+if(billingSaved && !displayed){
+//  $(".js-checkbox").prop('checked', false);
+  $(".js-checkbox").show();
+  $("#checkboxtext").show();
+  displayed = true;
+  }
+});
+$("#states").change(function(event){
+$("#createAppt").prop("disabled", false);
+});
+$("#cardNumber").keyup(function(e){
+if($(this).val().length >= 19){
+$("#cardExpiry").focus();
+}
+});
+$("#cardExpiry").keyup(function(e){
+if($(this).val().length >=7 ){
+$("#cardCvc").focus();
+}
+});
+
+$("#cardNumber, #cardExpiry, #cardCvc, #nameOnCard").click(function(e){
+
+if(!editing){
+ card = $("#cardNumber").val();
+ exp = $("#cardExpiry").val();
+ cvv = $("#cardCvc").val();
+  $("#nameOnCard").val('');
+  $("#cardNumber").val('');
+  $("#cardExpiry").val('');
+  $("#cardCvc").val('');
+  $("#cardCvc").attr("placeholder", "");
+  editing = true;
+}
+
+});
+ $(".cancel").click(function(e){
+  e.preventDefault();
+  //editing = false;
+  if(isStripeCustomer > 0){
+  $("#charge-form-container").hide();
+  }
+  if(editing){
+  $("#cardNumber").val(card);
+        $("#cardExpiry").val(exp);
+  $("#cardCvc").val(cvc);
+   var storedName = "{{currentUser.nameOnCard}}";
+        if(storedName.length > 0){
+        $("#nameOnCard").val(storedName);
+  } else {
+        $("#nameOnCard").val(localStorage.getItem('name'));
+         }
+  }
+  $("#cardCvc").attr("placeholder", "***");
+  $(".saved-card-info-container").show();
+  editing = false;
+  return false;
+   });
+
+if(localStorage.getItem('submitted')){
+          if(isStripeCustomer > 0){
+          $("#charge-form-container").hide();
+          $("#continue").show();
+          }
+          $(".saved-card-info-container").show();
+          $(".card-saved").text("Card information successfully saved.");
+          $(".js-checkbox").prop('checked', true);
+          $(".js-checkbox").show();
+          $("#checkboxtext").show();
+
+          localStorage.removeItem('submitted');
+    }
+    else{
+    //if(billingSaved == 0 && isStripeCustomer < 1)
+
+        if(isStripeCustomer < 1){
+
+        //# stuff was here #//
+
+        } else {
+            if (credit_error.length ==0 ) {
+
+                if (billingSaved == 0) {
+
+                    $("#cardNumber").val();
+                    $("#cardExpiry").val();
+                    $("#cardCvc").val("");
+                    $(".payment-container").hide();
+                    $("#charge-form-container").hide();
+                    $("#charge-form").hide();
+
+                } else {
+                    $("#charge-form-container").hide();
+                    $(".saved-card-info-container").show();
+                    $("#continue").show();
+                    $(".js-checkbox").hide();
+                    $("#checkboxtext").hide();
+
+                }
+
+                if (newStripeCustomer < 0) {
+                    $("#charge-form-container").show();
+                    $("#charge-form").show();
+                }
+            }
+
+           }
+
+    }
+
+if(localStorage.getItem('name')){
+if(isStripeCustomer < 1){
+localStorage.removeItem('name');
+} else {
+$(".saved-name").text(localStorage.getItem('name'));
+$("#nameOnCard").val(localStorage.getItem('name'));
+}
+} else {
+if(billingSaved == 1 && isStripeCustomer > 0){
+var savedName = "{{currentUser.nameOnCard}}";
+$(".saved-name").text(savedName);
+$("#nameOnCard").val(savedName);
+}
+}
+
+
+if(localStorage.getItem('cardExpiry')){
+// $("#cardExpiry").val(localStorage.getItem('cardExpiry'));
+}
+
+
+if(localStorage.getItem('cardNumber')){
+// $("#cardNumber").val(localStorage.getItem('cardNumber'));
+}
+
+$(".submitCard").click(function(e){
+//alert($.trim($("#nameOnCard").val().length));
+if($(".cardExpMonth").val() == "" || $(".cardExpYear").val() == ""){
+ $(".cardExpMonth").val($.trim($("#cardExpiry").val().split("/")[0]));
+  $(".cardExpYear").val($.trim($("#cardExpiry").val().split("/")[1]));
+}
+if($("#cardCvc").val() == ""){
+ $("#payment-errors").text("Security code is required");
+ $("#payment-errors").addClass("alert");
+ $("#payment-errors").addClass("alert-warning");
+ $("#payment-errors").show();
+return false;
+}
+  localStorage.setItem('submitted', true);
+  localStorage.setItem('cardNumber', $("#cardNumber").val());
+  localStorage.setItem('cardExpiry', $("#cardExpiry").val());
+  if($("#nameOnCard").val()) {
+  localStorage.setItem('name', $("#nameOnCard").val());
+  var nameoncardd = $('#nameOnCard').val()
+  var nameform = $('<form method="post" accept-charset="UTF-8">'+
+    '<input type="hidden" name="action" value="users/saveUser">'+
+    '<input type="hidden" name="userId" value="{{ currentUser.id }}">'+
+    // comment out '<input type="hidden" name="fields[nameOnCard]" value="'+nameoncardd+'">'+
+    '</form>');
+
+    $('body').append(nameform);
+      $.ajax({
+       type: 'POST',
+       url: "{{siteUrl}}",
+       data: nameform.serialize(),
+      });
+     }
+    });
+
+$("#continue:enabled").click(function(e){
+   var flowStr = $(this).data('flow');
+        $.ajax({
+             type: 'POST',
+             url: "{{siteUrl}}api/setTab",
+             data: {tab:"3"},
+             success: function(){
+               if(flowStr == "schedule"){
+                    window.location.href = "/review";
+                  } else {
+                    window.location.href = "/user/"+id;
+                  }
+             }
+          });
+    });
+  
+  /* if billing address is not empty, show Add Payment Information */
+  
+  if (($('#streetaddress').val().length > 0) || ($('#cellphone').val().length > 0) || ($('#city').val().length > 0) || ($('#zip').val().length > 0)){
+
+        if ($(".saved-card-info-container").is(':visible')){
+	      $("#charge-form-container").hide();
+          $("#charge-form").hide();
+        }else{
+		  $("#charge-form-container").show();
+          $("#charge-form").show();
+        }
+
+  }
+    
+    
+      /* show payment error */
+  if (save_credit_error.length > 0) {
+          $("#payment-errors").show();
+          $("#payment-errors").addClass("alert");
+          $("#payment-errors").addClass("alert-warning");
+          $("#payment-errors").text(save_credit_error);
+          $("#nameOnCard").val('');
+          $("#cardNumber").val('');
+          $("#cardExpiry").val('');
+          $("#cardCvc").val('');
+          $(".cancel").hide();
+          $("#charge-form-container").show();
+          $("#charge-form").show();
+          $(".saved-card-info-container").hide();
+          window.location.href = "./billing#payment-container";
+        }
+
+    
+  });
+
+  //check for empty fields and submit button disabling
+$('.discount-code').on('keyup input', function() {
+  if (($('.discount-code').val() == '')) {
+    $('.check-code').prop('disabled', true);
+  } else {
+    $('.check-code').prop('disabled', false);
+  }
+  
+  
+});
+
+         
+          
+  </script>
+  {% endblock %}

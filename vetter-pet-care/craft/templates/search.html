@@ -1,0 +1,130 @@
+{% extends "_layout-wide" %}
+{% requireLogin %}
+
+{% if not currentUser.isInGroup('veterinarian') and not currentUser.admin and  not currentUser.isInGroup('employee') %}
+    {% redirect "/" %}
+{% endif %}
+
+
+{% block content %}
+<h1>Client Search</h1>
+
+<div class="content">
+    <p>Search First Name, Last Name, and Pet Names for text matching what you enter in the search field.</p>
+    <br />
+    <!-- Search form -->
+    <form action="{{ url('search') }}">
+        <input class="form-control" name="q" type="text" placeholder="First, Last, or Pet..." aria-label="First, Last, or Pet...">
+        <input class="button small blue suser" type="submit" value="Search">
+    </form>
+
+    <div class="appt-table" id="userresults">
+        <span class="table_head">
+            <span class="table_label sortable" data-order="asc">First Name &nbsp;</span>
+            <span class="table_label sortable" data-order="asc">Last Name &nbsp;</span>
+            <span class="table_label sortable" data-order="asc">Pets &nbsp;</span>
+            <span class="table_label">ID</span>
+        </span>
+
+        <span class="table_body">
+            {% set query = craft.request.getParam('q') %}
+            {% if query is not null and query is not empty %}
+                {% set customers = craft.users.group("customer") %}
+                {% set results = customers.search(query).order('lastName') %}
+                {% for customer in customers %}
+                    {% for block in customer.pets %}
+                        {% if block.petFirstName == q %}
+                            {% set results = results|merge([customer]) %}
+                        {% endif %}
+                    {% endfor %}
+                {% endfor %}
+            {% endif %}
+            
+            {% if results|length %}
+                {% for result in results %}
+                    {% set petnames = [] %}
+                    {% for block in result.pets %}
+                        {% set petname = block.petFirstName %}
+                        {% if block.deceased %}
+                            {% set petname = '<span style="color:red;">' ~ petname ~ '</span>' %}
+                        {% endif %}
+                        {% set petnames = petnames|merge([petname]) %}
+                    {% endfor %}
+                    <div class="table_row_result">
+                        <div class="table_cell">{{ result.firstName }}</div>
+                        <div class="table_cell">{{ result.lastName }}</div>
+                        <div class="table_cell">{{ petnames|join(', ')|raw }}</div>
+                        <div class="table_cell"><a href="{{siteUrl}}user/{{result.id}}/summary?q={{query}}" class="table_link">{{result.id}}</a></div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </span>
+    </div>
+
+    <div class="btn-container clearfix">
+        <a id="loadMore" class="button small blue">Load more</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block footerJs %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tinysort/2.3.6/tinysort.js"></script>
+<script>
+var table = document.getElementById('userresults')
+	,tableHead = table.querySelector('span.table_head')
+	,tableHeaders = tableHead.querySelectorAll('span.table_label.sortable')
+	,tableBody = table.querySelector('span.table_body')
+;
+
+tinysort(
+            tableBody.querySelectorAll('div.table_row_result')
+            ,{
+                selector:'div.table_cell:nth-child(1)'
+                ,order: 'asc'
+            }
+        );
+
+tableHead.addEventListener('click',function(e){
+	var tableHeader = e.target
+		,textContent = tableHeader.textContent
+		,tableHeaderIndex,isAscending,order
+	;
+	if (textContent!=='add row') {
+        // note: nodeName must be ALLCAPS
+		while (tableHeader.nodeName!=='SPAN') {
+			tableHeader = tableHeader.parentNode;
+		}
+		tableHeaderIndex = Array.prototype.indexOf.call(tableHeaders,tableHeader);
+		isAscending = tableHeader.getAttribute('data-order')==='asc';
+		order = isAscending?'desc':'asc';
+		tableHeader.setAttribute('data-order',order);
+		tinysort(
+			tableBody.querySelectorAll('div.table_row_result')
+			,{
+				selector:'div.table_cell:nth-child('+(tableHeaderIndex+1)+')'
+				,order: order
+			}
+		);
+	}
+});
+
+$(document).ready(function () {
+    size_tr = $("#userresults .table_row_result").length;
+    x = 20;
+    console.log(size_tr);
+    if (x > size_tr) {
+          $('#loadMore').hide();
+        }
+    $('#userresults .table_row_result:gt('+x+')').css('display','none');
+    $('#loadMore').click(function () {
+        x = (x+20 <= size_tr) ? x+20 : size_tr;
+        console.log("original:" + size_tr +  " new:" + x);
+        $('#userresults .table_row_result:lt('+x+')').css('display','table-row');
+        if (x == size_tr) {
+          $('#loadMore').hide();
+        }
+    });
+});
+
+</script>
+{% endblock %}

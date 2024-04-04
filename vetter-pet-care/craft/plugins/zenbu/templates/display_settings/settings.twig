@@ -1,0 +1,259 @@
+{% import "_includes/forms" as forms %}
+
+{% set message = craft.session.getFlash('yourVariable') %}
+{{message}}
+
+<input type="hidden" name="sectionId" value="{{ craft.request.getParam('sectionId') }}" />
+<input type="hidden" name="entryTypeId" value="{{ craft.request.getParam('entryTypeId') }}" />
+
+<table class="data fullwidth settingsTable displaySettings">
+	<thead>
+	    <tr>
+	    	<th style="width: 1%"></th>
+	        <th style="width: 10%">{{"Field"|t}}</th>
+	        {# <th width="10%">{{"Field Type"|t}}</th> #}
+	        <th style="width: 1%">{{"Order"|t}}</th>
+	        <th style="width: 1%">{{"Show"|t}}</th>
+	        <th style="width: 1%">{{"Use in Native Listing"|t}}</th>
+	        <th style="width: 30%">{{"Settings"|t}}</th>
+	        <th style="width: 56%">{{"Custom Display Template"|t}}</th>
+	    </tr>
+    </thead>
+
+	{% set c = 1 %}
+	<tbody>
+	{% for handle, field in rows %}
+
+		<tr>
+			{#
+			//	----------------------------------------
+			//	Sort handle
+			//	----------------------------------------
+			#}
+			<td style="width: 1%">
+				<a class="move icon" title="Reorder" role="button">&nbsp;</a>
+			</td>
+			{#
+			//	----------------------------------------
+			//	Field name
+			//	----------------------------------------
+			#}
+			<td style="width: 10%">
+				<strong>{{field.name | default(field)}}</strong>
+				{% if field.type != '-' %}<br /><code>[{{field.id}}] {{field.type | default('-')}}</code>{% endif %}
+			</td>
+			{#
+			//	----------------------------------------
+			//	Order
+			//	----------------------------------------
+			#}
+			<td class="order" style="width: 1%">
+				{{c}}
+			</td>
+			{#
+			//	----------------------------------------
+			//	Show
+			//	----------------------------------------
+			#}
+			<td class="not-sortable" style="width: 1%">
+				{% set show = false %}
+				{% for setting in settings.fields %}
+					{% if (setting.fieldType == handle or setting.fieldId == handle) and (setting.show is defined and setting.show == 1) %}
+						{% set show = true %}
+					{% endif %}
+				{% endfor %}
+
+	            {{ forms.lightswitchField({
+					on: 	    show,
+					small: 		false,
+					name:       'field[' ~ c ~ '][' ~ handle ~ ']',
+				}) }}
+			</td>
+			{#
+			//	----------------------------------------
+			//	Show in Native
+			//	----------------------------------------
+			#}
+			<td class="not-sortable" style="width: 1%">
+				{% set showInNative = false %}
+				{% for setting in settings.fields %}
+					{% if (setting.fieldType == handle or setting.fieldId == handle) and (setting.showInNative is defined and setting.showInNative == 1) %}
+						{% set showInNative = true %}
+					{% endif %}
+				{% endfor %}
+				{{ forms.lightswitchField({
+					on: 	    showInNative,
+					small: 		false,
+					name:       'native[' ~ c ~ '][' ~ handle ~ ']',
+				}) }}
+			</td>
+			{#
+			//	----------------------------------------
+			//	Settings
+			//	----------------------------------------
+			#}
+			<td class="not-sortable" style="width: 30%">
+				<div class="field">
+					<div class="heading has-instructions">
+
+					{% if handle == 'postDate' %}
+							<label for="postDateFormat">{{"Date format"|t}}</label><br /> <input type="text" id="postDateFormat" class="text" name="fieldsettings[{{handle}}][dateFormat]" value="{{settings.settings[handle].dateFormat is defined ? settings.settings[handle].dateFormat : ''}}" placeholder="Y-m-d" />
+							<div class="instructions">
+								<p>{{'Escape letters with a <code>\\</code> to prevent them from being parsed as date variables. Eg. <code>D\\A\\T\\E: Y-m-d</code>'|t|raw}}</p>
+							</div>
+					{% endif %}
+
+					{% if handle == 'expiryDate' %}
+							<label for="expiryDateFormat">{{"Date format"|t}}</label><br /> <input type="text" id="expiryDateFormat" class="text" name="fieldsettings[{{handle}}][dateFormat]" value="{{settings.settings[handle].dateFormat is defined ? settings.settings[handle].dateFormat : ''}}" placeholder="Y-m-d" />
+							<div class="instructions">
+								<p>{{'Escape letters with a <code>\\</code> to prevent them from being parsed as date variables. Eg. <code>D\\A\\T\\E: Y-m-d</code>'|t|raw}}</p>
+							</div>
+					{% endif %}
+
+					{% if handle == 'status' %}
+							<label for="statusStyle">{{"Status style"|t}}</label><br />
+							{{ forms.select({
+								id: 'statusStyle',
+						        name: 'fieldsettings[' ~ handle ~ '][statusStyle]',
+						        options: { dot: "Dot"|t, label: "Label"|t, dot_label: "Dot and Label"|t},
+						        value: settings.settings[handle].statusStyle is defined ? settings.settings[handle].statusStyle : 'dot',
+						    }) }}
+					{% endif %}
+
+					{% if handle == 'author' %}
+							<div class="field">
+							{{ forms.checkbox({
+								checked: (settings.settings[handle].showStatus is defined and settings.settings[handle].showStatus == 1) ? true : false,
+						        name: 'fieldsettings[' ~ handle ~ '][showStatus]',
+								label: "Show the user's status"|t,
+						    }) }}
+						    </div>
+							<div class="field">
+						    {{ forms.checkbox({
+								checked: (settings.settings[handle].showThumb is defined and settings.settings[handle].showThumb == 1) ? true : false,
+						        name: 'fieldsettings[' ~ handle ~ '][showThumb]',
+								label: "Show the user's thumbnail"|t,
+						    }) }}
+						    </div>
+							<div class="field">
+						    {{ forms.checkbox({
+								checked: (settings.settings[handle].showLinkToAccount is defined and settings.settings[handle].showLinkToAccount == 1) ? true : false,
+						        name: 'fieldsettings[' ~ handle ~ '][showLinkToAccount]',
+								label: "Make the user's name a link to his/her account"|t,
+						    }) }}
+						    </div>
+					{% endif %}
+
+					{% if field.type == 'Date' %}
+							<label for="dateFormat_{{field.id}}">{{"Date format"|t}}</label><br /> <input type="text" id="dateFormat_{{field.id}}" class="text" name="fieldsettings[{{handle}}][dateFormat]" value="{{settings.settings[handle].dateFormat is defined ? settings.settings[handle].dateFormat : ''}}" placeholder="Y-m-d" />
+							<div class="instructions">
+								<p>{{'Escape letters with a <code>\\</code> to prevent them from being parsed as date variables. Eg. <code>D\\A\\T\\E: Y-m-d</code>'|t|raw}}</p>
+							</div>
+					{% endif %}
+
+					{% if field.type == 'PlainText' %}
+							<label for="charLimit_{{field.id}}">{{"Character limit display"|t}}</label><br /> <input type="number" min="0" id="charLimit_{{field.id}}" class="text" name="fieldsettings[{{handle}}][charLimit]" value="{{settings.settings[handle].charLimit is defined ? settings.settings[handle].charLimit : ''}}" placeholder="eg. 50" />
+					{% endif %}
+
+					{% if field.type == 'RichText' %}
+							<label for="charLimit_{{field.id}}">{{"Character limit display"|t}}</label><br /> <input type="number" min="0" id="charLimit_{{field.id}}" class="text" name="fieldsettings[{{handle}}][charLimit]" value="{{settings.settings[handle].charLimit is defined ? settings.settings[handle].charLimit : ''}}" placeholder="eg. 50" />
+							<div class="instructions"><p>{{"Note: To avoid issues with truncated HTML, content will be converted to plain text before truncation."|t}}</p></div>
+					{% endif %}
+
+					{% if field.type == 'Matrix' %}
+							{{ forms.checkbox({
+								checked: (settings.settings[handle].useModal is defined and settings.settings[handle].useModal == 1) or settings.settings[handle].useModal is not defined ? true : false,
+						        name: 'fieldsettings[' ~ handle ~ '][useModal]',
+								label: "Show Matrix in Modal Window"|t,
+						    }) }}
+							<div class="instructions"><p>{{"Displays a link which opens a modal window containing the Matrix field, instead of displaying the Matrix field inline."|t}}</p></div>
+						    <br />
+							<label for="viewHeight_{{field.id}}">{{"Max view height"|t}}</label><br />
+							<input type="number" min="0" id="viewHeight_{{field.id}}" class="text" name="fieldsettings[{{handle}}][viewHeight]" value="{{settings.settings[handle].viewHeight is defined ? settings.settings[handle].viewHeight : ''}}" placeholder="eg. 500" /> {{"px"|t}}
+							<div class="instructions"><p>{{"The maximum height of the viewable area for Matrix fields. Matrix data higher than the max view height will be scrollable. Set to empty for full height, always."|t}}</p></div>
+					{% endif %}
+
+					{% if field.type == 'Assets' %}
+							<label for="thumbWidth_{{field.id}}">{{"Thumbnail dimensions"}}</label><br />
+							<input type="number" min="0" id="thumbWidth_{{field.id}}" class="text" name="fieldsettings[{{handle}}][thumbWidth]" value="{{settings.settings[handle].thumbWidth is defined ? settings.settings[handle].thumbWidth : ''}}" placeholder="Width eg. 50 (default)" /> x
+							<input type="number" min="0" id="thumbHeight" class="text" name="fieldsettings[{{handle}}][thumbHeight]" value="{{settings.settings[handle].thumbHeight is defined ? settings.settings[handle].thumbHeight : ''}}" placeholder="Height, eg. 50 (default)" /> {{"px"|t}}
+					{% endif %}
+
+					{% if field.type == 'PositionSelect' %}
+							<label for="positionSelectStyle">{{"Display style"|t}}</label><br />
+							{{ forms.select({
+								id: 'positionSelectStyle',
+						        name: 'fieldsettings[' ~ handle ~ '][positionSelectStyle]',
+						        options: { text: "Text"|t, icon: "Icon"|t, text_icon: "Text and Icon"|t },
+						        value: settings.settings[handle].positionSelectStyle is defined ? settings.settings[handle].positionSelectStyle : 'text',
+						    }) }}
+					{% endif %}
+
+					{% if field.type == 'Lightswitch' %}
+							<label for="LightswitchStyle">{{"Display text"|t}}</label><br />
+							{{ forms.select({
+								id: 'LightswitchStyle',
+						        name: 'fieldsettings[' ~ handle ~ '][LightswitchStyle]',
+						        options: { on_off: "On/Off"|t, yes_no: "Yes/No"|t },
+						        value: settings.settings[handle].LightswitchStyle is defined ? settings.settings[handle].LightswitchStyle : 'text',
+						    }) }}
+					{% endif %}
+
+					{% if field.type == 'Entries' %}
+							{{ forms.checkbox({
+								checked: (settings.settings[handle].showStatus is defined and settings.settings[handle].showStatus == 1) ? true : false,
+						        name: 'fieldsettings[' ~ handle ~ '][showStatus]',
+								label: "Show the related entry's status"|t,
+						    }) }}
+					{% endif %}
+					</div>
+				</div>
+			</td>
+			{#
+			//	----------------------------------------
+			//	Custom Display Template
+			//	----------------------------------------
+			#}
+			<td class="not-sortable" style="width: 56%">
+				<button type="button" class="toggleCustomDisplayTemplateField btn small">
+					{{'Edit code'|t}}
+					{% set customDisplayStringTemplate = settings.customDisplayStringTemplate[handle] is defined ? settings.customDisplayStringTemplate[handle] : '' %}
+					<em class="containsData" {% if customDisplayStringTemplate is not empty %}style="display: none"{% endif %}>({{'empty'}})</em>
+					<i class="fa fa-angle-right"></i>
+				</button>
+
+				{# Code sample when textarea is collapsed #}
+					<code class="sample" {% if customDisplayStringTemplate is empty %}style="display: none"{% endif %}>
+						{% if customDisplayStringTemplate is not empty %}
+							{{customDisplayStringTemplate|slice(0, 30)}}
+							{% if customDisplayStringTemplate|length > 30 %}
+								...
+							{% endif %}
+						{% endif %}
+					</code>
+
+				<div class="customDisplayTemplateFieldWrapper field" style="display:none">
+					<div class="heading has-instructions">
+						{# <label>{{'Custom Display Template code'|t}}</label> #}
+		            	<div class="instructions"><p>{{'The Craft/Twig code below will override the standard Zenbu display settings. Use this to create your own custom display in Zenbu, or add a specific display to third-party fieldtypes. The <code>{{entry}}</code> object, which represents an entry result, is available for use, eg. <code>{{entry.id}}</code>.'|t|raw}}</p>
+		            		<p>
+		            			<div class="warning"><i class="fa fa-exclamation-triangle"></i> {{"Please be careful with your template syntax. Template errors can interrupt the display of data in Zenbu."|t}}</div>
+		            		</p></div>
+
+						<p>{{ forms.textarea({
+							id: 		'',
+							class: 'customDisplayTemplateField',
+							label:      'Custom customDisplayStringTemplatete'|t,
+							name:       'customDisplayStringTemplate[' ~ handle ~ ']',
+							value:		customDisplayStringTemplate,
+							placeholder: "Enter some Craft/Twig template code that will replace the default Zenbu display, eg. {{entry.title}}"|t,
+							rows: 6,
+						}) }}</p>
+					</div>
+				</div>
+			</td>
+		</tr>
+		{% set c = c + 1 %}
+	{% endfor %}
+	</tbody>
+</table>

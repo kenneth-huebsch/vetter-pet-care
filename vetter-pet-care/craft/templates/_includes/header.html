@@ -1,0 +1,358 @@
+<header id="header">
+    {% if (craft.request.getLastSegment() == 'schedule') %}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/timekit-js-sdk/1.6.1/timekit-sdk.min.js"></script>
+  {% endif %}
+    <script>
+    if (typeof localStorage === 'object') {
+    try {
+        localStorage.setItem('localStorage', 1);
+        localStorage.removeItem('localStorage');
+    } catch (e) {
+        Storage.prototype._setItem = Storage.prototype.setItem;
+        Storage.prototype.setItem = function() {};
+        alert("Your web browser does not support storing settings locally. Some settings may not save or some features may not work properly for you. In Safari, the most common cause of this is using 'Private Browsing Mode'. If you'd like to schedule an appointment, please use the regular browsing mode.");
+    }
+}
+  </script>
+{% if craft.twigSession.get('last')|length < 1 and craft.request.getLastSegment() != "signup" and craft.request.getLastSegment() != "basicinfo"  %}
+
+    {% if craft.request.getSegment(1)== 'user' %}
+        {% if (craft.request.getLastSegment() == 'upcoming')  or (craft.request.getLastSegment() == 'availability') %}
+          {{craft.twigSession.add('last', '/user/'~craft.request.getSegment(2)~'/'~craft.request.getLastSegment())}}
+        {% else %}
+               {{craft.twigSession.add('last', '/user/'~craft.request.getLastSegment())}}
+         {% endif %}
+    {% else %}
+           {{craft.twigSession.add('last', craft.request.getLastSegment())}}
+    {% endif %}
+ {% else %}
+    {% if (craft.request.getLastSegment()== 'setpassword') or (craft.request.getSegment(0)== 'setpassword')%}
+    {% endif %}
+ {% endif %}
+
+  {% if  craft.request.getParam('flow') is not null %}
+      {% set flow = craft.request.getParam('flow') %}
+      {{ craft.twigSession.add('flow', craft.request.getParam('flow')) }}
+  {% endif %}
+  {% if craft.twigSession.get('flow') == "signup" and craft.request.getLastSegment() != "basicinfo" and craft.request.getLastSegment() != "petinfo" and craft.request.getLastSegment() != "billing" %}
+      {{craft.twigSession.destroySession('flow')}}
+  {% endif %}
+<script>
+$(function(){
+  //JQuery
+var flow = "{{craft.twigSession.get('flow')}}";
+var last = "{{craft.twigSession.get('last')}}";
+var uri = window.location;
+var stringify = String(uri);
+var parts = stringify.split("/");
+var lastSegment = parts.pop() || parts.pop();
+ if(flow == "schedule" && localStorage.getItem('bookingid')){
+  if(lastSegment == "basicinfo"){}
+  else if (lastSegment == "basicinfo#tab-1") {}
+  else if (lastSegment == "petinfo") {}
+  else if (lastSegment == "petinfo#petrecord") {}
+  else if (lastSegment == "petinfo#tab-1") {}
+  else if (lastSegment == "petinfo#tab-2") {}
+  else if (lastSegment == "billing") {}
+  else if (lastSegment == "signup?t=tab-1") {}
+    else if (lastSegment == "signup?t=tab-1#tab-2") {}
+      else if (lastSegment == "signup?t=tab-1#tab-1") {}
+        else if (lastSegment == "signup?t=tab-2#tab-2") {}
+          else if (lastSegment == "signup?t=tab-2#tab-1") {}
+            else if (lastSegment == "signup?t=tab-2") {}
+  else if (lastSegment == "review") {} else {
+    //confirmDelete_2();
+  //  return false;
+  }
+}
+
+function confirmDelete_2() {
+ if(confirm('If you exit this area you will surrender your time slot and restart the scheduling process. Do you wish to continue? delete 2')){
+   timekit.setUser(
+           'VPCTacDev@gmail.com',
+           'PZ7QKl0hmAZyHHjV7ZqWTgGXMn3FvMI4'
+   );
+
+var id = localStorage.getItem('bookingid');
+var data = {
+entryId: id,
+   };
+//  data[window.csrfTokenName] = window.csrfTokenValue; // Append CSRF Token
+$.ajax({
+	context: this,
+       type: "post",
+       dataType: "json",
+       data: data,
+       url: "/actions/discounts/deleteHold",
+       success: function(data, response){
+      localStorage.clear();
+      $.get('api/killsess', function(data){
+           window.location.href = "/schedule";
+       });
+      },
+	error: function(status){
+console.log('error in delete hold');
+}
+});
+   localStorage.clear();
+   $.get('api/killsess', function(data){});
+ } else {
+  window.location.href = "/"+last;
+  return false;
+ }
+}
+
+$(document).on('click','#header, #footer, #header.site-logo, .btc,.mobile-header', function (e) {
+
+  if($(e.target).closest('a').length && $(e.target).closest('a').attr('target') != "_blank"){
+      if($(e.target).closest('a').length  && e.target.id != "t-2" && e.target.id != "t-1"){
+            var flow = "{{craft.twigSession.get('flow')}}";
+            var last = "{{craft.twigSession.get('last')}}";
+            var uri = window.location;
+            var stringify = String(uri);
+            var parts = stringify.split("/");
+            var lastSegment = parts.pop() || parts.pop();
+             if(flow == "schedule" && localStorage.getItem('bookingid')){
+              if(lastSegment == "basicinfo" || lastSegment == "basicinfo#tab-1" || lastSegment == "petinfo" || lastSegment == "petinfo#petrecord" || lastSegment == "petinfo#tab-1"
+                || lastSegment == "petinfo#tab-2" || lastSegment == "billing" || lastSegment == "billing#payment-container" || lastSegment == "review" || lastSegment == "signup" || lastSegment == "signup#tab-1" || lastSegment == "signup#tab-2" || lastSegment == "signup?t=tab-1" || lastSegment == "signup?t=tab-1#tab-2" || lastSegment == "signup?t=tab-1#tab-1" || lastSegment == "signup?t=tab-2#tab-2" || lastSegment == "signup?t=tab-2#tab-1" || lastSegment == "signup?t=tab-2"){
+                 confirmDelete();
+             }
+            }
+      }else{
+        //alert('not link');
+      }
+  }
+
+  if($(e.target).hasClass('btc')){
+    $(e.target).addClass('gotoschedule');
+    confirmDelete();
+  }
+
+});
+
+function confirmDelete() {
+ if(confirm('If you exit this area you will surrender your time slot and restart the scheduling process. Do you wish to continue?')){
+    var id = localStorage.getItem('bookingid');
+    var data = {
+    entryId: id,
+       };
+    //  data[window.csrfTokenName] = window.csrfTokenValue; // Append CSRF Token
+    $.ajax({
+		async: false,
+           context: this,
+           type: "post",
+           dataType: "json",
+           data: data,
+           url: "/actions/discounts/deleteHold",
+           success: function(data, response){
+          localStorage.clear();
+          console.log(localStorage);
+          window.location.href = "/schedule";
+          /*
+          $.post('api/killsess', function(data){
+            console.log('in redirect');
+               window.location.href = "/schedule";
+           });
+           */
+          },
+          error: function (request, status, error) {
+          localStorage.clear();
+          console.log(localStorage);
+          console.log(request.responseText);
+          console.log(status);
+          console.log(error);
+          }
+    });
+
+    /*
+      console.log(localStorage);
+      localStorage.clear();
+      console.log(localStorage);
+      $.get('api/killsess', function(data){
+        window.location.href = "/schedule";
+      });
+    */
+      if($('.btc').length && $('.btc').hasClass('gotoschedule')){
+        window.location.href = "/schedule";
+      }
+
+
+
+
+ } else {
+  event.preventDefault();
+  return false;
+ }
+}
+
+});
+</script>
+
+
+ <div class="logo-header"><a href="{{ siteUrl }}" alt="{{ siteName }}" class="site-logo">{{ siteName }}</a></div>
+ <nav>
+  {% set navConfig = {
+        'startwithActive' : true,
+        'maxDepth' : 2,
+        'activeClassOnAncestors' : true,
+        'ancestorActiveClass' : 'active-parent',
+    } %}
+{% set navigation = craft.navee.getNav('mainNav', navConfig) %}
+<ul class="page-list">
+    {% nav node in navigation %}
+        <li {% if node.class %} class="{{ node.class }}"{% endif %}>
+            <a href="{{ node.link }}" {% if node.target %} target="{{ node.target }}" {% endif %}>{{ node.title }}</a>
+            {% ifchildren %}
+                <ul>{% children %}</ul>
+            {% endifchildren %}
+        </li>
+    {% endnav %}
+
+ {% if not currentUser %}
+     <div class="user">
+      <a href="{{siteUrl('signup?t=tab-1')}}" class="lns">Log In / Sign Up</a>
+     </div>
+ {% elseif currentUser %}
+    <div class="user">
+    {% if currentUser.streetAddress %}
+     <a class="user-name" href="{{siteUrl}}user/{{ currentUser.id }}">{{ currentUser.firstName }}</a>
+    {% else %}
+    <a class="user-name" href="{{siteUrl}}basicinfo">{{ currentUser.firstName }}</a>
+    {% endif %}
+    </div>
+    <div class="user-menu">
+     <input type="checkbox" class="chk-box" name="down" id="down">
+     <label for="down"></label>
+
+      {% if currentUser.isInGroup('customer') %}
+      <div class="user-drop">
+      <a href="{{siteUrl}}user/{{currentUser.id}}">Edit Profile</a>
+      <a href="{{siteUrl}}user/{{ currentUser.id }}#pet-records">Pet Records</a>
+      <a href="{{siteUrl}}user/{{currentUser.id}}/vaccine-info">Vaccine Info</a>
+      <a href="{{ logoutUrl }}">Logout</a>
+      </div>
+       {% elseif currentUser.isInGroup('veterinarian') %}
+       <div class="user-drop vet-drop">
+       <a href="{{siteUrl}}user/{{currentUser.id}}">Edit Profile</a>
+       <a href="{{siteUrl}}user/{{currentUser.id}}/availability">Availability Calendar</a>
+       <a href="{{siteUrl}}user/{{currentUser.id}}/upcoming">Upcoming Appointments</a>
+       {% if not currentUser.turnOffClientRecordsSearch %}
+            <a href="{{siteUrl}}search">Client Search</a>
+       {% endif %}
+       <a href="{{ logoutUrl }}">Logout</a>
+       </div>
+       {% elseif currentUser.admin %}
+       <div class="user-drop other">
+        {% if not currentUser.turnOffClientRecordsSearch %}
+            <a href="{{siteUrl}}search">Client Search</a>
+        {% endif %}
+       <a href="{{ logoutUrl }}">Logout</a>
+       </div>
+        {% elseif currentUser.isInGroup('employee') %}
+        <div class="user-drop other">
+            {% if not currentUser.turnOffClientRecordsSearch %}
+            <a href="{{siteUrl}}search">Client Search</a>
+            {% endif %}
+            <a href="{{ logoutUrl }}">Logout</a>
+        </div>
+       {% else %}
+       <div class="user-drop other">
+       <a href="{{ logoutUrl }}">Logout</a>
+       </div>
+      {% endif %}
+     </div>
+
+{% endif %}
+    </ul>
+    </nav>
+</header>
+<div class="mobile-header">
+  <div class="logo-header"><a href="{{ siteUrl }}" alt="{{ siteName }}" class="site-logo">{{ siteName }}</a></div>
+ <div id="menuicon"></div>
+ <nav>
+  {% set navConfig = {
+        'startwithActive' : true,
+        'maxDepth' : 2,
+        'activeClassOnAncestors' : true,
+        'ancestorActiveClass' : 'active-parent',
+    } %}
+{% set navigation = craft.navee.getNav('mainNav', navConfig) %}
+<ul class="page-list">
+    {% nav node in navigation %}
+        <li {% if node.class %} class="{{ node.class }}"{% endif %}>
+            <a href="{{ node.link }}" {% if node.target %} target="{{ node.target }}" {% endif %}>{{ node.title }}</a>
+            {% ifchildren %}
+                <i class="icon-plus"></i>
+                <ul>{% children %}</ul>
+            {% endifchildren %}
+        </li>
+    {% endnav %}
+
+ {% if not currentUser %}
+     <li class="user">
+      <a href="{{siteUrl('signup?t=tab-1')}}" class="lns">Log In / Sign Up</a>
+     </li>
+ {% elseif currentUser %}
+    <li class="user logged-in nolink">
+     <a class="user-name" href="#">{{ currentUser.firstName }}</a><i class="icon-plus"></i>
+      <ul class="user-menu">
+        {% if currentUser.isInGroup('customer') %}
+        <li class="user-drop">
+<!--   <a href="{{siteUrl}}user/{{currentUser.id}}">Edit Profile</a> -->
+        {% if currentUser.streetAddress %}
+         <a href="{{siteUrl}}user/{{ currentUser.id }}">Edit Profile</a>
+         <a href="{{siteUrl}}user/{{ currentUser.id }}#pet-records">Pet Records</a>
+         <a href="{{siteUrl}}user/{{currentUser.id}}/vaccine-info">Vaccine Info</a>
+        {% else %}
+        <a href="{{siteUrl}}basicinfo">Edit Profile</a>
+        {% endif %}
+        <a href="{{ logoutUrl }}">Logout</a>
+        </li>
+         {% elseif currentUser.isInGroup('veterinarian') %}
+         <li class="user-drop vet-drop">
+         <a href="{{siteUrl}}user/{{currentUser.id}}">Edit Profile</a>
+         <a href="{{siteUrl}}user/{{currentUser.id}}/availability">Availability Calendar</a>
+         <a href="{{siteUrl}}user/{{currentUser.id}}/upcoming">Upcoming Appointments</a>
+         {% if not currentUser.turnOffClientRecordsSearch %}
+            <a href="{{siteUrl}}search">Client Search</a>
+       {% endif %}
+         <a href="{{ logoutUrl }}">Logout</a>
+         </li>
+         {% elseif currentUser.admin %}
+         <li class="user-drop other">
+           {% if not currentUser.turnOffClientRecordsSearch %}
+                <a href="{{siteUrl}}search">Client Search</a>
+           {% endif %}
+         <a href="{{ logoutUrl }}">Logout</a>
+         </li>
+         {% elseif currentUser.isInGroup('employee') %}
+        <div class="user-drop other">
+            {% if not currentUser.turnOffClientRecordsSearch %}
+            <a href="{{siteUrl}}search">Client Search</a>
+            {% endif %}
+            <a href="{{ logoutUrl }}">Logout</a>
+        </div>
+       {% else %}
+         <li class="user-drop other">
+         <a href="{{ logoutUrl }}">Logout</a>
+         </li>
+        {% endif %}
+       </ul>
+    </li>
+{% endif %}
+    </ul>
+</nav>
+</div>
+<script>
+$(document).ready(function() {
+ $('.mobile-header nav .nolink ul').toggle();
+ $(".mobile-header nav .nolink").click(function(e){
+  $(this).children('ul').toggle();
+  $(this).find('i').toggleClass('minus');
+ });
+ $("#menuicon").click(function(e){
+  $(this).toggleClass('active');
+  $('.mobile-header').toggleClass('active');
+ });
+});
+</script>

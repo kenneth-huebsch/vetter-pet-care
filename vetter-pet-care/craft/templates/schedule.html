@@ -1,0 +1,458 @@
+{% extends "_layout-wide" %}
+
+{% set zipChosen = craft.request.lastSegment %}
+
+{% if currentUser %}
+    {% if currentUser.isInGroup('veterinarian') %}
+      {% set type = 'vet' %}
+    {% else %}
+      {% set type = 'customer' %}
+   {% endif %}
+{% else %}
+  {% set type = 'customer' %}
+{% endif %}
+
+{% set entry = craft.entries.section({ section: 'schedule'}).first() %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{{ siteUrl }}assets/css/full-calendar-custom.css">
+{% if entry.headerImage | length %}
+<div class="mast" style="background: url('{{entry.headerImage[0].url}}') center center no-repeat; background-size: cover;"></div>
+{% endif %}
+<div class="content">
+ <div class="container">
+{% if entry.body %}
+{{entry.body}}
+{% else %}
+<div class="heading">Find an appointment that works for your schedule.&nbsp;</div>
+<div class="subheading">No more taking time off work to be stuck in a crowded waiting room!</div>
+{% endif %}
+<p class="howto">{{entry.howTo}}</p>
+{# set vars for later booking #}
+<script>
+$(function(){
+
+/*  if(localStorage.getItem('zip') && localStorage.getItem('petnum')){
+	$("#q").val(localStorage.getItem('zip'));
+	$("#p").val(localStorage.getItem('petnum'));
+	localStorage.clear();
+	}
+   */
+  if($("#q").val() != null && $("#p").val() == null && performance.navigation.type == 1){
+  $("#q").val('');
+  $("#p").val('');
+  var url = document.URL;
+
+    parts = url.split('/');
+    parts.pop();
+    url = parts.join('/');
+  history.pushState(null, null, url);
+ }
+ 	$(".checkav").prop("disabled", true);
+/*     if(($("#q").val() != null) && ($("#p").val() != null)){
+           $(".checkav").prop("disabled", false);
+       } */
+   $("#q").change(function(e){
+       if(($("#q").val() != null) && ($("#p").val() != null)){
+           $(".checkav").prop("disabled", false);
+       }
+	localStorage.setItem('zip', $("#q").val());
+   });
+    $("#p").change(function(e){
+         if(($("#q").val() != null) && ($("#p").val() != null)){
+           $(".checkav").prop("disabled", false);
+       }
+	localStorage.setItem('petnum', $("#p").val());
+   });
+});
+</script>
+<div class="selector">
+ <form method="post" action="{{ url('schedule') }}" name="zip" accept-charset="UTF-8" id="availForm">
+		{{ getCsrfInput() }}
+
+		<select id="q" name="q">
+			<option value="" disabled selected>Select Your Zip Code</option>
+			{% for entry in craft.entries.section('zip').order('title asc').limit(null) %}
+                      {% if entry.zip == zipChosen %}
+                        <option value="{{entry.zip}}" selected>
+                        {{entry.zip}}
+                        </option>
+                      {% else %}
+                      <option value="{{entry.zip}}">
+                        {{entry.zip}}
+                      </option>
+                      {% endif %}
+          {% endfor %}
+		</select>
+    <select id="p" name="pet">
+			<option value="" disabled selected>Select Number of Pets</option>
+			{% for i in 1..4 %}
+					    <option value="{{i}}">
+					      {{i}}
+					    </option>
+       {% endfor %}
+    </select>
+		<input type="submit" class="checkav button blue" value="Check Availability" id="availform">
+		 <input type="hidden" name="redirect" value="schedule">
+	</form>
+
+</div>
+{% if craft.request.getParam('pet') %}
+  {{ craft.twigSession.add('num', craft.request.getParam('pet')) }}
+{% endif %}
+  {% set query = craft.request.lastSegment %}
+    {% if craft.request.getParam('q') %}
+      {{ craft.twigSession.add('zip', craft.request.getParam('q')) }}
+        {% set query = craft.request.getParam('q') %}
+    {% endif %}
+      {% if craft.request.getParam('pet') %}
+        {% set petnum = craft.request.getParam('pet') %}
+     {% else %}
+     {% set petnum = 0 %}
+    {% endif %}
+  {% set entries = craft.entries.section('zip').search(query) %}
+  {% if entries|length < 1 %}
+  {# redirect "schedule" #}
+  {% endif %}
+<!--  Vet[s] in this zip code -->
+ {% set vets = [] %}
+  {% for user in craft.users %}
+    {% for vzip in user.vetZip %}
+        {%if vzip  == query %}
+          {% set vets = vets|merge([user]) %}
+        {% endif %}
+    {% endfor %}
+ {% endfor %}
+
+
+</div>
+</div>
+
+<div class="container">
+ <div class="appt-msg" >
+  <div class="container">
+   {{booking.appointmentWindowExplanation}}
+   <h3>Select an appointment below!</h3>
+   {{entry.specialAppointment}}
+  </div>
+ </div>
+ <div id="bookingjs"></div>
+</div>
+
+
+<!-- <div id="vetsList" style="display:inline-block;"></div> -->
+
+
+
+<script src="//cdn.timekit.io/booking-js/v1/booking.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/timekit-js-sdk/1.6.1/timekit-sdk.min.js"></script>
+
+ <script>
+$(function(){
+    var firstToSchedule = "";
+    var vet_id;
+    var selected = "";
+    var apptDate = "";
+    var evt;
+    var isLoggedIn = "{{currentUser}}";
+    //var zip = ;
+    var loggedInViaAjax = false;
+    var u_email;
+    var u_streetAddress;
+    var u_streetAddress2;
+    var u_city;
+    var u_zip;
+    var u_id;
+    var u_name;
+    var av_data;
+    var userSavedata;
+    var type = '{{type}}';
+    var withAvailability = [];
+    $("#charge-form").hide();
+
+    timekit.setUser(
+            'VPCTacDev@gmail.com',
+            'PZ7QKl0hmAZyHHjV7ZqWTgGXMn3FvMI4'
+    );
+    timekit.configure({
+            app:                         'vetter-971',
+            apiBaseUrl:                 'https://api.timekit.io/',
+            apiVersion:                 'v2',
+            timezone:                   'America/New_York',
+            goToFirstEvent: true,
+            calendar: '445b8b7a-492a-48b6-9433-741d086463fc',
+            name: '',
+            includeStyles: false,
+            // localization: {
+            //        showTimezoneHelper: false,
+            //                },
+            convertResponseToCamelcase: false,
+            convertRequestToSnakecase:  true,
+            autoFlattenResponse: true
+    });
+
+    var configStr = "";
+    var configJSON;
+    $("#availform").click(function(e){
+      e.preventDefault();
+     if(configStr.length > 0){
+           configStr = "";
+           configJSON = "";
+     }
+  if(withAvailability.length > 0){
+         withAvailability = [];
+       }
+{% if craft.config.environmentVariables.env == "prod" %}
+ga('send', 'event', {
+    eventCategory: 'Check Availability',
+    eventAction: 'click',
+    eventLabel: e.target.tagName
+  });
+{% endif %}
+        $.ajax({
+
+                url: "{{siteUrl}}api/availability",
+            //  url: "{{siteUrl}}api/test-api",
+              async: false,
+              data: {q:$("#q").val(),pet:$("#p").val()},
+              success: function(data) {
+                 var array = $.map(data, function(value, index) {
+                        return [value];
+                    });
+                 av_data = array;
+                 for(var i=0; i<av_data.length; i++){
+                     if(av_data[i][0].available[0].length > 0){
+                         withAvailability.push(av_data[i]);
+                     }
+                 }
+                 av_data = [];
+            configStr = "[";
+                for(var i=0; i<withAvailability.length; i++){
+                    for(var x=0;x <withAvailability[i][0].available.length;x++){
+                      for(var y=0;y <withAvailability[i][0].available[x].length;y++){
+                        if(i == withAvailability.length - 1){
+                           if(y == withAvailability[i][0].available[x].length - 1){
+                                 var userAvail = '{ "between_timestamps": {"start": "'+withAvailability[i][0].available[x][y].start+'", "end": "'+withAvailability[i][0].available[x][y].end+'"} }]';
+                            } else {
+                                var userAvail = '{ "between_timestamps": {"start": "'+withAvailability[i][0].available[x][y].start+'", "end": "'+withAvailability[i][0].available[x][y].end+'"} },';
+                            }
+                        } else {
+                             var userAvail = '{ "between_timestamps": {"start": "'+withAvailability[i][0].available[x][y].start+'", "end": "'+withAvailability[i][0].available[x][y].end+'"} },';
+                         }
+                       configStr = configStr.concat(userAvail);
+                        }
+                        }
+                    }
+
+                  }
+            });
+
+if(configStr.length > 0){
+  if(configStr.length == 1){
+    configStr = configStr.concat('{ "between_timestamps": {"start": "1970-01-01T00:00:00-04:00", "end": "1970-01-01T00:00:00-04:00"} }]');
+      }
+     configJSON = $.parseJSON(configStr);
+   // console.log(configStr);
+ }
+$('.appt-msg').show();
+  var widget = new TimekitBooking();
+  widget.init({
+   app:      'vetter-971',
+   email:    timekit.getUser().email,
+   apiToken: 'PZ7QKl0hmAZyHHjV7ZqWTgGXMn3FvMI4',
+   timezone: "America/New_York",
+   goToFirstEvent: true,
+   calendar: '445b8b7a-492a-48b6-9433-741d086463fc',
+   name: '',
+   includeStyles: false,
+   // localization: {
+   //    	showTimezoneHelper: false, // Remove timezone stuff
+   //    },
+   fullCalendar: {
+      height: 725,
+      timeFormat: 'h:mm a',
+      slotDuration: '00:30:00',
+      header: {
+        left:       'prev',
+        center:     'title',
+        right:      'next'
+      },
+      defaultView: 'agendaWeek',
+      viewRender: renderViewColumns,
+
+      views: {
+        agendaWeek: { // name of view
+            titleFormat: 'MMMM',
+            columnFormat: 'ddd\nD',
+            slotLabelFormat: 'h:mm a'
+           },
+           basic: { // name of view
+            titleFormat: 'MMMM',
+            columnFormat: 'ddd\nD',
+            slotLabelFormat: 'h:mm a'
+           }
+        }
+    },
+
+    timekitFindTime: {
+  //   start:       '12 hours',
+     future:       '4 weeks',
+     length:       '30 minutes',
+     emails:       ['VPCTacDev@gmail.com'],
+     filters: {
+      or: configJSON
+      }
+	   },
+    callbacks: {
+    fullCalendarInitialized:  function() {
+     $('.appt-msg').show();
+     $('html, body').animate({
+        scrollTop: $("#availform").offset().top
+      }, 1300);
+    },
+    showBookingPage: function(event) {
+            var earliest = 0;
+            var lastuser = "";
+            var fts_email = "";
+            if(type == 'vet'){
+                //event.preventDefault();
+                alert("Sorry, you can't schedule a visit through your Veterinarian account. If you want to schedule your work availabilty, go to the Availability Calendar link in your dropdown. If you want to schedule an appointment for your own pet, please set up a customer account under a different email address.");
+
+            }else{
+          	    evt = event;
+                //selected = new Date(event.start._i);
+                //apptDate = new Date(event.start._d);
+                selected = moment(event.start._i, 'YYYY-MM-DD HH:mm').toDate();
+                apptDate = moment(event.start._d, 'YYYY-MM-DD HH:mm').toDate();
+                  for(var i=0; i<withAvailability.length; i++){
+                       for(var x=0;x <withAvailability[i][0].available.length;x++){
+                           for(var y=0;y <withAvailability[i][0].available[x].length;y++){
+                                  //var start = new Date(withAvailability[i][0].available[x][y].start);
+                                  //var end = new Date(withAvailability[i][0].available[x][y].end);
+                                  var start = moment(withAvailability[i][0].available[x][y].start, 'YYYY-MM-DD HH:mm').toDate();
+                                  var end = moment(withAvailability[i][0].available[x][y].end, 'YYYY-MM-DD HH:mm').toDate();
+                                   if($.trim(selected) == $.trim(start)){
+                                       var user = withAvailability[i][0].userName;
+                                       var vetemail = withAvailability[i][0].userEmail;
+                                       var v_id = withAvailability[i][0].v_id;
+                                       var time = withAvailability[i][0].available[x][y].postDate;
+                                       lastuser = vetemail;
+                                       if(earliest == 0){
+                                           earliest = time;
+                                           firstToSchedule = user;
+                                           fts_email = vetemail;
+                                           vet_id = v_id;
+                                       } else if(time < earliest){
+                                           earliest = time;
+                                           firstToSchedule = user;
+                                           fts_email = vetemail;
+                                           vet_id = v_id;
+                                       }
+
+                                   }
+                              }
+                       }
+
+                  }
+                  //  $("#vetsList").append("<h4>Vets for this time slot : </h4> ");
+                      if (isLoggedIn) {
+                          var form = $('<form action="{{siteUrl}}basicinfo" method="post">' +
+                              '<input type="hidden" name="start" value="' + event.start._i + '" />' +
+                              '<input type="hidden" name="end" value="' + event.end._i + '" />' +
+                              '<input type="hidden" name="cal_id" value="' + timekit.getConfig().calendar + '" />' +
+                              '<input type="hidden" name="partic" value="' + timekit.getUser().email + '" />' +
+                              '<input type="hidden" name="firstToSchedule" value="' + firstToSchedule + '" />' +
+                              '<input type="hidden" name="vet_id" value="' + vet_id + '" />' +
+                              '<input type="hidden" name="zip" value="' + $('#q').val() + '" />' +
+                              '<input type="hidden" name="num" value="' + $('#p').val() + '" />' +
+                              '<input type="hidden" name="flow" value="schedule" />' +
+                              '</form>');
+                      }else{
+                          var form = $('<form action="{{siteUrl}}signup?t=tab-1" method="post">' +
+                              '<input type="hidden" name="start" value="' + event.start._i + '" />' +
+                              '<input type="hidden" name="end" value="' + event.end._i + '" />' +
+                              '<input type="hidden" name="cal_id" value="' + timekit.getConfig().calendar + '" />' +
+                              '<input type="hidden" name="partic" value="' + timekit.getUser().email + '" />' +
+                              '<input type="hidden" name="firstToSchedule" value="' + firstToSchedule + '" />' +
+                                '<input type="hidden" name="vet_id" value="' + vet_id + '" />' +
+                              '<input type="hidden" name="zip" value="' + $('#q').val() + '" />' +
+                              '<input type="hidden" name="num" value="' + $('#p').val() + '" />' +
+                              '<input type="hidden" name="flow" value="schedule" />' +
+                              '</form>');
+                      }
+                    $('body').append(form);
+                     var holdapp = $('<form  method="post" accept-charset="UTF-8" >'+
+                                        '<input type="hidden" name="sectionId" value="24" />'+
+                                        '<input type="hidden" name="action" value="guestEntries/saveEntry" />'+
+                                        '<input type="hidden" name="title" value="hold_'+event.start._i+'" />'+
+                                        '<input type="hidden" name="fields[vetemail]" value="'+fts_email+'" />'+
+                                        '<input type="hidden" name="fields[timeslot]" value="'+event.start._i+'" />'+
+                                        '<input type="hidden" name="fields[petnum]" value="'+ $('#p').val() +'" />' +
+                                        '<input type="hidden" name="fields[hold_status]" value="pending" />'+
+                                        '<input type="hidden" name="fields[time_created]" value="'+moment().unix()+'" />' +
+                                        '<input type="hidden" name="id" value="{id}" />'+
+                                      '</form>');
+                           var hold_data = holdapp.serialize();
+                            //$.post("{{siteUrl}}", hold_data, function(rsp){
+                            //  localStorage.clear();
+                            //  localStorage.setItem('bookingid', rsp.id);
+                            //   form.submit();
+                            //});
+                            $.ajax({
+                                      async: false,
+                                      type: 'POST',
+                                      url: "{{siteUrl}}",
+                                      data: hold_data,
+                                      success: function(rsp) {
+                                        {% if craft.config.environmentVariables.env == "prod" %}
+                                        ga('send', 'event', {
+                                          eventCategory: 'Slot Selected',
+                                          eventAction: 'click',
+                                          eventLabel: 'Slot Selected'
+                                        });
+                                        {% endif %}
+                                        localStorage.clear();
+                                        localStorage.setItem('bookingid', rsp.id);
+                                        form.submit();
+                                      }
+                                  });
+              }
+              this.destroy();
+              },
+              }
+
+});
+});
+});
+
+function renderViewColumns(view, element) {
+      element.find('th.fc-day-header.fc-widget-header').each(function() {
+        var theDate = moment($(this).data('date')); /* th.data-date="YYYY-MM-DD" */
+        $(this).html(buildDateColumnHeader(theDate));
+      });
+
+      function buildDateColumnHeader(theDate) {
+        var container = document.createElement('div');
+        container.className = "dayHead"
+        var DDD = document.createElement('span');
+        DDD.className = "day";
+        var dd = document.createElement('span');
+        dd.className = "date";
+        DDD.textContent = theDate.format('ddd').toUpperCase();
+        dd.textContent = theDate.format('D');
+        container.appendChild(DDD);
+        container.appendChild(dd);
+        return container;
+      }
+    }
+
+
+ </script>
+
+
+{% endblock %}
+
+{% block footerJS %}
+
+{% endblock %}

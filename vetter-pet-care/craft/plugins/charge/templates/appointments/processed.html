@@ -1,0 +1,183 @@
+
+{% extends "charge/_layouts/cp" %}
+{% set title = "Processed Appointments"|t %}
+{% set selectedSubnavItem = 'processed' %}
+{% set elementType = 'Charge_Payment' %}
+{% block content %}
+
+<div class="elementindex">
+<style type="text/css">
+    .appt-table {
+  display: table;
+  width: 100%; }
+  .appt-table .table_head {
+    display: table-header-group; }
+  .appt-table .table_label {
+    display: table-cell;
+    font-weight: bold;
+    text-align: center;
+    border-bottom: 2px solid #979797;
+    padding: 3px; }
+  .appt-table .table_body {
+    display: table-row-group;
+    background-color: #ffffff; }
+  .appt-table .table_row {
+    display: table-row;
+    line-height: 20px; }
+    .appt-table .table_row:nth-of-type(2n) {
+      background-color: #EFF0F4; }
+  .appt-table .table_cell {
+    display: table-cell;
+    padding: 15px 5px;
+    text-align: center; }
+    .appt-table .table_cell:last-of-type .table_link {
+      text-transform: uppercase;
+      text-decoration: underline !important;
+      color: #7186A4; }
+  .appt-table .table_cellblock {
+    padding: 10px 5px; }
+  .line {
+  border-bottom: 1px solid #d3d3d3;
+  padding: 1em;
+  width: 900%;
+
+  display: block; }
+      span.table_label.sortable {
+  position: relative;
+  cursor: pointer; }
+  span.table_label.sortable.sortable:after {
+    position: absolute;
+    top: 45%;
+    content: "";
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent; }
+  span.table_label.sortable.sortable[data-order="asc"]:after {
+    border-top: 5px solid #17345E; }
+  span.table_label.sortable.sortable[data-order="desc"]:after {
+    border-bottom: 5px solid #17345E; }
+
+    .pagination{text-transform:uppercase;margin:30px auto;display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center;list-style:none;padding:0}.pagination li{font-size:16px;padding-bottom:0;padding-bottom:initial}.pagination li a,.pagination li span{padding:10px 20px;display:block}.pagination li.current{border:2px solid #11a7a5;color:#11a7a5}.pagination li.prev-link{padding-left:0;padding-right:30px}.pagination li.next-link{padding-right:0;padding-left:30px}
+</style>
+
+<div class="appt-table" id="userappointments">
+
+<span class="table_head">
+<span class="table_label sortable" data-order="asc">Date</span>
+<span class="table_label sortable" data-order="asc">Time</span>
+<span class="table_label sortable" data-order="asc">Appointment Record &nbsp;</span>
+<span class="table_label">Customer</span>
+<span class="table_label">Veterinarian</span>
+<span class="table_label">Amount</span>
+<span class="table_label">Status</span>
+<span class="table_label"></span>
+</span>
+<span class="table_body">
+
+{% paginate craft.entries.section('appointmentRecords').limit(100) as pageInfo, pageEntries %}
+
+{% for entry in pageEntries %}
+{% if entry.processedstatus == "Processed" or entry.processedstatus == "Refunded" %}
+
+
+{% set doa = entry.appointmentStartTime|date("m/d/Y") %}
+{% set Ymd_doa = entry.appointmentStartTime|date("YmdHis") %}
+{% set toa = entry.appointmentStartTime|date("h:ia") %}
+
+
+        <div class="table_row">
+            <div class="table_cell"><p class="hidden">{{ Ymd_doa }}</p>{{ doa }}</div>
+            <div class="table_cell">{{ toa }}</div>
+            <div class="table_cell">
+            <a href="{{siteUrl}}admin/entries/appointmentRecords/{{entry.id}}">{{entry.appointmentIdNumber}}</a>
+            </div>
+            <div class="table_cell">
+            {{entry.customerName}}
+            </div>
+            <div class="table_cell">
+            {{entry.assignedVeterinarianName}}
+            </div>
+            <div class="table_cell">${{entry.amount}}</div>
+            <div class="table_cell">{% if entry.processedstatus == "Processed" %}
+                                <font color="green"><b>{{entry.processedstatus}}</b></font>
+                                {% elseif entry.processedstatus == "Refunded"%}
+                                   <font color="red"><b>{{entry.processedstatus}}</b></font>
+                                {% else %}
+                               <b>{{entry.processedstatus}}</b>
+                                {% endif %}
+                                </div>
+            <div class="table_cell">
+            <a href="viewProcessed/{{entry.id}}" class="table_link">view appointment</a>
+            </div>
+        </div>
+{% endif %}
+  {% endfor %}
+ </span>
+</div>
+<ul class="pagination clearfix">
+    <li><a href="{{ pageInfo.firstUrl }}">First Page</a></li>
+    {% if pageInfo.prevUrl %}<li><a href="{{ pageInfo.prevUrl }}">Previous Page</a></li>{% endif %}
+
+    {% for page, url in pageInfo.getPrevUrls(5) %}
+      <li><a href="{{ url }}">{{ page }}</a></li>
+    {% endfor %}
+
+      <li class="current"><span>{{ pageInfo.currentPage }}</span></li>
+
+    {% for page, url in pageInfo.getNextUrls(5) %}
+      <li><a href="{{ url }}">{{ page }}</a></li>
+    {% endfor %}
+
+    {% if pageInfo.nextUrl %}<li><a href="{{ pageInfo.nextUrl }}">Next Page</a></li>{% endif %}
+    <li><a href="{{ pageInfo.lastUrl }}">Last Page</a></li>
+  </ul>
+</div>
+</div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tinysort/2.3.6/tinysort.js"></script>
+<script>
+var table = document.getElementById('userappointments')
+  ,tableHead = table.querySelector('span.table_head')
+  ,tableHeaders = tableHead.querySelectorAll('span.table_label.sortable')
+  ,tableBody = table.querySelector('span.table_body')
+;
+
+tinysort(
+            tableBody.querySelectorAll('div.table_row')
+            ,{
+                selector:'div.table_cell:nth-child(1)'
+                ,order: 'desc'
+            }
+        );
+
+tableHead.addEventListener('click',function(e){
+  var tableHeader = e.target
+    ,textContent = tableHeader.textContent
+    ,tableHeaderIndex,isAscending,order
+  ;
+  if (textContent!=='add row') {
+        // note: nodeName must be ALLCAPS
+    while (tableHeader.nodeName!=='SPAN') {
+      tableHeader = tableHeader.parentNode;
+    }
+    tableHeaderIndex = Array.prototype.indexOf.call(tableHeaders,tableHeader);
+    isAscending = tableHeader.getAttribute('data-order')==='asc';
+    order = isAscending?'desc':'asc';
+    tableHeader.setAttribute('data-order',order);
+              // tableHeader.classList.toggle('asc');
+              // tableHeader.classList.toggle('down-arrow');
+    tinysort(
+      tableBody.querySelectorAll('div.table_row')
+      ,{
+        selector:'div.table_cell:nth-child('+(tableHeaderIndex+1)+')'
+        ,order: order
+      }
+    );
+  }
+});
+</script>
+{% endblock %}
+
+
+

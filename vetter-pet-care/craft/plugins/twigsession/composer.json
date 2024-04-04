@@ -1,0 +1,14 @@
+{
+	"name": "/twigsession",
+	"description": "Sessions for Craft",
+	"type": "craft-plugin",
+	"authors": [
+		{
+			"name": "Matthew Cieslak",
+			"homepage": "https://github.com/mattman93"
+		}
+	],
+	"require": {
+		"composer/installers": "~1.0"
+	}
+}

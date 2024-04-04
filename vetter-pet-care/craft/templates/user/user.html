@@ -1,0 +1,1699 @@
+{% extends "_layout-wide" %}
+
+{% requireLogin %}
+
+{% if currentUser.id != craft.request.segment(2) %}
+{% redirect "/" %}
+{% endif %}
+
+{% set user = craft.users.id( craft.request.segment(2) ).first() %}
+{% set groups = user.getGroups() %}
+{% set groupName = groups[0].name %}
+
+{% block content %}
+<!-- parser error message -->
+{% macro errorList(errors) %}
+{% if errors %}
+<ul class="errors">
+    {% for error in errors %}
+    <li>{{ error }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+{% endmacro %}
+{% from _self import errorList %}
+
+<div class="content user-profile">
+    <h1>Your Profile</h1>
+
+    {% if currentUser.isInGroup('customer') %}
+    <!--  add appointment reminder -->
+
+
+      {% set appts = craft.entries.section('appointmentRecords').order("appointmentStartTime asc").authorId(currentUser.id).limit(null) %}
+
+      {% for appt in appts %}
+      {% if appt.appointmentStartTime|date('U') > now|date('U') and not (appt.cancel_status == "cancelled" or appt.cancel_status == "sys_cancelled" or appt.cancel_status == "customer_cancelled") %}
+      {% set petnum = appt.pets|length %}
+      <div class="appt-reminder">
+       <div class="window">
+       Appointment Reminder
+       <div class="subheading">You've got an upcoming appointment on {{ appt.appointmentStartTime|date("F d, Y") }} for
+        {% if petnum < 2 %}
+        {{ petnum }} pet.
+        {% else %}
+        {{ petnum }} pets.
+        {% endif %}
+       </div>
+       Your appointment window is
+       {% if petnum < 2 %}
+       from {{appt.appointmentStartTime|date("h:i a")}} - {{appt.appointmentStartTime|date_modify("+90 minutes")|date("h:i a")}}
+       {% else %} from {{appt.appointmentStartTime|date("h:i a")}} - {{appt.appointmentStartTime|date_modify("+90 minutes")|date("h:i a")}}
+       {% endif %}</div>
+       <div class="cancel-appt" data-id="{{appt.id}}">
+       <a href="#" class="customer_cancel_appt" data-start ="{{appt.appointmentStartTime}}" data-displaystart="{{appt.appointmentStartTime | date('l F d, Y')}} at {{appt.appointmentStartTime | date('h:i a')}}" data-vetname="{{appt.assignedVeterinarianName}}" data-id="{{appt.id}}">Cancel Appointment</a></div>
+      </div>
+      {% endif %}
+      {% endfor %}
+
+    <!--  end of appointment reminder  -->
+
+    <!--- Basic info -->
+    <form method="post" class="basic_user" id="basicinfoform" accept-charset="UTF-8">
+        {{ getCsrfInput() }}
+        <input type="hidden" name="action" value="users/saveUser">
+        <input type="hidden" name="redirect" value="{{siteUrl}}user/{{ currentUser.id }}">
+        <input type="hidden" name="userId" value="{{ currentUser.id }}">
+        <input type="hidden" name="success" value="1">
+
+        <!-- parser error message -->
+        {% macro errorList(errors) %}
+        {% if errors %}
+        <ul class="errors">
+            {% for error in errors %}
+            <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endmacro %}
+        {% from _self import errorList %}
+        <!-- end parser error message -->
+
+
+<h2>Basic Information <em class="req">* Indicates a required field.</em></h2>
+<div class="user-basic">
+ <div class="input-row">
+    <span class="input input--yoshiko firstName">
+      <input class="input__field input__field--yoshiko" type="text" id="firstName" name = "firstName" value="{{currentUser.firstName}}"/>
+        <label class="input__label input__label--yoshiko" for="firstName">
+          <span class="input__label-content input__label-content--yoshiko" data-content="First Name">First Name*</span>
+        </label>
+        <div id="error_firstName"></div>
+      </span>
+      <span class="input input--yoshiko lastName">
+        <input class="input__field input__field--yoshiko" type="text" id="lastName" name = "lastName" value="{{currentUser.lastName}}"/>
+          <label class="input__label input__label--yoshiko" for="lastName">
+            <span class="input__label-content input__label-content--yoshiko" data-content="Last Name">Last Name*</span>
+          </label>
+          <div id="error_lastName"></div>
+        </span>
+ </div>
+ <div class="input-row">
+    <span class="input input--yoshiko email readonly">
+      <input class="input__field input__field--yoshiko" type="text" id="org_email" name = "org_email" value="{{currentUser.email}}" disabled = disabled/>
+        <label class="input__label input__label--yoshiko" for="org_email">
+          <span class="input__label-content input__label-content--yoshiko" data-content="Email">Email</span>
+        </label>
+      </span>
+      <span class="input input--yoshiko vetnum readonly">
+          <input class="input__field input__field--yoshiko" type="text" id="userid" name = "userid" value="{{ currentUser.id }}" disabled/>
+            <label class="input__label input__label--yoshiko" for="userid">
+              <span class="input__label-content input__label-content--yoshiko" data-content="userid">User ID</span>
+            </label>
+          </span>
+ </div>
+
+</div>
+<div class="input-row">
+<span class="input input--yoshiko streetaddress">
+  <input class="input__field input__field--yoshiko" type="text" id="streetaddress" name = "fields[streetAddress]" value="{{currentUser.streetAddress}}"/>
+    <label class="input__label input__label--yoshiko" for="streetaddress">
+      <span class="input__label-content input__label-content--yoshiko" data-content="Street Address">Street Address*</span>
+    </label>
+    <div id="error_streetaddress"></div>
+  </span>
+</div>
+<div class="input-row">
+  <span class="input input--yoshiko streetAddress2">
+    <input class="input__field input__field--yoshiko" type="text" id="streetAddress2" name = "fields[streetAddress2]" value="{{currentUser.streetAddress2}}"/>
+      <label class="input__label input__label--yoshiko" for="streetAddress2">
+        <span class="input__label-content input__label-content--yoshiko" data-content="Address 2">Address 2</span>
+      </label>
+ </span>
+
+</div>
+<div class="input-row">
+  <span class="input input--yoshiko city">
+    <input class="input__field input__field--yoshiko" type="text" id="city" name = "fields[city]" value="{{currentUser.city}}"/>
+      <label class="input__label input__label--yoshiko" for="city">
+        <span class="input__label-content input__label-content--yoshiko" data-content="City">City*</span>
+      </label>
+      <div id="error_city"></div>
+  </span>
+
+  <span class="input input--yoshiko states">
+   <select id="c_states" name="fields[states]">
+       {% for option in currentUser.states.options %}
+       {% set state = currentUser.states|trim %}
+       <option {% if state == option %} selected {% endif %}>{{option}}</option>
+       {% endfor %}
+   </select>
+     <label class="input__label input__label--yoshiko" for="states">
+       <span class="input__label-content input__label-content--yoshiko" data-content="State">State*</span>
+     </label>
+   </span>
+
+   <span class="input input--yoshiko zip">
+       <select id="customerZip" name = "fields[customerZip][]">
+              {% for entry in craft.entries.section('zip') %}
+                    {% if user.customerZip.first() == entry.title %}
+                    <option value="{{entry.id}}" data-id="{{entry.title}}" selected>{{entry.title}}</option>
+                    {% else %}
+                     <option value="{{entry.id}}" data-id="{{entry.title}}">{{entry.title}}</option>
+                    {% endif %}
+              {% endfor %}
+               <input type="hidden" id="selectedZip" value="{% if craft.request.getParam('zip') %}{{craft.request.getParam('zip')}}{% else %}{{craft.twigSession.get('sel_zip')}}{% endif %}" />
+             </select>
+        <label class="input__label input__label--yoshiko" for="zip">
+            <span class="input__label-content input__label-content--yoshiko" data-content="Zip">Zip*</span>
+        </label>
+    </span>
+  </div>
+
+  <div class="input-row">
+    <span class="input input--yoshiko cellphone">
+      <input class="input__field input__field--yoshiko" type="text" id="cellphone" name = "fields[cellPhone]" value="{{currentUser.cellPhone}}"/>
+      <label class="input__label input__label--yoshiko" for="cellphone">
+        <span class="input__label-content input__label-content--yoshiko" data-content="Cell Phone">Cell Phone*</span>
+      </label>
+      <div id="error_cellphone"></div>
+    </span>
+  </div>
+
+  <div class="input-row">
+    <span class="input input--yoshiko alternateContactName">
+      <input class="input__field input__field--yoshiko" type="text" id="alternateContactName" name = "fields[alternateContactName]" value="{{currentUser.alternateContactName}}"/>
+        <label class="input__label input__label--yoshiko" for="alternateContactName">
+          <span class="input__label-content input__label-content--yoshiko" data-content="Alternate Contact">Alternate Contact</span>
+        </label>
+   </span>
+
+   <span class="input input--yoshiko alternateContactCellNumber">
+     <input class="input__field input__field--yoshiko" type="text" id="alternateContactCellNumber" name = "fields[alternateContactCellNumber]" value="{{currentUser.alternateContactCellNumber}}"/>
+      <label class="input__label input__label--yoshiko" for="alternateContactCellNumber">
+        <span class="input__label-content input__label-content--yoshiko" data-content="Alternate's Cell Phone">Alternate Contact Number</span>
+      </label>
+    </span>
+  </div>
+<div class="btn-container right clearfix">
+        <input class="button small blue suser" id="next" type="submit" value="Save">
+        </div>
+    </form>
+
+    <div class="line"></div>
+    <h2 name = 'change_user'>Change Your Email Address<em class="req">* Indicates a required field.</em></h2>
+    <h4>Enter a new email address below.</h4>
+    <form method="post" class="change_basic_user" id="change_basicinfoform" accept-charset="UTF-8">
+        {{ getCsrfInput() }}
+        <input type="hidden" name="action" value="users/saveUser">
+        <input type="hidden" name="userId" value="{{ currentUser.id }}">
+
+
+        <!-- parser error message -->
+        {% macro errorList(errors) %}
+        {% if errors %}
+        <ul class="errors">
+            {% for error in errors %}
+            <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endmacro %}
+        {% from _self import errorList %}
+        <!-- end parser error message -->
+
+    <!---  Change email -->
+    <div class="input-row">
+    <span class="input input--yoshiko">
+      <input class="input__field input__field--yoshiko" type="text" id="change_email" name = "email" value=""/>
+        <label class="input__label input__label--yoshiko" for="change_email">
+          <span class="input__label-content input__label-content--yoshiko" data-content="Email">Email Address*</span>
+        </label>
+      </span>
+    </div>
+
+        <div class="input-row">
+    <span class="input input--yoshiko">
+      <input class="input__field input__field--yoshiko" type="text" id="confirm_email" name = "confirm_email" value=""/>
+        <label class="input__label input__label--yoshiko" for="confirm_email">
+          <span class="input__label-content input__label-content--yoshiko" data-content="confirm_email">Confirm Email Address*</span>
+        </label>
+        {% if account is defined %}
+           {{ errorList(account.getErrors('email'))}}
+        {% endif %}
+
+        {% set error = craft.session.getFlash('error') %}
+        {% set trimmed = "" %}
+        {% for line in error|split("\n") %}
+            {% set trimmed = trimmed ~ (trimmed ? "\n") ~ line|replace('/\\s*$/', '') %}
+        {% endfor %}
+
+        {% if account is defined %}
+            {% if errorList(account.getErrors('email')) | length > 16 %}
+            {% else %}
+                {% if (trimmed | length) %}
+                <div id="error_email">Invalid Password</div>
+                {% endif %}
+            {% endif %}
+        {% endif %}
+      </span>
+        </div>
+
+    <div class="input-row">
+    <span class="input input--yoshiko password">
+      <input class="input__field input__field--yoshiko" type="password" id="password" name = "password" value=""/>
+        <label class="input__label input__label--yoshiko" for="password">
+          <span class="input__label-content input__label-content--yoshiko" data-content="password">Enter Password to Authorize Change*</span>
+        </label>
+        <div id="error_password"></div>
+
+      </span>
+    </div>
+        <div class="btn-container right clearfix">
+            <input class="button small blue change_email_submit" id="change_email_submit" type="submit" value="Save">
+        </div>
+    </form>
+
+    <div class="line"></div>
+
+    <!-- Billing Info -->
+<h2>Billing Information <em class="req">* Indicates a required field.</em></h2>
+<input type="hidden" class="sbi" value="{{currentUser.savebillinginfo}}">
+
+
+<form method="post" accept-charset="UTF-8" id="billAddr">
+  <input type="hidden" name="action" value="users/saveUser">
+  <input type="hidden" name="redirect" value="{{siteUrl}}user/{{ currentUser.id }}">
+  <input type="hidden" name="userId" value="{{ currentUser.id }}">
+
+<h4> Billing Address </h4>
+<div id="billingSavedMsg"></div>
+    <div class="qinput">
+        <input type="checkbox" id="sameBillingAddr" class="sameashome" name="fields[sameashome]" {% if currentUser.sameashome %} checked="checked" {% endif %}> Same as home address?<br>
+        <input type="hidden" class="js-sameashome" name="fields[sameashome]" value="{% if currentUser.sameashome %}1{% endif %}">
+    </div>
+        <span class="input input--yoshiko streetaddress">
+     <input class="input__field input__field--yoshiko" type="text" id="billstreetaddress" name = "fields[billingAddress]" value="{% if currentUser.savebillinginfo %}{{currentUser.billingAddress}}{% endif %}"/>
+     <label class="input__label input__label--yoshiko" for="billstreetaddress">
+       <span class="input__label-content input__label-content--yoshiko" data-content="Street Address">Street Address*</span>
+     </label>
+       <div id="error_streetaddress"></div>
+   </span>
+
+<div class="input-row">
+<span class="input input--yoshiko address2">
+<input class="input__field input__field--yoshiko" type="text" id="billaddress2" name = "fields[billingAddress2]" value="{% if currentUser.savebillinginfo %}{{currentUser.billingAddress2}}{% endif %}"/>
+<label class="input__label input__label--yoshiko" for="billaddress2">
+  <span class="input__label-content input__label-content--yoshiko" data-content="Address 2">Address 2</span>
+</label>
+</span>
+
+<span class="input input--yoshiko cellphone">
+<input class="input__field input__field--yoshiko" type="text" id="billcellphone" name = "fields[billingCellphone]" value="{% if currentUser.savebillinginfo %}{{currentUser.billingCellphone}}{% endif %}"/>
+<label class="input__label input__label--yoshiko" for="billcellphone">
+<span class="input__label-content input__label-content--yoshiko" data-content="Cell Phone">Cell Phone*</span>
+</label>
+  <div id="error_cellphone"></div>
+</span>
+</div>
+
+<div class="input-row">
+<span class="input input--yoshiko city">
+<input class="input__field input__field--yoshiko" type="text" id="billcity" name = "fields[billingCity]" value="{% if currentUser.savebillinginfo %}{{currentUser.billingCity}}{% endif %}"/>
+<label class="input__label input__label--yoshiko" for="billcity">
+<span class="input__label-content input__label-content--yoshiko" data-content="City">City*</span>
+</label>
+  <div id="error_city"></div>
+</span>
+
+<span class="input input--yoshiko states">
+        <select id="billstates" name="fields[billingState]">
+  {% if currentUser.billingState %}<option selected>{{currentUser.billingState}}</option>{% else %}<option></option>{% endif %}
+    {% for option in user.states.options %}
+          <option>{{option}}</option>
+    {% endfor %}
+    </select>
+    <label class="input__label input__label--yoshiko" for="billstates">
+    <span class="input__label-content input__label-content--yoshiko" data-content="State">State*</span>
+    </label>
+      <div id="error_states"></div>
+</span>
+
+<span class="input input--yoshiko zip">
+<input class="input__field input__field--yoshiko" type="text" id="billzip" name = "fields[billingZip]" value="{% if currentUser.savebillinginfo %}{{currentUser.billingZip}}{% endif %}"/>
+<label class="input__label input__label--yoshiko" for="billzip">
+<span class="input__label-content input__label-content--yoshiko" data-content="Zip">Zip*</span>
+</label>
+  <div id="error_zip"></div>
+</span>
+<input type="hidden" name="fields[savebillinginfo]" value="1">
+</div>
+    <div class="btn-container right clearfix">
+    <input class="button small blue" id="createAppt" type="submit" value="Save">
+    </div>
+    </form>
+   <div class="line"></div>
+<div class="payment-container" id="payment-container">
+{% if craft.charge.customer %}
+  {% set customer = craft.charge.customer %}
+    {% set cards = customer.getSavedCards %}
+     {% if cards %}
+     {% set hasCard = true %}
+       {% for card in cards %}
+<div class="saved-card-info-container">
+ <h4>Payment Information</h4>
+<div class="saved-card-info">
+  <div class="saved-info">
+    <div class="saved-name">{{currentUser.nameOnCard}}</div>
+    <div class="saved-card"><strong>{{ card.brand }}</strong> ending in <strong>{{card.last4}}</strong></div>
+    <div class="saved-exp">Expires <strong>{{ card.exp_month }}/{{ card.exp_year|slice(2) }}</strong></div>
+  </div>
+  <div class="edit-link"><a href="" id="editCard">Edit</a></div>
+</div>
+</div>
+   {% endfor %}
+  {% endif %}
+{% endif %}
+<div id="charge-form-container">
+ <h4>Add Payment Information</h4>
+  <form id="charge-form" method="post" data-stripeKey="{{craft.charge.publicKey}}" accept-charset="UTF-8">
+    <input type="hidden" name="action" value="charge/charge" />
+     <input type="hidden" name="redirect" value="{{siteUrl}}user/{{ currentUser.id }}#payment-container" />
+ <div class="card-success"></div>
+    {% set options = {'planAmount' : 1} %}
+    {{craft.charge.setPaymentOptions(options)}}
+<div id="payment-errors"></div>
+<div class="card clearfix">
+{% if craft.charge.customer %}
+<div class="edit-link"><a href="" class="cancel">Cancel</a></div>
+{% endif %}
+{#
+{% if craft.charge.customer and (currentUser.savebillinginfo == 1) %}
+  {% set customer = craft.charge.customer %}
+    {% set cards = customer.getSavedCards %}
+     {% if cards %}
+       {% for card in cards %}
+            <input type="hidden" name="cardToken" value="{{charge.cardToken}}" data-stripe="token" />
+            <input type="hidden" name="cardLast4" value="{{charge.cardLast4}}" />
+            <input type="hidden" name="cardType" value="{{charge.cardType}}" />
+            <input type="hidden" name="cardName" value="{{charge.cardName}}" />
+            <input type="hidden" name="cardExpMonth" value="{{charge.cardExpMonth}}" />
+            <input type="hidden" name="cardExpMonth" value="{{cardExpMonth}}" />
+            <input type="hidden" name="cardExpYear" value="{{cardExpYear}}" />
+  {% endfor %}
+    {% endif %}
+{% endif %}
+#}
+<input type="hidden" name="customerEmail" value="{{ currentUser ? currentUser.email }}" id="customerEmail" placeholder="email"/>
+       <div class="cord">Name on Card*</div>
+       <input type="text" name="nameOnCard" id="nameOnCard" value=""/>
+        <div class="cord wlabels"><div class="title">Credit or Debit Card*</div><div class="title">Exp. Date*</div><div class="title">Security Code*</div></div>
+        <div class="ccinfo">
+        <input type="text" data-stripe="number" placeholder="Enter Card Number" id="cardNumber" value="{% if craft.charge.customer %}{% set customer = craft.charge.customer %}{% set cards = customer.getSavedCards %}{% if cards %}{% for card in cards %}{{card.formattedCard}}{% endfor %}{% endif %}{% endif %}" />
+        <input type="text" data-stripe="exp" placeholder="MM / YY" id="cardExpiry" class="cc-expiry" value="{% if craft.charge.customer %}{% set customer = craft.charge.customer %}{% set cards = customer.getSavedCards %}{% if cards %}{% for card in cards %}{{ card.exp_month }}/{{ card.exp_year|slice(2) }}{% endfor %}{% endif %}{% endif %}" autocomplete="off" />
+        <input type="hidden" name="cardExpMonth" value="" data-stripe="exp_month">
+        <input type="hidden" name="cardExpYear" value="" data-stripe="exp_year">
+        <input type="text" data-stripe="cvc" placeholder="" id="cardCvc" />
+      </div>
+{% if charge is defined %}{% for error in charge.getErrors('cardNumber') %}{{ error }}{% endfor %}{% endif %}
+{% if charge is defined %}{% for error in charge.getErrors('cardExpiry') %}{{ error }}{% endfor %}{% endif %}
+{% if charge is defined %}{% for error in charge.getErrors('cardCvc') %}{{ error }}{% endfor %}{% endif %}
+<input type="submit" class="button small blue savecard" value="Submit Card Information" />
+</div>
+</form>
+</div>
+   <div class="line"></div>
+</div>
+
+
+<!--
+<div class="section-info clearfix">
+  <div class="section-row clearfix">
+   <div class="section-label">
+    <label for="streetaddress">Billing Address</label>
+   {{currentUser.billingAddress}}<br>
+    {% if currentUser.billingAddress2 %}{{currentUser.billingAddress2}}<br>{% endif %}
+   {{currentUser.billingCity}} {{currentUser.billingState}} {{currentUser.billingZip}}
+   </div>
+   <div class="section-label">
+    <label for="cellphone">Cell Phone</label>
+        {{currentUser.billingCellphone}}
+   </div>
+  </div>
+  </div>
+  -->
+    <!-- Pet info -->
+    <h2>Your Pets</h2>
+       <form method="post" accept-charset="UTF-8" enctype="multipart/form-data">
+        {{ getCsrfInput() }}
+        <input type="hidden" name="action" value="users/saveUser">
+        <input type="hidden" name="redirect" value="{{siteUrl}}user/{{ currentUser.id }}">
+        <input type="hidden" name="userId" value="{{ user.id }}">
+
+                    <div class="pets">
+                        {% set petCount = 0 %}
+                        {% for petblock in user.pets %}
+                        {% if petblock.type == 'pet' %}
+                        {% set image = petblock.petPhoto.first() %}
+                        <div class='pet' data-petid="{{petblock.id}}">
+                            <div class = 'existpet' data-petid="{{petblock.id}}">
+                                <input type="hidden" name="fields[pets][{{petblock.id}}][type]" value="pet">
+                                <input type="hidden" name="petblock.id" value="{{petblock.id}}">
+                                <input type="hidden" name="fields[pets][{{petblock.id}}][enabled]" value="1">
+                                {% set petCount = petCount + 1 %}
+                                <div class="petnum">{{petCount}}.</div>
+
+                                {% if not image is empty %}
+                                <div class="picture" style="background: transparent url('{{image.url }}') no-repeat center center; background-size: cover;"></div>
+                                {% else %}
+                                <div class="picture" style="background: transparent url('https://s3.amazonaws.com/vetterpc-images/pet_placeholderimage.jpg') no-repeat center center; background-size: cover;"></div>
+                                {% endif %}
+                                <div class="name">{{petblock.petFirstName}}</div>
+                                <div class="overlay">
+                                    <a href="#" class="edit-pet" data-field="{{petblock.id}}" data-image="{{image.url}}" data-petid="{{petblock.id}}"
+                                       tabindex="0"><i class="icon-pencil"></i>Edit</a>
+                                    {% if not petblock.petFirstName is empty %}
+                                    {% if not image is empty %}
+                                    <a href="#" class="remove-pet" data-field="{{petblock.id}}" data-petid="{{petblock.id}}"
+                                       data-asset="{{image.id}}" tabindex="0"><i class="icon-trash-o"></i>Delete</a>
+                                    {% else %}
+                                    <a href="#" class="remove-pet" data-field="{{petblock.id}}" data-petid="{{petblock.id}}"
+                                       data-asset="0" tabindex="0">Delete</a>
+                                    {% endif %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                            <div class="petinfo" data-petid="{{petblock.id}}">
+                                <br/>
+                                <div class='box pet_dragandrophandler' id="pets" data-name='pets' data-petid="{{petblock.id}}">
+                                <div class="vetProfile">
+                                    <div class="picture"><img class="addpetpreview" data-petid="{{petblock.id}}" src="{% if not image is empty %}{{image.url }}{% else %}https://s3.amazonaws.com/vetterpc-images/pet_placeholderimage.jpg{% endif %}" alt="pet photo"></div>
+                                    <div class="overlay">
+                                        <div class="button"><label for="createPetPhoto{{petblock.id}}">Change Photo</label>
+                                        <input class="inputfile" type="file" id="createPetPhoto{{petblock.id}}"
+                                           name="fields[pets][{{petblock.id}}][fields][petPhoto]" data-petid="{{petblock.id}}"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                </div>
+                                <input type="hidden" name="fields[pets][{{petblock.id}}][type]" value="pet">
+                                <input type="hidden" name="fields[pets][{{petblock.id}}][enabled]" value="1">
+                            <div class="petnum">{{petCount}}.</div>
+                            <div class="qinput clearfix">
+                                <label>Pet First Name*</label>
+                                <input class="input__field input__field--yoshiko petFirstName" type="text"
+                                       name="fields[pets][{{petblock.id}}][fields][petFirstName]" data-petid="{{petblock.id}}"
+                                       {%- if petblock is defined %} value="{{ petblock.petFirstName }}" {% endif -%} multiple/>
+                            </div>
+
+                            <div class="qinput">
+                                <label>Is Pet less than 1 year old?*</label>
+				                        <br/>
+							<input type="radio" class="1year" name="1year" data-petid="{{petblock.id}}" value="yes" {% if floor(date( petblock.birthdate|date ).diff( now ).days/365.24) < 1 %} checked="checked" {% endif %}>Yes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                <input type="radio" class="1year" name="1year" data-petid="{{petblock.id}}" value="no" {% if floor(date( petblock.birthdate|date ).diff( now ).days/365.24) >= 1 %} checked="checked" {% endif %}>No
+                            </div>
+                            <div class="pet-inputrow">
+                                <div class="calculatebirthdate {% if floor(date( petblock.birthdate|date ).diff( now ).days/365.24) < 1 %}hidden{% endif %} input-item" data-petid="{{petblock.id}}">
+                                    <label>Age*</label>
+                                    <input class="input__field input__field--yoshiko age" type="text" name="age"
+                                           data-petid="{{petblock.id}}"
+                                           {%- if petblock is defined %} value="{{ floor(date( petblock.birthdate|date ).diff( now ).days/365.24) }}" {% endif -%}/>
+                                </div>
+                            </div>
+                            <div class="inputbirthdate pet-inputrow bday" data-petid="{{ petblock.id }}">
+                            <label>Birthdate</label>
+                            <input class="birthdate hidden" type="date" data-petid={{petblock.id}}
+                                           name="fields[pets][{{petblock.id}}][fields][birthdate]"
+                                           {%- if petblock is defined %} value="{{ petblock.birthdate }}" {% endif -%}/>
+                            </div>
+                            <div class="inputbirthdate pet-inputrow" data-petid="{{ petblock.id }}">
+                            <div class="input-item">
+                                    <label>Month*</label>
+                                    <select name="month" class="birth_month" data-petid={{petblock.id}}>
+                                        {% for month in 1..12 %}
+                                        {% if month < 10 %}
+                                        {% set set_month = '0'~month %}
+                                        {% else %}
+                                        {% set set_month = month %}
+                                        {% endif %}
+                                        <option value="{{ set_month }}" {% if (petblock.birthdate|date(
+                                        'm') == set_month) %} selected{% endif %}> {{ set_month }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="input-item">
+                                    <label>Day*</label>
+                                    <div><select name='day' class="birth_day" data-petid={{petblock.id}}>
+                                        {% for day in 1..31 %}
+                                        {% if day < 10 %}
+                                        {% set set_day = '0'~day %}
+                                        {% else %}
+                                        {% set set_day = day %}
+                                        {% endif %}
+                                        <option value="{{ set_day }}" {% if (petblock.birthdate|date(
+                                        'd') == set_day) %} selected{% endif %}> {{ set_day }}</option>
+                                        {% endfor %}
+                                    </select></div>
+                                </div>
+                                <div class="input-item">
+                                    <label>Year*</label>
+                                    <input class="input__field input__field--yoshiko birth_year" type="text" name="year"
+                                           data-petid={{petblock.id}}
+                                           value="{{ petblock.birthdate|date('Y')}}"/>
+                                </div>
+                                </div>
+                                <div class="this-used-to-be-pet-inputrow">
+                                <div class="qinput input-item">
+                                    <label>Species*</label>
+                                    <br>
+                                    <input type="radio" class="species" name="fields[pets][{{petblock.id}}][fields][species]" id="species"
+                                           data-petid="{{petblock.id}}" value="canine" {% if petblock.species|trim== "canine" %}
+                                    checked="checked" {% endif %}>
+                                    Canine
+                                    <input type="radio" class="species" name="fields[pets][{{petblock.id}}][fields][species]" id="species"
+                                           data-petid="{{petblock.id}}" value="feline" {% if petblock.species|trim== "feline" %}
+                                    checked="checked" {% endif %}>
+                                    Feline
+                                    {% if petblock is defined %}
+                                    {{ errorList(petblock.getErrors('species')) }}
+                                    {% endif %}
+                                </div>
+                                <div class="qinput input-item grow">
+                                    <label>Breed*</label>
+                                    <input class="input__field input__field--yoshiko breed" type="text" id="breed"
+                                           name="fields[pets][{{petblock.id}}][fields][breed]" data-petid="{{petblock.id}}"
+                                           {%- if petblock is defined %} value="{{ petblock.breed }}" {% endif -%}/>
+                                    {% if petblock is defined %}
+                                    {{ errorList(petblock.getErrors('species')) }}
+                                    {% endif %}
+                                </div>
+                                </div>
+                                <div class="qinput">
+                                    <label>Gender*</label><br/>
+                                    <input type="radio" name="fields[pets][{{petblock.id}}][fields][gender]" class="gender" id="gender"
+                                           data-petid="{{petblock.id}}" value="female" {% if petblock.gender|trim== "female" %}
+                                    checked="checked" {% endif %}>Female
+                                    <input type="radio" name="fields[pets][{{petblock.id}}][fields][gender]" class="gender" id="gender"
+                                           data-petid="{{petblock.id}}" value="male" {% if petblock.gender|trim== "male" %}
+                                    checked="checked" {% endif %}>Male
+                                    {% if petblock is defined %}
+                                    {{ errorList(petblock.getErrors('gender')) }}
+                                    {% endif %}
+                                </div>
+                                <div class="qinput">
+                                    <label>Is this pet spayed or neutered?*</label><br/>
+                                    <input type="radio" name="fields[pets][{{petblock.id}}][fields][spayedOrNeutered]"
+                                           id="spayedOrNeutered" class="spayedOrNeutered" data-petid="{{petblock.id}}"
+                                           value="yes" {% if petblock.spayedOrNeutered|trim== "yes" %} checked="checked" {% endif %}>Yes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                    <input type="radio" name="fields[pets][{{petblock.id}}][fields][spayedOrNeutered]"
+                                           id="spayedOrNeutered" class="spayedOrNeutered" data-petid="{{petblock.id}}"
+                                           value="no" {% if petblock.spayedOrNeutered|trim== "no" %} checked="checked" {% endif %}>No
+                                    {% if petblock is defined %}
+                                    {{ errorList(petblock.getErrors('spayedOrNeutered')) }}
+                                    {% endif %}
+                                </div>
+                                <div class="qinput clearfix">
+                                    <label>General Information</label>
+                                    <textarea class="input__field input__field--yoshiko" type="text" id="generalInformation"
+                                              data-petid="{{petblock.id}}"
+                                              name="fields[pets][{{petblock.id}}][fields][generalInformation]"> {%- if petblock is defined %}{{ petblock.generalInformation }} {% endif
+                              -%}</textarea>
+                                    {% if petblock is defined %}
+                                    {{ errorList(petblock.getErrors('generalInformation')) }}
+                                    {% endif %}
+                                </div>
+                                <div class="qinput">
+                                    <label>Is your pet ever aggressive to strangers? Has s/he ever bitten someone? Let us know so that
+                                        we
+                                        can make sure Vetter is the right service for your pet.*</label>
+                                    <br>
+                                    <input type="radio" name="fields[pets][{{petblock.id}}][fields][aggressiveBehavior]"
+                                           data-petid="{{petblock.id}}"
+                                           class="aggressiveBehavior" value="yes" {% if petblock.aggressiveBehavior|trim== "yes" %}
+                                    checked="checked" {% endif %}>Yes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                    <input type="radio" name="fields[pets][{{petblock.id}}][fields][aggressiveBehavior]"
+                                           data-petid="{{petblock.id}}"
+                                           class="aggressiveBehavior" value="no" {% if petblock.aggressiveBehavior|trim== "no" %}
+                                    checked="checked" {% endif %}>No
+                                </div>
+                                <div class="qinput">
+                                    <div class="detailAboutAggressiveBehavior {% if petblock.aggressiveBehavior|trim == 'no' %} hidden {% endif %}" data-petid="{{petblock.id}}">
+                                    <label>If Yes, please explain*</label>
+                                    <textarea name="fields[pets][{{petblock.id}}][fields][detailAboutAggressiveBehavior]"
+                                              class='detailAboutAggressiveBehaviortext' data-petid="{{petblock.id}}">{%- if petblock is defined %}{{ petblock.detailAboutAggressiveBehavior }}{% endif %}</textarea>
+                                </div>
+                            </div>
+
+                            <input class="button small blue petSave" type="submit" value="Save" data-petid="{{petblock.id}}" disabled>
+                            <a class="cancelCreatePet" href="#" onclick="$('div.petinfo[data-petid={{petblock.id}}]').slideUp();return false;">cancel</a>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+    </form>
+    <form method="post" accept-charset="UTF-8" class="addl-pets" enctype="multipart/form-data">
+        <!-- Create new pet-->
+        {{ getCsrfInput() }}
+        <input type="hidden" name="action" value="users/saveUser">
+         <input type="hidden" name="redirect" value="{{siteUrl}}user/{{ currentUser.id }}">
+        <input type="hidden" name="userId" value="{{ user.id }}">
+
+        <!--- put all existing pets in hidden, so that record won't overwrite when user upload new pet -->
+        {% for petblock in user.pets %}
+        {% if petblock.type == 'pet' %}
+        <input type="hidden" name="fields[pets][{{petblock.id}}][type]" value="pet">
+        <input type="hidden" name="fields[pets][{{petblock.id}}][enabled]" value="1">
+        {% endif %}
+        {% endfor %}
+        <!--  end of existing pets -->
+
+
+                        {% set total_pet = user.pets|length %}
+                        {% set remainPet = 4 - total_pet %}
+
+                        {% for number in 1..remainPet %}
+                        {% set next = total_pet + number %}
+
+                        {% if number == 1 and total_pet != 4 %}
+
+                        <div class="box eachPet" data-petid="new{{ next }}">
+                        <div class="nextPet">{{next}}.</div>
+                            <i class="icon-add_circle"></i><label>Add Pet</label>
+                        </div>
+                        <div class="newpet hidden" data-petid="new{{ next }}"> <!-- add pet -->
+                            <div class="nextPet">{{next}}.</div>
+                            <input type="hidden" name="fields[pets][new{{ next }}][type]" value="pet">
+                            <input type="hidden" name="fields[pets][new{{ next }}][enabled]" value="1">
+
+                            <div class='box pet_dragandrophandler' id="pets" data-name='pets' data-petid="new{{ next }}">
+                            <div class="vetProfile">
+                                <div class="picture"><img class="addpetpreview" data-petid="new{{ next }}" src="https://s3.amazonaws.com/vetterpc-images/pet_placeholderimage.jpg" alt="pet photo"></div>
+                                <div class="overlay">
+                                    <div class="button"><label for="createPetPhoto">Change Photo</label>
+                                    <input class="inputfile" type="file" id="createPetPhoto"
+                                       name="fields[pets][new{{ next }}][fields][petPhoto]" data-petid="new{{ next }}"/>
+                                    </div>
+                                </div>
+                            </div>
+                            </div>
+                            <div class="qinput clearfix">
+                                <label>Pet First Name*</label>
+                                <input class="input__field input__field--yoshiko petFirstName" type="text"
+                                       name="fields[pets][new{{ next }}][fields][petFirstName]" data-petid="new{{ next }}"
+                                       {%- if petblock is defined %} value="{{ petblock.petFirstName }}" {% endif -%} multiple/>
+                            </div>
+
+                            <div class="qinput">
+                                <label>Is Pet less than 1 year old?*</label>
+				<br/>
+				<input type="radio" class="1year" name="1year" value="yes" data-petid="new{{ next }}">Yes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+				<input type="radio" class="1year" name="1year" value="no" data-petid="new{{ next }}">No
+                            </div>
+                            <div class="pet-inputrow">
+                                <div class="calculatebirthdate hidden input-item" data-petid="new{{ next }}">
+                                    <label>Age*</label>
+                                    <input class="input__field input__field--yoshiko age" type="text" name="age"
+                                           data-petid="new{{ next }}"
+                                           {%- if petblock is defined %} value="{{ petblock.petFirstName }}" {% endif -%}/>
+                                </div>
+                            </div>
+                            <div class="inputbirthdate hidden pet-inputrow bday" data-petid="new{{ next }}">
+                              <label>Birthdate</label>
+                              <input class="birthdate hidden" type="date" id="birthdate" data-petid="new{{ next }}"
+                                       name="fields[pets][new{{ next }}][fields][birthdate]"
+                                       {%- if petblock is defined %} value="{{ petblock.birthdate }}" {% endif -%}/>
+                            </div>
+                            <div class="inputbirthdate hidden pet-inputrow" data-petid="new{{ next }}">
+                            <div class="input-item">
+                                <label>Month*</label>
+                                <select name="month" class="birth_month" data-petid="new{{ next }}">
+                                    {% for month in 1..12 %}
+                                    {% if month < 10 %}
+                                    {% set set_month = '0'~month %}
+                                    {% else %}
+                                    {% set set_month = month %}
+                                    {% endif %}
+                                    <option value="{{ set_month }}" {% if (
+                                    "now"|date('m') == set_month) %} selected{% endif %}> {{ set_month }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="input-item">
+                                <label>Day*</label>
+                                <div><select name='day' class="birth_day" data-petid="new{{ next }}">
+                                    {% for day in 1..31 %}
+                                    {% if day < 10 %}
+                                    {% set set_day = '0'~day %}
+                                    {% else %}
+                                    {% set set_day = day %}
+                                    {% endif %}
+                                    <option value="{{ set_day }}" {% if (
+                                    "now"|date('d') == set_day) %} selected{% endif %}> {{ set_day }}</option>
+                                    {% endfor %}
+                                </select></div>
+                            </div>
+                            <div class="input-item">
+                                <label>Year*</label>
+                                <input class="input__field input__field--yoshiko birth_year" type="text" name="year"
+                                       data-petid="new{{ next }}"
+                                       value="{{ " now"|date('Y')}}"/>
+                            </div>
+                            </div>
+
+                            <div class="this-used-to-be-pet-inputrow">
+                            <div class="qinput input-item">
+                                <label>Species*</label><br/>
+
+                                <input type="radio" class="species" name="fields[pets][new{{ next }}][fields][species]" id="species" value="canine"
+                                       data-petid="new{{ next }}">Canine
+
+                                <input type="radio" class="species" name="fields[pets][new{{ next }}][fields][species]" id="species" value="feline"
+                                       data-petid="new{{ next }}">
+                                Feline
+
+
+                                {% if petblock is defined %}
+                                {{ errorList(petblock.getErrors('species')) }}
+                                {% endif %}
+                            </div>
+                            <div class="qinput input-item grow">
+                                <label>Breed*</label>
+                                <input class="input__field input__field--yoshiko breed" type="text" id="breed"
+                                       name="fields[pets][new{{ next }}][fields][breed]" data-petid="new{{ next }}"
+                                       {%- if petblock is defined %} value="{{ petblock.breed }}" {% endif -%}/>
+                                {% if petblock is defined %}
+                                {{ errorList(petblock.getErrors('species')) }}
+                                {% endif %}
+                            </div>
+                            </div>
+                            <div class="qinput">
+                                <label>Gender*</label><br/>
+
+                                <input type="radio" name="fields[pets][new{{ next }}][fields][gender]" id="gender" class="gender" value="female"
+                                       data-petid="new{{ next }}">Female
+
+                                <input type="radio" name="fields[pets][new{{ next }}][fields][gender]" id="gender" class="gender" value="male"
+                                       data-petid="new{{ next }}">Male
+
+                                {% if petblock is defined %}
+                                {{ errorList(petblock.getErrors('gender')) }}
+                                {% endif %}
+
+                            </div>
+                            <div class="qinput">
+                                <label>Is this pet spayed or neutered?*</label><br/>
+                                <input type="radio" name="fields[pets][new{{ next }}][fields][spayedOrNeutered]" class="spayedOrNeutered" id="spayedOrNeutered"
+                                       value="yes" data-petid="new{{ next }}">Yes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                <input type="radio" name="fields[pets][new{{ next }}][fields][spayedOrNeutered]" class="spayedOrNeutered" id="spayedOrNeutered"
+                                       value="no" data-petid="new{{ next }}">No
+                                {% if petblock is defined %}
+                                {{ errorList(petblock.getErrors('spayedOrNeutered')) }}
+                                {% endif %}
+                            </div>
+                            <div class="qinput clearfix">
+                                <label>General Information</label>
+                                <textarea class="input__field input__field--yoshiko" type="text" id="generalInformation"
+                                          name="fields[pets][new{{ next }}][fields][generalInformation]" data-petid="new{{ next }}"
+                                          {%- if petblock is defined %} value="{{ petblock.generalInformation }}" {% endif
+                                          -%}></textarea>
+                                {% if petblock is defined %}
+                                {{ errorList(petblock.getErrors('generalInformation')) }}
+                                {% endif %}
+                            </div>
+                            <div class="qinput">
+                                <label> Is your pet ever aggressive to strangers? Has s/he ever bitten someone? Let us know so that we can make sure Vetter is the right service for your pet.*</label>
+                                <br>
+                                <input type="radio" name="fields[pets][new{{ next }}][fields][aggressiveBehavior]"
+                                       class="aggressiveBehavior" value="yes" data-petid="new{{ next }}">Yes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                <input type="radio" name="fields[pets][new{{ next }}][fields][aggressiveBehavior]"
+                                       class="aggressiveBehavior" value="no" data-petid="new{{ next }}">No
+                                {% if petblock is defined %}
+                                {{ errorList(petblock.getErrors('aggressiveBehavior')) }}
+                                {% endif %}
+                            </div>
+                            <div class="qinput">
+                                <div class="detailAboutAggressiveBehavior hidden" data-petid="new{{ next }}">
+                                    <label>If yes, please explain*</label>
+                                    <textarea name="fields[pets][new{{ next }}][fields][detailAboutAggressiveBehavior]"
+                                              class='detailAboutAggressiveBehaviortext' data-petid="new{{ next }}"></textarea>
+                                    {% if petblock is defined %}
+                                    {{ errorList(petblock.getErrors('detailAboutAggressiveBehavior')) }}
+                                    {% endif %}
+                                </div>
+                            </div>
+
+
+                            <input class="button small blue petSave" type="submit" data-petid="new{{ next }}" value="Save" disabled>
+                            <a href="#" class="cancelCreatePet" data-petid="new{{ next }}">cancel</a>
+                              {% if number != 1 and total_pet < 4 %}
+                        <div class="box inactivePet" data-petid="new{{next}}">
+                            <i class="icon-add_circle"></i><label>Add Pet</label>
+                        </div>
+                        {% endif %}
+                        </div> <!-- end add pet  -->
+
+                        {% endif %}
+                        {% endfor %}
+    </form>
+
+
+<div class="line" id="pet-records"></div>
+
+<!--  pet EMR -->
+<div class="petrecord" id="petrecord" >
+    <form method="post" accept-charset="UTF-8" enctype="multipart/form-data">
+        {{ getCsrfInput() }}
+        <input type="hidden" name="action" value="users/saveUser">
+        <input type="hidden" name="redirect" value="{{siteUrl}}user/{{ currentUser.id }}">
+        <input type="hidden" name="userId" value="{{ user.id }}">
+        <!--- put all existing petEMR in hidden, so that record won't overwrite when user upload new EMR -->
+        {% for petEMRblock in user.petRecords %}
+        {% if petEMRblock.type=='records' %}
+        {% if user.petRecords|length > 0 %}
+        {% set emr = petEMRblock.documentUpload.first() %}
+            <input type="hidden" name="fields[petRecords][{{petEMRblock.id}}][type]" value="records">
+            <input type="hidden" name="fields[petRecords][{{petEMRblock.id}}][enabled]" value="1">
+            <input type="hidden" name="fields[petRecords][{{petEMRblock.id}}][description]" value="{{petEMRblock.description}}">
+        {% endif %}
+        {% endif %}
+        {% endfor %}
+        <!--  end of existing petEMR-->
+        <h2>
+            {% set field = craft.fields.getFieldbyHandle('petRecords') %}
+            {{ field.name }}
+        </h2>
+        {{ customerAccountSetUp.petEmrsIntro }}
+
+        {% set total_petEMR = user.petRecords|length %}
+        {% set next = total_petEMR + 1 %}
+
+        <input type="hidden" name="fields[petRecords][new{{ next }}][type]" value="records">
+        <input type="hidden" name="fields[petRecords][new{{ next }}][enabled]" value="1">
+        <div class='box petemr_dragandrophandler' id="petRecords" data-name='petRecords'>
+        <div class="infofile">
+           <i class="icon-file_upload"></i>
+            <label for="petrecordfile"><span id="notchrome">Drag files here or </span><span class="browse">browse</span></label>
+            <span  for ="petrecordfile" > </span>
+            <input class="inputfile" type="file" id="petrecordfile"
+                   name="fields[petRecords][new{{ next }}][fields][documentUpload][]" multiple/>
+        <input class="input__field" type="hidden" id="description" name="fields[petRecords][new{{ next }}][fields][description]" value="">
+        </div>
+        <div class="infobutton">
+        <input class="button small blue petEMRupload" type="submit" value="upload" disabled>
+        </div>
+        </div>
+
+    </form>
+        {% if petblock is defined %}
+        {{ errorList(petblock.getErrors('description')) }}
+        {% endif %}
+
+        {% for petEMRblock in user.petRecords %}
+        {% if petEMRblock.type=='records' %}
+        {% if user.petRecords|length > 0 %}
+        {% set emr = petEMRblock.documentUpload.first() %}
+        {% if not petEMRblock.documentUpload is empty %}
+        <form method="post" accept-charset="UTF-8" enctype="multipart/form-data">
+        {{ getCsrfInput() }}
+        <input type="hidden" name="action" value="users/saveUser">
+        <input type="hidden" name="redirect" value="{{siteUrl}}user/{{ currentUser.id }}">
+        <input type="hidden" name="userId" value="{{ user.id }}">
+
+        <div class='exist_petrecord' data-recordid="{{petEMRblock.id}}">
+            <input type="hidden" name="fields[petRecords][{{petEMRblock.id}}][type]" value="records">
+            <input type="hidden" name="fields[petRecords][{{petEMRblock.id}}][enabled]" value="1">
+            <div class="addaDescription" data-recordid="{{petEMRblock.id}}">
+                <i class="icon-file-text2"></i><a href="{{ getSignedUrl(petEMRblock.documentUpload.first().id) }}"><span class="docname">{{petEMRblock.documentUpload.first()}}.{{petEMRblock.documentUpload.first().extension}}</span></a>
+                <!--<a href="#" class="addadescriptionlink" data-recordid="{{petEMRblock.id}}">Add a description</a>-->
+                <!-- // removing for July 21st test-->
+                {%if not petEMRblock.uploadedBy | length %}
+                <a href="#" class="remove-emr" data-recordid="{{petEMRblock.id}}" data-field="{{petEMRblock.id}}"  data-asset="{{emr.id}}" tabindex="0"><i class="icon-cancel"></i></a>
+                {% endif %}
+
+                 <!-- // removing for July 21st test  - end-->
+                <!--<div class = "emrDescription" data-recordid="{{petEMRblock.id}}">
+                    <textarea type="text" class="addDescriptionText" name="fields[petRecords][{{petEMRblock.id}}][fields][description]"
+                              data-recordid="{{petEMRblock.id}}" placeholder="Description of Electronic Medical Record">
+                        {%-if petEMRblock.description is defined -%}{{petEMRblock.description}} {% endif %}</textarea>
+                    <input class="button small blue emrSave" type="submit" value="Save" disabled>
+                    <a href="#" onclick="$('div.emrDescription[data-recordid={{petEMRblock.id}}]').slideUp();return false;">Cancel</a>
+
+                </div>-->
+            </div>
+        </div>
+        {% else %}
+      <!--  <a href="#" class="remove-emr empty" data-field="{{petEMRblock.id}}" data-recordid="{{petEMRblock.id}}" data-asset="0" tabindex="0">Remove Empty Record <i class="icon-cancel"></i></a> -->
+        {% endif %}
+
+        {% endif %}
+        {% endif %}
+        {% endfor %}
+        </form>
+</div>
+
+<div class="receipt-list">
+{% for receipt in user.receiptsOfService %}
+    {% if loop.first %}
+    <div class="line"></div>
+    <h2>Receipts of Service</h2>
+    {% endif %}
+    <!--  Receipts of Service -->
+        <div class="receipts">
+        <i class="icon-file-text2"></i><a href="{{ getSignedUrl(receipt.documentUpload.first().id) }}">{{receipt.dateOfService}} - {{receipt.documentUpload.first()}}.{{receipt.documentUpload.first().extension}}</a>
+        </div>
+{% endfor %}
+</div>
+    {% else %}
+<!-- if user is not customer, display vet profile -->
+<form method="post" class="basic" accept-charset="UTF-8" enctype="multipart/form-data">
+    {{ getCsrfInput() }}
+    <input type="hidden" name="action" value="users/saveUser">
+    <input type="hidden" name="redirect" value="{{siteUrl}}user/{{ currentUser.id }}">
+    <input type="hidden" name="userId" value="{{ currentUser.id }}">
+    <input type="hidden" name="success" value="1">
+    <input type="hidden" id="vetaccount" value="1">
+
+    <!-- photo of vet -->
+    <div class ='vet vet_dragandrophandler' data-name='vet'>
+        <div class="vetProfile">
+
+            {% if user.vetProfilePhoto|length == 0 %}
+              <div class="picture"><img class="img-circle addpetpreview" src="https://s3.amazonaws.com/vetterpc-images/default-placeholder-1024x1024.png" alt="pet photo"></div>
+            {% else %}
+            {% for asset in user.vetProfilePhoto %}
+            <div class="picture"><img class='img-circle addpetpreview' src="{{ asset.url}}" alt="pet photo"></div>
+            {% endfor %}
+            {% endif %}
+
+            <div class="overlay">
+                <div class="button" id="vet" data-name='vet'>&nbsp;<label for="changePhoto">Change Photo</label>
+                <input class="inputfile" type="file" id ="changePhoto" name="fields[vetProfilePhoto]"/>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Basic Information -->
+    <div class="heading">Basic Information</div>
+    <div class="user-basic">
+     <div class="input-row">
+        <span class="input input--yoshiko firstName readonly">
+          <input class="input__field input__field--yoshiko" type="text" id="firstName" name = "fields[firstName]" value="{{user.firstName}}" disabled/>
+            <label class="input__label input__label--yoshiko" for="firstName">
+              <span class="input__label-content input__label-content--yoshiko" data-content="First Name">First Name</span>
+            </label>
+          </span>
+          <span class="input input--yoshiko lastName readonly">
+            <input class="input__field input__field--yoshiko" type="text" id="lastName" name = "fields[lastName]" value="{{user.lastName}}" disabled/>
+              <label class="input__label input__label--yoshiko" for="lastName">
+                <span class="input__label-content input__label-content--yoshiko" data-content="Last Name">Last Name</span>
+              </label>
+            </span>
+     </div>
+     <div class="input-row">
+        <span class="input input--yoshiko email readonly">
+          <input class="input__field input__field--yoshiko" type="text" id="email" name = "fields[email]" value="{{user.email}}" disabled = disabled/>
+            <label class="input__label input__label--yoshiko" for="email">
+              <span class="input__label-content input__label-content--yoshiko" data-content="Email">Email</span>
+            </label>
+          </span>
+          <span class="input input--yoshiko vetnum readonly">
+          <input class="input__field input__field--yoshiko" type="text" id="vetnum" name = "vetnum" value="V-0{{ currentUser.id }}" disabled/>
+            <label class="input__label input__label--yoshiko" for="vetnum">
+              <span class="input__label-content input__label-content--yoshiko" data-content="Veterinarian Number">Veterinarian Number</span>
+            </label>
+          </span>
+<!--           <span class="input input--yoshiko vet-id">
+           <div class="qinput">
+               <label>Veterinarian Number</label>
+               <div>Vet # v-0{{ currentUser.id }}</div>
+           </div>
+          </span> -->
+     </div>
+    </div>
+
+    <div class="subheading">Home Address<em class="req">* Indicates a required field.</em></div>
+   <div class="input-row">
+    <span class="input input--yoshiko streetaddress">
+      <input class="input__field input__field--yoshiko" type="text" id="streetaddress" name = "fields[streetAddress]" value="{{user.streetAddress}}"/>
+        <label class="input__label input__label--yoshiko" for="streetaddress">
+          <span class="input__label-content input__label-content--yoshiko" data-content="Street Address">Street Address*</span>
+        </label>
+      </span>
+    </div>
+    <div class="input-row">
+      <span class="input input--yoshiko streetAddress2">
+        <input class="input__field input__field--yoshiko" type="text" id="streetAddress2" name = "fields[streetAddress2]" value="{{user.streetAddress2}}"/>
+          <label class="input__label input__label--yoshiko" for="streetAddress2">
+            <span class="input__label-content input__label-content--yoshiko" data-content="Address 2">Address 2</span>
+          </label>
+     </span>
+
+     <span class="input input--yoshiko cellphone">
+       <input class="input__field input__field--yoshiko" type="text" id="cellphone" name = "fields[cellPhone]" value="{{user.cellPhone}}"/>
+        <label class="input__label input__label--yoshiko" for="cellphone">
+          <span class="input__label-content input__label-content--yoshiko" data-content="Cell Phone">Cell Phone*</span>
+        </label>
+      </span>
+    </div>
+    <div class="input-row">
+      <span class="input input--yoshiko city">
+        <input class="input__field input__field--yoshiko" type="text" id="city" name = "fields[city]" value="{{user.city}}"/>
+          <label class="input__label input__label--yoshiko" for="city">
+            <span class="input__label-content input__label-content--yoshiko" data-content="City">City*</span>
+          </label>
+      </span>
+
+      <span class="input input--yoshiko states">
+       <select id="states" name="fields[states]">
+           <option></option>
+           {% for option in user.states.options %}
+           {% set state = user.states|trim %}
+           <option {% if state == option %} selected {% endif %}>{{option}}</option>
+           {% endfor %}
+       </select>
+         <label class="input__label input__label--yoshiko" for="states">
+           <span class="input__label-content input__label-content--yoshiko" data-content="State">State*</span>
+         </label>
+       </span>
+
+       <span class="input input--yoshiko zip">
+         <input class="input__field input__field--yoshiko" type="text" id="zip" name = "fields[zip]" value="{{user.zip}}"/>
+          <label class="input__label input__label--yoshiko" for="zip">
+            <span class="input__label-content input__label-content--yoshiko" data-content="Zip">Zip*</span>
+          </label>
+        </span>
+      </div>
+
+
+<!-- Zip codes vet is available to work -->
+       <div class="zipintro">
+       {% set vetZip = craft.fields.getFieldByHandle('vetZip') %}
+       <label>{{vetZip.name}}</label>
+       {{vetZip.settings.selectionLabel}}
+       <div class="checkboxes">
+       {% for entry in craft.entries.section('zip').order('cast(zip as unsigned)').limit(null) %}
+       <div class="chk">
+        <input type="checkbox" name="fields[vetZip][]" value="{{entry.id}}"
+              {% for eachVetZip in user.vetZip %}
+              {% if entry.title ==  eachVetZip %}
+              checked = "checked"
+              {% endif %}
+              {% endfor %}
+       >{{entry.title}}
+      </div>
+       {% endfor %}
+      </div>
+       </div>
+
+    <div class="line"></div>
+
+    <!-- Education -->
+    <div class="subheading">Education<em class="req">* Indicates a required field.</em></div>
+
+    <div class="input-row">
+    <span class="input input--yoshiko undergraduateSchool">
+      <input class="input__field input__field--yoshiko" type="text" id="undergraduateSchool" name = "fields[undergraduateSchool]" value="{{user.undergraduateSchool}}"/>
+       <label class="input__label input__label--yoshiko" for="undergraduateSchool">
+         <span class="input__label-content input__label-content--yoshiko" data-content="Undergraduate School">Undergraduate School*</span>
+       </label>
+     </span>
+     <span class="input input--yoshiko undergraduateDegree">
+      <input class="input__field input__field--yoshiko" type="text" id="undergraduateDegree" name = "fields[undergraduateDegree]" value="{{user.undergraduateDegree}}"/>
+       <label class="input__label input__label--yoshiko" for="undergraduateDegree">
+         <span class="input__label-content input__label-content--yoshiko" data-content="Undergraduate Degree">Undergraduate Degree*</span>
+       </label>
+     </span>
+   </div>
+   <div class="input-row">
+   <span class="input input--yoshiko veterinarySchool">
+     <input class="input__field input__field--yoshiko" type="text" id="veterinarySchool" name = "fields[veterinarySchool]" value="{{user.veterinarySchool}}"/>
+      <label class="input__label input__label--yoshiko" for="veterinarySchool">
+        <span class="input__label-content input__label-content--yoshiko" data-content="Veterinary School">Veterinary School*</span>
+      </label>
+    </span>
+    <span class="input input--yoshiko veterinaryDegree readonly">
+     {% for cert in user.certification.options %}
+     {%if cert.selected == cert.value %}
+     <input class="input__field input__field--yoshiko" type="text" id="certification" name = "fields[certification]" value="{{cert.label}}" disabled/>
+     {% endif %}
+     {% endfor %}
+      <label class="input__label input__label--yoshiko" for="veterinaryDegree">
+        <span class="input__label-content input__label-content--yoshiko" data-content="Veterinary Degree">Veterinary Degree</span>
+      </label>
+    </span>
+  </div>
+  <div class="input-row">
+  <span class="input input--yoshiko licenseNumber readonly">
+    <input class="input__field input__field--yoshiko" type="text" id="licenseNumber" name = "fields[licenseNumber]" value="{{user.licenseNumber}}" disabled/>
+     <label class="input__label input__label--yoshiko" for="licenseNumber">
+       <span class="input__label-content input__label-content--yoshiko" data-content="License Number">License Number</span>
+     </label>
+   </span>
+ </div>
+
+ <div class="input-row">
+ <span class="input input--yoshiko body readonly">
+   <textarea class="input__field input__field--yoshiko autoresize"  id="body" name="fields[body]" onload="setHeight('autoresize');" disabled>{{user.body|striptags('<strong><em><br>')|raw}}</textarea>
+    <label class="input__label input__label--yoshiko" for="body">
+      <span class="input__label-content input__label-content--yoshiko" data-content="Biography">Biography</span>
+    </label>
+  </span>
+ </div>
+
+ <div class="input-row">
+ <span class="input input--yoshiko funFact readonly">
+   <textarea class="input__field input__field--yoshiko"  id="funFact" name="fields[vetFact]" disabled>{{user.vetFact|striptags('<strong><em><br>')|raw}}</textarea>
+    <label class="input__label input__label--yoshiko" for="body">
+      <span class="input__label-content input__label-content--yoshiko" data-content="Fun Fact">Fun Fact</span>
+    </label>
+  </span>
+ </div>
+
+
+
+    <!-- Save Changes -->
+<div class="btn-container right clearfix">
+    <input class="button blue small" id="saveVet" type="submit" value="Save">
+</div>
+
+</form>
+
+    <div class="line"></div>
+
+    <h2 name="change_user">Change Your Email Address<em class="req">* Indicates a required field.</em></h2>
+    <h4>Enter a new email address below.</h4>
+    <form method="post" class="change_basic_user" id="change_basicinfoform" accept-charset="UTF-8">
+        {{ getCsrfInput() }}
+        <input type="hidden" name="action" value="users/saveUser">
+        <input type="hidden" name="userId" value="{{ currentUser.id }}">
+
+
+        <!-- parser error message -->
+        {% macro errorList(errors) %}
+        {% if errors %}
+        <ul class="errors">
+            {% for error in errors %}
+            <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endmacro %}
+        {% from _self import errorList %}
+        <!-- end parser error message -->
+
+        <!---  Change email -->
+        <div class="input-row">
+    <span class="input input--yoshiko">
+      <input class="input__field input__field--yoshiko" type="text" id="change_email" name = "email" value=""/>
+        <label class="input__label input__label--yoshiko" for="change_email">
+          <span class="input__label-content input__label-content--yoshiko" data-content="Email">Email Address*</span>
+        </label>
+      </span>
+        </div>
+
+        <div class="input-row">
+    <span class="input input--yoshiko">
+      <input class="input__field input__field--yoshiko" type="text" id="confirm_email" name = "confirm_email" value=""/>
+        <label class="input__label input__label--yoshiko" for="confirm_email">
+          <span class="input__label-content input__label-content--yoshiko" data-content="confirm_email">Confirm Email Address*</span>
+        </label>
+        {% if account is defined %}
+           {{ errorList(account.getErrors('email'))}}
+        {% endif %}
+
+        {% set error = craft.session.getFlash('error') %}
+        {% set trimmed = "" %}
+        {% for line in error|split("\n") %}
+            {% set trimmed = trimmed ~ (trimmed ? "\n") ~ line|replace('/\\s*$/', '') %}
+        {% endfor %}
+
+        {% if account is defined %}
+            {% if errorList(account.getErrors('email')) | length > 16 %}
+            {% else %}
+                {% if (trimmed | length) %}
+                <div id="error_email">Invalid Password</div>
+                {% endif %}
+            {% endif %}
+        {% endif %}
+      </span>
+        </div>
+
+        <div class="input-row">
+    <span class="input input--yoshiko password">
+      <input class="input__field input__field--yoshiko" type="password" id="password" name = "password" value=""/>
+        <label class="input__label input__label--yoshiko" for="password">
+          <span class="input__label-content input__label-content--yoshiko" data-content="password">Enter Password to Authorize Change*</span>
+        </label>
+        <div id="error_password"></div>
+
+      </span>
+        </div>
+        <div class="btn-container right clearfix">
+            <input class="button small blue change_email_submit" id="change_email_submit" type="submit" value="Save">
+        </div>
+    </form>
+
+    <div class="line"></div>
+
+     <!-- Handbook -->
+    <div class="subheading">Resources</div>
+    <div class="receipt-list">
+     {% set Vetasset = vetHandbook.handbook %}
+      {% if Vetasset | length %}
+      <div class="receipts">
+       {% for vetfiles in Vetasset %}
+         <div class="hbook"><i class="icon-file-text2"></i><a href="{{ vetfiles.url }}">{{ vetfiles.filename }}</a></div>
+       {% endfor %}
+
+      </div>
+      {% endif %}
+    </div>
+
+    {% endif %}
+
+
+</div>  <!-- end of content -->
+   <script>
+$(function(){
+      Stripe.setPublishableKey('{{craft.charge.getPublicKey()}}');
+      $(this).charge();
+      var billingSaved = $(".sbi").val();
+      var editing = false;
+      var card;
+      var exp;
+      var cvc;
+      var displayed = false;
+      var isStripeCustomer = "{% if craft.charge.customer %}{{craft.charge.customer.getSavedCards()|length}} {% else %}0{% endif %}";
+      /* get credit error */
+      var raw_save_credit_error="{% if charge is defined %}{% for error in charge.getErrors('general') %}{{error}}{% endfor %}{% endif %}";
+      var save_credit_error = raw_save_credit_error.replace("&#039;","'");
+
+     if ((save_credit_error.length == 0) || (save_credit_error)){
+	 /* if no error then save NameOnCard */
+     if ( (localStorage.getItem("nameOnCard")) || (localStorage.getItem("name"))){
+         var nameform = '<form method="post" accept-charset="UTF-8">'+
+           '<input type="hidden" name="action" value="users/saveUser">'+
+           '<input type="hidden" name="userId" value="{{ currentUser.id }}">';
+           if (localStorage.getItem("nameOnCard")) {
+	            nameform = nameform + '<input type="hidden" name="fields[nameOnCard]" value="'+localStorage.getItem("nameOnCard")+'">';
+           }else if (localStorage.getItem("name")){
+	           nameform = nameform + '<input type="hidden" name="fields[nameOnCard]" value="'+localStorage.getItem("name")+'">';
+           }
+           nameform = nameform +'</form>';
+           nameform = $(nameform);
+
+             $.ajax({
+              type: 'POST',
+              url: "{{siteUrl}}",
+              data: nameform.serialize(),
+             });
+       }
+      }
+
+      var nameOnCard;
+         if (!save_credit_error){
+		      if (localStorage.getItem('nameOnCard')){
+			      nameOnCard = localStorage.getItem('nameOnCard');
+		      }else{
+			      nameOnCard = "{{currentUser.nameOnCard}}";
+		      }
+	      }else{
+		    nameOnCard = "{{currentUser.nameOnCard}}";
+	      }
+
+
+      $(".suser").prop("disabled", true);
+      $(".change_email_submit").prop("disabled", true);
+      $("#createAppt").prop("disabled", true);
+ if($("#sameBillingAddr").is(":checked")){
+          $("#billstreetaddress").val("{{currentUser.streetAddress}}");
+          $("#billaddress2").val("{{currentUser.streetAddress2}}");
+          $("#billcellphone").val("{{currentUser.cellPhone}}");
+          $("#billcity").val("{{currentUser.city}}");
+          $("#billstates").val("{{currentUser.states}}");
+          $("#billzip").val("{{currentUser.customerZip.first()}}");
+        }
+        $(".sameashome").change(function(e){
+          if($(this).prop('checked')) {
+                  $('.js-sameashome').val(1);
+           } else {
+                  $('.js-sameashome').val(0);
+           }
+           $("#createAppt").prop("disabled", false);
+        });
+
+ $(".email").keyup(function(e){
+    $(".password").slideDown();
+ });
+
+        $("form#billAddr input").keyup(function(e){
+         $(".sameashome").prop('checked', false);
+         $('.js-sameashome').val(0);
+         if($("#billstreetaddress").val().trim().length < 1
+            && $("#billcellphone").val().trim().length < 1
+            && $("#billcity").val().trim().length < 1
+            && !$("#billstates").val()
+            && $("#billzip").val().trim().length < 1)
+              {
+                $("#createAppt").prop("disabled", true);
+              } else {
+                $("#createAppt").prop("disabled", false);
+               }
+        });
+
+    $("form#change_basicinfoform input").keyup(function(e) {
+        $(".change_email_submit").prop("disabled", true);
+        if ( ($("#change_email").val().trim().length > 1)
+            && ($("#confirm_email").val().trim().length > 1)
+            && ($("#password").val().trim().length > 1)
+            && ($("#change_email").val() == $("#confirm_email").val())){
+                $(".change_email_submit").prop("disabled", false);
+            }else{
+            $(".change_email_submit").prop("disabled", true);
+        }
+    });
+
+
+
+       $("form#basicinfoform input").keyup(function(e){
+        $(".suser").prop("disabled", true);
+         if($("#streetaddress").val().trim().length < 1
+            && $("#firstName").val().trim().length < 1
+            && $("#lastName").val().trim().length < 1
+            && $("#email").val().trim().length < 1
+            && $("#cellphone").val().trim().length < 1
+            && $("#city").val().trim().length < 1)
+              {
+                $(".suser").prop("disabled", true);
+              } else {
+                $(".suser").prop("disabled", false);
+               }
+        });
+
+       $("#saveVet").prop("disabled", true);
+
+       $('form.basic select, form.basic input[type="checkbox"], form.basic input').on('keyup input change', function() {
+          $("#saveVet").prop("disabled", false);
+       });
+       $("#c_states, #customerZip").change(function(event){
+           $(".suser").prop("disabled", false);
+       });
+	$("#billstates").change(function(event){
+	$("#createAppt").prop("disabled", false);
+	});
+      $("#createAppt").click(function(e){
+            e.preventDefault();
+         $("#billingSavedMsg").fadeOut();
+        var flow = $(this).data('flow');
+        var id = $(this).data('uid');
+
+          var error_flag = 0;
+          if($("#billstreetaddress").val().trim().length < 1){
+          $("#billstreetaddress").parent().addClass('field-error');
+                $("#error_streetaddress").html("Street Address is required.");
+                error_flag = 1;
+              } else {
+                   $("#billstreetaddress").parent().removeClass('field-error');
+                   $("#error_streetaddress").html('');
+              }
+           if($("#billcellphone").val().trim().length < 1){
+          $("#billcellphone").parent().addClass('field-error');
+                $("#error_cellphone").html("Cell Phone is required.");
+                error_flag = 1;
+              }  else {
+                   $("#billcellphone").parent().removeClass('field-error');
+                   $("#error_cellphone").html('');
+              }
+           if($("#billcity").val().trim().length < 1){
+          $("#billcity").parent().addClass('field-error');
+                $("#error_city").html("City is required.");
+                error_flag = 1;
+              }  else {
+                   $("#billcity").parent().removeClass('field-error');
+                   $("#error_city").html('');
+              }
+           if($("#billstates").val() == null){
+          $("#billstates").parent().addClass('field-error');
+                $("#error_states").html("State is required.");
+                error_flag = 1;
+              }  else {
+                   $("#billstates").parent().removeClass('field-error');
+                   $("#error_states").html('');
+              }
+            if($("#billzip").val().trim().length < 1){
+          $("#billzip").parent().addClass('field-error');
+                $("#error_zip").html("Zipcode is required.");
+                error_flag = 1;
+              }  else {
+                   $("#billzip").parent().removeClass('field-error');
+                   $("#error_zip").html('');
+              }
+            if(error_flag < 1){
+            //  $("span").removeClass('field-error');
+            //  $(".errmsg").html('');
+              var billAddr = $("#billAddr").serialize();
+                $.ajax({
+                 type: 'POST',
+                 url: "{{siteUrl}}",
+                 data: billAddr,
+                 success: function(){
+            $("#createAppt").prop("disabled", true);
+           $("#billingSavedMsg").html("<em>Billing Address saved successfully</em>");
+           $("#billingSavedMsg").fadeIn();
+
+                  if(isStripeCustomer < 1){
+                       $("#charge-form-container").show();
+                       $("#charge-form").show();
+                       $(".payment-container").show();
+
+                   } else {
+                    $(".payment-container").show();
+                     $(".saved-card-info-container").show();
+                   }
+                   $('html, body').animate({
+                          scrollTop: $(".payment-container").offset().top - 100
+                        }, 1200);
+                  }
+              });
+                } else {
+                    return false;
+                }
+            });
+
+   console.log(isStripeCustomer);
+if(isStripeCustomer < 1){
+    $("#charge-form-container").show();
+    $("#charge-form").show();
+    //$(".payment-container").hide();
+
+} else {
+	if(billingSaved == 0){
+	  $("#cardNumber").val('');
+	  $("#cardExpiry").val('');
+	  $("#cardCvc").val('');
+	  $(".payment-container").hide();
+	  $("#charge-form-container").hide();
+	  console.log('show');
+	} else {
+	$("#charge-form-container").hide();
+	$(".saved-card-info-container").show();
+	$(".payment-container").show();
+	 // $(".js-checkbox").hide();
+	 // $("#checkboxtext").hide();
+	}
+
+    if ($(".saved-card-info-container").is(':visible')){
+  	      $("#charge-form-container").hide();
+          $("#charge-form").hide();
+        }else{
+  		  $("#charge-form-container").show();
+          $("#charge-form").show();
+        }
+}
+
+
+$("#cardNumber").keyup(function(e){
+if($(this).val().length >= 19){
+$("#cardExpiry").focus();
+}
+});
+$("#cardExpiry").keyup(function(e){
+if($(this).val().length >=7 ){
+$("#cardCvc").focus();
+}
+});
+    $("#editCard").click(function(e){
+        e.preventDefault();
+      $(".saved-card-info-container").hide();
+            $("#charge-form-container").show();
+            $("#charge-form").show();
+       $("#payment-errors").removeClass("alert");
+         $("#payment-errors").removeClass("alert-warning");
+       $("#payment-errors").empty();
+        });
+  $("#cardNumber, #cardExpiry, #cardCvc, #nameOnCard").click(function(e){
+
+if(!editing){
+ card = $("#cardNumber").val();
+ exp = $("#cardExpiry").val();
+ cvv = $("#cardCvc").val();
+  $("#nameOnCard").val('');
+  $("#cardNumber").val('');
+  $("#cardExpiry").val('');
+  $("#cardCvc").val('');
+  $("#cardCvc").attr('placeholder', '');
+  editing = true;
+}
+});
+
+  $(".cancel").click(function(e){
+  e.preventDefault();
+  //editing = false;
+  $("#charge-form-container").hide();
+  console.log(storedName);
+
+  if(editing){
+        $("#cardNumber").val(card);
+        $("#cardExpiry").val(exp);
+        $("#cardCvc").val(cvc);
+        var storedName = "{{currentUser.nameOnCard}}";
+   console.log(storedName);
+        if(storedName.length > 0){
+        	$("#nameOnCard").val(storedName);
+        } else {
+        	$("#nameOnCard").val(localStorage.getItem('name'));
+        }
+  	}
+  $("#cardCvc").attr("placeholder", "***");
+  $(".saved-card-info-container").show();
+  editing = false;
+  return false;
+   });
+
+
+  /*$("#nameOnCard").keyup(function(){
+if(!editing){
+ card = $("#cardNumber").val();
+ exp = $("#cardExpiry").val();
+ cvv = $("#cardCvc").val();
+  $("#cardNumber").val('');
+  $("#cardExpiry").val('');
+  $("#cardCvc").val('CVV');
+  editing = true;
+}
+});
+*/
+
+if(localStorage.getItem('name')){
+$(".saved-name").text(localStorage.getItem('name'));
+$("#nameOnCard").val(localStorage.getItem('name'));
+} else {
+if(billingSaved == 1){
+var savedName = "{{currentUser.nameOnCard}}";
+$(".saved-name").text(savedName);
+$("#nameOnCard").val(savedName);
+}
+}
+
+  $("#charge-form").submit(function(e){
+
+  localStorage.setItem('name', $("#nameOnCard").val());
+  var nameoncardd = $('#nameOnCard').val();
+  var raw_nameform = '<form method="post" accept-charset="UTF-8">'+
+    '<input type="hidden" name="action" value="users/saveUser">'+
+    '<input type="hidden" name="userId" value="{{ currentUser.id }}">'+
+    '<input type="hidden" name="fields[savebillinginfo]" value="1">';
+    //comment out raw_nameform = raw_nameform +'<input type="hidden" name="fields[nameOnCard]" value="'+nameoncardd+'">';
+    raw_nameform = raw_nameform + '</form>';
+
+    nameform=$(raw_nameform);
+
+
+    $('body').append(nameform);
+      $.ajax({
+       type: 'POST',
+       url: "{{siteUrl}}",
+       data: nameform.serialize()
+    });
+    });
+
+  $("#sameBillingAddr").change(function(event){
+        if($("#sameBillingAddr").is(":checked")){
+          $("#billstreetaddress").val("{{currentUser.streetAddress}}");
+          $("#billaddress2").val("{{currentUser.streetAddress2}}");
+          $("#billcellphone").val("{{currentUser.cellPhone}}");
+          $("#billcity").val("{{currentUser.city}}");
+          $("#billstates").val("{{currentUser.states}}");
+          $("#billzip").val("{{currentUser.customerZip.first()}}");
+        //  $("#createAppt").prop("disabled", false);
+        } else {
+          $("#billstreetaddress").val("");
+          $("#billaddress2").val("");
+          $("#billcellphone").val("");
+          $("#billcity").val("");
+          $("#billstates").val("");
+          $("#billzip").val("");
+       //   $("#createAppt").prop("disabled", true);
+        }
+      });
+
+   /* if billing address is not empty, show Add Payment Information */
+
+  if (($('#billstreetaddress').val().length > 0) || ($('#billcellphone').val().length > 0) || ($('#billcity').val().length > 0) || ($('#billzip').val().length > 0)){
+
+        if ($(".saved-card-info-container").is(':visible')){
+  	      $("#charge-form-container").hide();
+          $("#charge-form").hide();
+        }else{
+  		  $("#charge-form-container").show();
+          $("#charge-form").show();
+        }
+
+  } else{
+	      $("#charge-form-container").hide();
+          $("#charge-form").hide();
+          $("#payment-container").hide();
+  }
+
+
+  /* show payment error */
+  if (save_credit_error.length > 0) {
+          $("#payment-errors").show();
+          $("#payment-errors").addClass("alert");
+          $("#payment-errors").addClass("alert-warning");
+          $("#payment-errors").text(save_credit_error);
+          $("#nameOnCard").val('');
+          $("#cardNumber").val('');
+          $("#cardExpiry").val('');
+          $("#cardCvc").val('');
+          $(".cancel").hide();
+          $("#charge-form-container").show();
+          $("#charge-form").show();
+          $(".saved-card-info-container").hide();
+          window.location.href = "{{siteUrl}}user/{{ currentUser.id }}#payment-container";
+        }
+
+
+});
+
+function setHeight(fieldId){
+  if(document.getElementsByClassName(fieldId).length > 0){
+    document.getElementsByClassName(fieldId)[0].style.height = document.getElementsByClassName(fieldId)[0].scrollHeight+10+'px';
+  }
+}
+setHeight('autoresize');
+var isChrome = !!window.chrome;
+var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+if(isChrome){}else if(isSafari){}else{
+  $('#notchrome').hide();
+}
+
+  </script>
+
+{% endblock %}
+
+{% block footerJs %}
+{% endblock %}

@@ -1,0 +1,36 @@
+<script type="text/javascript">
+window.csrfTokenName = "{{ craft.config.csrfTokenName|e('js') }}";
+window.csrfTokenValue = "{{ craft.request.csrfToken|e('js') }}";
+
+var data = {};
+
+data.sectionId                         = {{craft.request.getParam('sectionId', 0)}};
+data.entryTypeId                       = {{craft.request.getParam('entryTypeId', 0)}};
+data.selectAll                         = false;
+data.applyTo                           = [];
+data.saveButtonClicked                 = false;
+data.loading                           = true;
+data.openedCustomDisplayTemplateFields = [];
+
+/**
+ * Sections
+ */
+data.sections = {
+  {% for index, s in sections %}
+    {{s.id}}: { id: {{s.id}}, name: '{{s.name}}', entryTypes: [
+      {% for e in s.entryTypes %}
+        { id: {{e.id}}, name: '{{e.name}}' },
+      {% endfor %}
+    ] },
+  {% endfor %}
+};
+
+data.userGroups = [
+	{% for group in userGroups %}
+		{
+			id: {{group.id}},
+			name: '{{group.name}}'
+		},
+	{% endfor %}
+];
+</script>
